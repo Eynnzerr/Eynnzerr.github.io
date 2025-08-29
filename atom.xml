@@ -6,7 +6,7 @@
   <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
   
   <link href="http://blog.eynnzerr.top/"/>
-  <updated>2025-08-29T11:58:51.650Z</updated>
+  <updated>2025-08-29T12:50:29.166Z</updated>
   <id>http://blog.eynnzerr.top/</id>
   
   <author>
@@ -17,11 +17,65 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Handler 消息处理机制解析</title>
+    <link href="http://blog.eynnzerr.top/2025/08/29/old-handler-src-analysis/"/>
+    <id>http://blog.eynnzerr.top/2025/08/29/old-handler-src-analysis/</id>
+    <published>2025-08-29T12:44:42.000Z</published>
+    <updated>2025-08-29T12:50:29.166Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;该篇内容为原博客博文，原上传于2021年9月11日。&lt;/strong&gt;&lt;/p&gt;
+&lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;提到Android中的消息机制，想必大</summary>
+      
+    
+    
+    
+    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    
+    
+    <category term="Android" scheme="http://blog.eynnzerr.top/tags/Android/"/>
+    
+    <category term="Handler" scheme="http://blog.eynnzerr.top/tags/Handler/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Docker基础原理探究</title>
+    <link href="http://blog.eynnzerr.top/2025/08/29/old-docker-principle/"/>
+    <id>http://blog.eynnzerr.top/2025/08/29/old-docker-principle/</id>
+    <published>2025-08-29T12:34:26.000Z</published>
+    <updated>2025-08-29T12:44:00.442Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;该篇内容为原博客博文，原上传于2021年11月27日。&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&quot;一、前言-Docker是什么？&quot;&gt;&lt;a href=&quot;#一、前言-Docker是什么？&quot; class=&quot;headerlink&quot; title=&quot;一、前言 Docke</summary>
+      
+    
+    
+    
+    <category term="Docker" scheme="http://blog.eynnzerr.top/categories/Docker/"/>
+    
+    
+    <category term="Docker" scheme="http://blog.eynnzerr.top/tags/Docker/"/>
+    
+    <category term="Linux" scheme="http://blog.eynnzerr.top/tags/Linux/"/>
+    
+    <category term="namespace" scheme="http://blog.eynnzerr.top/tags/namespace/"/>
+    
+    <category term="Cgroups" scheme="http://blog.eynnzerr.top/tags/Cgroups/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Eynnzerr&#39;s Blog 复活</title>
     <link href="http://blog.eynnzerr.top/2025/08/29/hello-world/"/>
     <id>http://blog.eynnzerr.top/2025/08/29/hello-world/</id>
     <published>2025-08-29T08:43:57.000Z</published>
-    <updated>2025-08-29T11:58:51.650Z</updated>
+    <updated>2025-08-29T12:51:27.637Z</updated>
     
     
       
@@ -31,6 +85,8 @@
       
     
     
+    
+    <category term="其它" scheme="http://blog.eynnzerr.top/categories/%E5%85%B6%E5%AE%83/"/>
     
     
   </entry>
