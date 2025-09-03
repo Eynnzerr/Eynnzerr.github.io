@@ -195,6 +195,439 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/09/03/old-sealed-class/" class="post-title-link" itemprop="url">奇妙的 Sealed</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-09-03 15:21:27 / 修改时间：11:13:28" itemprop="dateCreated datePublished" datetime="2025-09-03T15:21:27+08:00">2025-09-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>该篇内容为原博客博文，原上传于2023年1月18日。</strong></p>
+<p><strong>Sealed Class</strong>和<strong>Sealed Interface</strong>是 kotlin 引入的全新特性。在初学 kotlin 时，我就一直没有掌握其用法，甚至到现在也不能在该用的时候立刻想到。</p>
+<p>本篇文章主要总结<strong>Sealed Class</strong>的基本概念和常见用法。</p>
+<h3 id="什么是-Sealed"><a href="#什么是-Sealed" class="headerlink" title="什么是 Sealed"></a>什么是 Sealed</h3><p>jetbrains 对 Sealed Class&#x2F;Interface 的介绍如下：</p>
+<blockquote>
+<p>Sealed classes and interfaces represent restricted class hierarchies that provide more control over inheritance. All direct subclasses of a sealed class are known at compile time. No other subclasses may appear outside a module within which the sealed class is defined. For example, third-party clients can’t extend your sealed class in their code. Thus, each instance of a sealed class has a type from a limited set that is known when this class is compiled.</p>
+<p>The same works for sealed interfaces and their implementations: once a module with a sealed interface is compiled, no new implementations can appear.</p>
+<p>In some sense, sealed classes are similar to enum classes: the set of values for an enum type is also restricted, but each enum constant exists only as a single instance, whereas a subclass of a sealed class can have multiple instances, each with its own state.</p>
+</blockquote>
+<p>从以上介绍可以大致总结出 Sealed Class&#x2F;Interface 有如下特性：</p>
+<ul>
+<li><p>表示受限的类层次结构，并可以对继承提供更多的控制</p>
+</li>
+<li><p>密封类的子类在编译期即被确定为一个有限的集合内，不可扩展</p>
+</li>
+<li><p>密封类的子类只能位于定义了该密封类的<strong>包</strong>中</p>
+</li>
+<li><p>密封类的子类可以有多个实例</p>
+</li>
+</ul>
+<p>介绍中还提到，sealed class 和 enum class 在某种意义上是类似的，实际上，sealed class 诞生的重要原因之一正是为了克服 enum class 在某些场合下的局限性，也即上述特性的第一点和第四点。我们知道，枚举类有两个特性，在某些场合下是优点，但在另外一些场合下却可能成为缺点：</p>
+<ul>
+<li><p>每个枚举类型只能有一个实例（称为枚举常量）</p>
+</li>
+<li><p>各枚举常量只能使用相同类型的属性</p>
+</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="keyword">class</span> <span class="title class_">Drink</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>) &#123;</span><br><span class="line">    Milk(<span class="number">1</span>),</span><br><span class="line">    Coffee(<span class="number">2</span>),</span><br><span class="line">    Water(<span class="number">3</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在如上我们创建的枚举类中，各子类（Milk，Coffee，Water）无论有多少对象，都只能有一个实例（即单例的枚举常量），且其属性均只能为枚举类中定义的 Int 类型。</p>
+<p>而密封类则取消了以上限制，允许密封类的子类具有多个实例，且各子类可以定义自己的属性。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">class</span> <span class="title class_">Drink</span> &#123;</span><br><span class="line">    <span class="comment">// 这里直接在定义块内定义子类</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Milk</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>): Drink()</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Coffee</span>(<span class="keyword">val</span> id: <span class="built_in">Double</span>): Drink()</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Water</span>(<span class="keyword">val</span> id: String): Drink()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如上，密封类允许各子类具有不同类型的属性，只需要在子类的主构造函数中声明即可。需要注意的是，密封类在继承上的写法与抽象类区别较大，反而更加类似于一般的抽象类。实际上，密封类正是抽象的，不能直接生成实例，且可以具有抽象成员。因此，密封类可以像上述写法一样定义继承自密封类的子类，也可以用<code>object</code>直接定义子类对象，也可以再用<code>sealed class</code>，即密封类继承密封类，实现更加细粒度的类层次结构。</p>
+<p>各子类允许有多个不同状态的实例：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> milk1 = Drink.Milk(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> milk2 = Drink.Milk(<span class="number">2</span>)</span><br><span class="line">println(milk1.id)</span><br><span class="line">println(milk2.id)</span><br></pre></td></tr></table></figure>
+
+<p>上述特性的第二点意义在于，密封类对运行时的扩展是封闭的。程序在编译时，即可通过继承关系确认密封类的全部子类，由此产生了密封类一个非常实用的用处，在写 when 语句时不需要添加 else 分支，因为全部可能的分支在编译时即可确定，没有其他情况：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">test</span><span class="params">(drink: <span class="type">Drink</span>)</span></span> = <span class="keyword">when</span> (drink) &#123;</span><br><span class="line">    <span class="keyword">is</span> Drink.Milk -&gt; println(<span class="string">&quot;milk&quot;</span>)</span><br><span class="line">    <span class="keyword">is</span> Drink.Coffee -&gt; println(<span class="string">&quot;coffee&quot;</span>)</span><br><span class="line">    <span class="keyword">is</span> Drink.Water -&gt; println(<span class="string">&quot;water&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述特性的第三点意义在于，限制了密封类的作用空间，并且随着 kotlin 版本的更迭越来越宽松：从只能在 sealed class 内，到 1.1 支持同一文件内，到 1.5 支持同一包下。</p>
+<h3 id="怎么用-Sealed"><a href="#怎么用-Sealed" class="headerlink" title="怎么用 Sealed"></a>怎么用 Sealed</h3><p>kotlin 初学者往往会把<code>sealed class</code>当做<code>enum class</code>用，但<code>enum class</code>具有很明显的适用场景，这么做是不合适的。比如，你仅需要一系列相同类型的单例，且不需要任何额外描述，也不需要特殊的函数，那么用枚举就足够了，比如在我的《设计模式之状态模式》中，各状态有统一的处理方法，用枚举来表示。</p>
+<p>在 Android 开发中， <code>sealed class</code>有如下一些使用场景：</p>
+<ul>
+<li><p>列表有不同类型的子项（文字、图片），用密封类表示列表的 item</p>
+</li>
+<li><p>封装网络请求中成功（含有任意类型的请求数据）和失败（含有失败信息，如异常）返回的数据</p>
+</li>
+<li><p>使用<code>object</code>达到与枚举类似的效果（虽然在 google 的官方示例都出现了这种用法，但还是不推荐。为什么不直接用枚举呢？）</p>
+</li>
+<li><p>其他一切不满足枚举的应用场景，但需要与枚举类似效果，可以考虑用密封类</p>
+</li>
+</ul>
+<h3 id="关于-Sealed-Interface"><a href="#关于-Sealed-Interface" class="headerlink" title="关于 Sealed Interface"></a>关于 Sealed Interface</h3><p>以上都在讨论<code>sealed class</code>，而<code>sealed interface</code>作为 kotlin1.5 中登场的新特性，也值得说道说道。</p>
+<p>密封接口进一步补足了密封类和枚举类的一些不足之处，如枚举类编译后继承自<code>Enum</code>，由于单继承不能再继承其他类，此时可以用密封接口，对枚举类做进一步划分。当然直接用嵌套密封类也未尝不可。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/02/old-scope-function/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/09/02/old-scope-function/" class="post-title-link" itemprop="url">old_scope_function</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-09-02 10:06:25" itemprop="dateCreated datePublished" datetime="2025-09-02T10:06:25+08:00">2025-09-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-09-03 11:10:10" itemprop="dateModified" datetime="2025-09-03T11:10:10+08:00">2025-09-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>该篇内容为原博客博文，原上传于2021年11月29日。</strong></p>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>kotlin是一款十分灵活而又强大的语言。合理地运用kotlin的一些特性，可以极大地提高代码可读性和质量，提高效率。下面我们就来说一说kotlin中的<strong>scope function</strong>。</p>
+<h1 id="域函数"><a href="#域函数" class="headerlink" title="域函数"></a>域函数</h1><p>我们主要介绍<strong>let, also, with, run, apply</strong>这五种常用的域函数。</p>
+<h3 id="1-let"><a href="#1-let" class="headerlink" title="(1)let"></a>(1)let</h3><p>先上let函数的源码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> T.<span class="title">let</span><span class="params">(block: (<span class="type">T</span>) -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block(<span class="keyword">this</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从源码我们可以看出，首先，let是对调用者的扩展函数。其次，let函数接收一个lambda表达式block作为唯一参数，且将调用者本身作为参数传给了lambda。而在函数的内部，首先使用contract进行约束，向编译器表明这个lambda只会执行一次（EXACTLY_ONCE），接着就是调用lambda并返回其返回值。<br>进而，我们可以得出如下结论：</p>
+<ol>
+<li>由于let函数将调用者作为lambda的参数，因而在let闭包内，可以用<strong>it</strong>指代调用者；</li>
+<li>let函数是具有返回值的，且其返回值应为lambda表达式中的最后一行&#x2F;return语句。</li>
+</ol>
+<p>随之，我们可以得到let函数的作用：</p>
+<ol>
+<li>在明确某一对象实例在一定范围内需要使用时，可以对其调用let，再用it指代；</li>
+<li>（常用）对某一可能为空的对象进行统一判空的处理。</li>
+</ol>
+<p>这里对作用二作一些解释。对于一个可能为空的对象object，如果不使用let，每次调用其方法或属性时，都要加上?或者!!，以及类似if not null的判空逻辑。但如果使用let，代码就将简化为如下的形式：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span>?.let &#123;</span><br><span class="line">    it.doSomething()</span><br><span class="line">    it.id = <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上代码表示，只有当object不为空时，才会执行let中的逻辑，且由于判空交给了object后的?符来处理，let内部不再需要任何多余的判空。如此以来，判空就变得优雅了许多。</p>
+<h3 id="2-also"><a href="#2-also" class="headerlink" title="(2)also"></a>(2)also</h3><p>先上also函数的源码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> T.<span class="title">also</span><span class="params">(block: (<span class="type">T</span>) -&gt; <span class="type">Unit</span>)</span></span>: T &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    block(<span class="keyword">this</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从源码可见，also函数的实现思路与let类似，都是对调用者的扩展，都是将调用者作为参数传给lambda，都使用contract进行调用约束，都会在内部执行lambda。但有如下不同：lambda没有返回值，而从return语句看，also返回的是调用者本身。<br>进而，我们可以得出如下结论：</p>
+<ol>
+<li>also函数的应用场景与let相同；</li>
+<li>also函数返回值为调用者本身。</li>
+</ol>
+<h3 id="3-with"><a href="#3-with" class="headerlink" title="(3)with"></a>(3)with</h3><p>先上with函数的源码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> <span class="title">with</span><span class="params">(receiver: <span class="type">T</span>, block: <span class="type">T</span>.() -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> receiver.block()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>虽然源码的整体风格和之前两者类似，但其使用方法却截然不同。首先，with是一个通用的扩展函数，其有两个参数：receiver，和一个lambda。注意这里lambda的参数是T.()，它表明将这个lambda函数作为同为类型T的receiver的一个扩展函数，从而能被receiver所调用。进而，我们可以得出如下结论：</p>
+<ol>
+<li>由于with内部是通过扩展函数使得receiver去调用lambda，因而可以在lambda的闭包内部直接访问receiver的public方法&#x2F;属性。（即没有it等间接指代值）</li>
+<li>with函数是具有返回值的。从源码的return语句可以看出，其返回的是lambda表达式的最后一行&#x2F;return语句。</li>
+</ol>
+<p>随之，我们可以得到with函数的作用：<br>在需要多次调用某一对象的方法或属性时，可以将该对象传给with，再在with内部处理相应逻辑。这样写可以避免多次重复地写该对象。<br>举个栗子：当我们想写一个alertDialog时，需要先创建builder，对builder进行一系列配置，再调用builder的create()方法返回一条alertDialog。有了with后，我们可以这样写：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">lateinit</span> <span class="keyword">var</span> alertDialog: AlertDialog</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> builder = AlertDialog.Builder(activity)</span><br><span class="line">alertDialog = with (builder) &#123;</span><br><span class="line">    <span class="keyword">val</span> alertView = layoutInflater.inflate(R.layout.dialog_confirm, <span class="literal">null</span>, <span class="literal">false</span>)</span><br><span class="line">    setView(alertView)</span><br><span class="line">    setNegativeButton(<span class="string">&quot;取消&quot;</span>) &#123; dialog, which -&gt;</span><br><span class="line">        Toast.makeText(activity, <span class="string">&quot;已取消&quot;</span>, Toast.LENGTH_SHORT).show()</span><br><span class="line">    &#125;</span><br><span class="line">    setPositiveButton(<span class="string">&quot;确定&quot;</span>) &#123; dialog, which -&gt;</span><br><span class="line">        run &#123;</span><br><span class="line">            bill?.let &#123; it1 -&gt; viewModel.deleteBill(it1) &#125;</span><br><span class="line">            activity?.onBackPressed()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    create()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>是不是简洁了许多？</p>
+<h3 id="4-run"><a href="#4-run" class="headerlink" title="(4)run"></a>(4)run</h3><p>还是先上源码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;R&gt;</span> <span class="title">run</span><span class="params">(block: () -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> T.<span class="title">run</span><span class="params">(block: <span class="type">T</span>.() -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>run有点类似let和with的结合体，继承了两者各自的优点，因而使用场景十分广泛：首先，它像let一样是对调用者的扩展，因而可以<strong>统一判空处理</strong>；其次，它又像with一样，传入lambda的是T.()，表明它可以像with一样<strong>在闭包内直接访问方法&#x2F;属性</strong>。最后，它返回的是lambda的返回值。</p>
+<h3 id="5-apply"><a href="#5-apply" class="headerlink" title="(5)apply"></a>(5)apply</h3><p>上源码。。。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> T.<span class="title">apply</span><span class="params">(block: <span class="type">T</span>.() -&gt; <span class="type">Unit</span>)</span></span>: T &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    block()</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不难看出，apply和run类似于also和let的关系，使用场景类似，只是返回值有差异。<br>而由于apply返回的是调用者本身，因而它十分适合用来做变量的初始化。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><table>
+<thead>
+<tr>
+<th align="center">函数名</th>
+<th align="center">特点</th>
+<th align="center">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">let</td>
+<td align="center">1.在指定域内定义变量it 2.返回最后一行</td>
+<td align="center">统一判空处理</td>
+</tr>
+<tr>
+<td align="center">also</td>
+<td align="center">1.在指定域内定义变量it 2.返回传入对象本身</td>
+<td align="center">统一判空处理</td>
+</tr>
+<tr>
+<td align="center">with</td>
+<td align="center">1.直接访问方法和属性 2.返回最后一行</td>
+<td align="center">多次调用时省去变量名</td>
+</tr>
+<tr>
+<td align="center">run</td>
+<td align="center">1.let和with的结合 2.返回最后一行</td>
+<td align="center">统一判空的同时省去it，省去变量名的同时判空</td>
+</tr>
+<tr>
+<td align="center">apply</td>
+<td align="center">1.同run 2.返回传入对象本身</td>
+<td align="center">同run，此外适用于初始化变量</td>
+</tr>
+</tbody></table>
+<p>作者纯kotlin小白，如有疏漏与错误，敬请大佬指正！</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/01/old-data-lab/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/09/01/old-data-lab/" class="post-title-link" itemprop="url">《CSAPP》—— Data Lab</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-09-01 10:53:37" itemprop="dateCreated datePublished" datetime="2025-09-01T10:53:37+08:00">2025-09-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-09-03 11:03:44" itemprop="dateModified" datetime="2025-09-03T11:03:44+08:00">2025-09-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CSAPP/" itemprop="url" rel="index"><span itemprop="name">CSAPP</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CSAPP/C-C/" itemprop="url" rel="index"><span itemprop="name">C/C++</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>10k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>18 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>该篇内容为原博客博文，原上传于2022年4月30日。</strong></p>
+<p>话说从寒假开始半摸半读《CS:APP》，但是一直没有写Lab。都说9个Lab是全书的精华，因此深感有必要做一下，所以前阵子抽空先把DataLab做了。虽说是第一个（<del>据说也是最简单的</del>）Lab，却也做的磕磕绊绊，深感自己码力不足。总之最后是完成了，还是写篇博客记录一下，也方便自己日后review。</p>
+<h3 id="1分题"><a href="#1分题" class="headerlink" title="1分题"></a>1分题</h3><p>1分题基本都是签到题，难度不大。</p>
+<h5 id="bitXor"><a href="#bitXor" class="headerlink" title="bitXor"></a>bitXor</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * bitXor - x^y using only ~ and &amp; </span></span><br><span class="line"><span class="comment"> *   Example: bitXor(4, 5) = 1</span></span><br><span class="line"><span class="comment"> *   Legal ops: ~ &amp;</span></span><br><span class="line"><span class="comment"> *   Max ops: 14</span></span><br><span class="line"><span class="comment"> *   Rating: 1</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">bitXor</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> ~(~(~x&amp;y)&amp;~(x&amp;~y));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只使用位与和位非实现位或，运用<strong>De Morgan’s laws</strong>就行了。</p>
+<h5 id="tmin"><a href="#tmin" class="headerlink" title="tmin"></a>tmin</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * tmin - return minimum two&#x27;s complement integer </span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 4</span></span><br><span class="line"><span class="comment"> *   Rating: 1</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">tmin</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0x1</span> &lt;&lt; <span class="number">31</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>返回补码表示的最小数，即0x8000_8000，也即<code>int</code>类型能表示的最小数，也没有什么好说的。</p>
+<h3 id="2分题"><a href="#2分题" class="headerlink" title="2分题"></a>2分题</h3><p>开始有些技巧性的操作出现了。</p>
+<h5 id="isTmax"><a href="#isTmax" class="headerlink" title="isTmax"></a>isTmax</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * isTmax - returns 1 if x is the maximum, two&#x27;s complement number,</span></span><br><span class="line"><span class="comment"> *     and 0 otherwise </span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | +</span></span><br><span class="line"><span class="comment"> *   Max ops: 10</span></span><br><span class="line"><span class="comment"> *   Rating: 1</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">isTmax</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">  <span class="type">int</span> i = x + <span class="number">1</span>; <span class="comment">// Tmin,1000...</span></span><br><span class="line">  x = x + i; <span class="comment">// -1,1111...</span></span><br><span class="line">  x = ~x; <span class="comment">// 0,0000...</span></span><br><span class="line">  i = !i; <span class="comment">// exclude x=0xffff...</span></span><br><span class="line">  x = x + i; <span class="comment">// exclude x=0xffff...</span></span><br><span class="line">  <span class="keyword">return</span> !x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>要求如果x是补码表示的最大数就返回1，否则返回0。<br>那么我们首先要能识别出补码最大数，并且能将其转化为0x1作为结果。显然0x7fff_ffff就是补码最大数，如何利用允许使用的运算符将其转化为0x1呢？这里就比较tricky了。我们可以取x + 1 + x，如果x是0x7fff_ffff时，将得到0xffff_ffff，即全1。对全1取位反即可得到0，再对0取逻辑非就能得到0x1了。<br>但这里有一个容易忽略的情形，即当x为0xffff_ffff时，由于溢出，x + 1 + x也能得到同样的结果（我是在btest时才发现这个特例），所以需要排除这个情形，使得<strong>只有当x&#x3D;0x7fff_ffff时才能返回0x1</strong>。为此，我们可以不着急对0取逻辑非，而是先再对原来的x+1取逻辑非，再加给取位反后的x + 1 + x。当x为0x7fff_ffff时，这一步多出的操作不会对结果造成任何影响，因为此时x + 1取非后得到的是0，加个0显然不会有影响；但对于x为0xffff_ffff时，x + 1取非后得到的是1，加回去后得到1，再取逻辑非时就变成了0，从而排除了这个例外。</p>
+<h5 id="allOddBits"><a href="#allOddBits" class="headerlink" title="allOddBits"></a>allOddBits</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * allOddBits - return 1 if all odd-numbered bits in word set to 1</span></span><br><span class="line"><span class="comment"> *   where bits are numbered from 0 (least significant) to 31 (most significant)</span></span><br><span class="line"><span class="comment"> *   Examples allOddBits(0xFFFFFFFD) = 0, allOddBits(0xAAAAAAAA) = 1</span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 12</span></span><br><span class="line"><span class="comment"> *   Rating: 2</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">allOddBits</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">  <span class="type">int</span> mask = <span class="number">0xAA</span> + (<span class="number">0xAA</span> &lt;&lt; <span class="number">8</span>);</span><br><span class="line">  mask = mask + (mask &lt;&lt; <span class="number">16</span>); <span class="comment">// mask = 0xAAAAAAAA</span></span><br><span class="line">  x = mask &amp; x;</span><br><span class="line">  <span class="keyword">return</span> !(~x &amp; mask);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从0开始计位，若x所有奇数位都为1则返回1，否则返回0。<br>如何提取x的奇数位呢？显然用一个奇数位为1，偶数位为0的mask就行了，但我们不能直接用<code>int mask = 0xAAAAAAAA</code>构造出这个掩码，因为Lab要求整数实验的代码最多使用8位常数，如0xAA，所以我们首先要用0xAA产生0xAAAAAAAA，方法有很多，这里就不再赘述。再用这个mask与x位与，即可在结果的奇数位上对应得到x的奇数位。如何判定x的奇数位是否全为1呢？我们很容易想到如果如此，那么x位反后再与mask位与，应当得到全0，因为一个是奇数位全0，偶数位全1，另一个是奇数位全1，偶数位全0，没有一位是相等的。再对结果取逻辑非就能得到1。而对于不满足的x，检验可知经同样的运算，最终都会得到0。</p>
+<h5 id="negate"><a href="#negate" class="headerlink" title="negate"></a>negate</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * negate - return -x </span></span><br><span class="line"><span class="comment"> *   Example: negate(1) = -1.</span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 5</span></span><br><span class="line"><span class="comment"> *   Rating: 2</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">negate</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> ~x + <span class="number">0x1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>返回x的相反数。只要对补码表示有基本了解，这题应该都是秒过，不再赘述。</p>
+<h3 id="3分题"><a href="#3分题" class="headerlink" title="3分题"></a>3分题</h3><p>难度更大了。。。</p>
+<h5 id="isAsciiDigit"><a href="#isAsciiDigit" class="headerlink" title="isAsciiDigit"></a>isAsciiDigit</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * isAsciiDigit - return 1 if 0x30 &lt;= x &lt;= 0x39 (ASCII codes for characters &#x27;0&#x27; to &#x27;9&#x27;)</span></span><br><span class="line"><span class="comment"> *   Example: isAsciiDigit(0x35) = 1.</span></span><br><span class="line"><span class="comment"> *            isAsciiDigit(0x3a) = 0.</span></span><br><span class="line"><span class="comment"> *            isAsciiDigit(0x05) = 0.</span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 15</span></span><br><span class="line"><span class="comment"> *   Rating: 3</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">isAsciiDigit</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">  <span class="comment">// 考察如何使用位运算比较大小-&gt;不能直接用算术运算符，但思路依然是可以比较符号位-&gt;用位运算凑出符号位改变的临界数</span></span><br><span class="line">  <span class="type">int</span> sign = <span class="number">0x1</span> &lt;&lt; <span class="number">31</span>;</span><br><span class="line">  <span class="type">int</span> compH = ~(sign | <span class="number">0x39</span>); <span class="comment">// 当与小于等于0x39的数相加后，符号位为0；当与大于0x39的数相加后，符号位变为1</span></span><br><span class="line">  <span class="type">int</span> compL = ~<span class="number">0x30</span>; <span class="comment">// 当与大于0x30的数相加后，符号位为0；当与小于等于0x30的数相加后，符号位变为1</span></span><br><span class="line">  <span class="type">int</span> sign_1 = ((compH + x) &amp; sign) &gt;&gt; <span class="number">31</span>; <span class="comment">// 当符号位为0时，得到sign_1为全0；当符号位为1时，得到sign_1为全1</span></span><br><span class="line">  <span class="type">int</span> sign_2 = ((compL + x + <span class="number">0x1</span>) &amp; sign) &gt;&gt; <span class="number">31</span>; <span class="comment">// 这里需要额外加个1，因为当x=0x30时，符号位仍为1，需要加1进位使其变为0.且加1不会对0x30之后的数的结果产生影响</span></span><br><span class="line">  <span class="keyword">return</span> !(sign_1 | sign_2); <span class="comment">// 这里要用逻辑非来实现或非，因为最后要求的是返回0/1，而sign_1/2位或后仍是32位全0/1整数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>若x是0~9数字的ASCII码表示，则返回1，否则返回0。<br>只要我们能比较x同0x30和0x39的大小就行了。如何用位运算比较两个数之间的大小呢？（<del>我不道啊？看了别人的写法才懂</del>）有一种比较tricky的处理方式，虽然这题不给用减法，但我们可以借鉴类似的想法，即自己构造出会使得符号位改变的临界数，再看符号位就行了。具体思路可以看代码注释。</p>
+<h5 id="conditional"><a href="#conditional" class="headerlink" title="conditional"></a>conditional</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * conditional - same as x ? y : z </span></span><br><span class="line"><span class="comment"> *   Example: conditional(2,4,5) = 4</span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 16</span></span><br><span class="line"><span class="comment"> *   Rating: 3</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">conditional</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y, <span class="type">int</span> z)</span> &#123;</span><br><span class="line">  <span class="type">int</span> flag = !!x;</span><br><span class="line">  <span class="type">int</span> mask = ~flag + <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">return</span> (y &amp; mask) + (z &amp; ~mask);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的难点在于如何从x的位级表示获取其一位布尔值，使用逻辑非即可。第一次逻辑非会把0转化为1，非0转化为0，第二次逻辑非会还原为原逻辑值，所以<strong>需要2次逻辑非</strong>。但我们不能直接用这个一位布尔值，因为要实现选择操作，用一位只能保留原输入的一位，显然是不对的，故还需经一步得到全1和全0，再做与操作。</p>
+<h5 id="isLessOrEqual"><a href="#isLessOrEqual" class="headerlink" title="isLessOrEqual"></a>isLessOrEqual</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * isLessOrEqual - if x &lt;= y  then return 1, else return 0 </span></span><br><span class="line"><span class="comment"> *   Example: isLessOrEqual(4,5) = 1.</span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 24</span></span><br><span class="line"><span class="comment"> *   Rating: 3</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">isLessOrEqual</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">  <span class="type">int</span> sign = <span class="number">0x1</span> &lt;&lt; <span class="number">31</span>;</span><br><span class="line">  <span class="type">int</span> sign_x = x &amp; sign;</span><br><span class="line">  <span class="type">int</span> sign_y = y &amp; sign;</span><br><span class="line">  <span class="type">int</span> sign_inequal = ((sign_x ^ sign_y) &gt;&gt; <span class="number">31</span>) &amp; <span class="number">0x1</span>; <span class="comment">// sign_inequal为0x1，表示符号不同；为0则表示符号相同</span></span><br><span class="line">  <span class="type">int</span> sign_diff = (y + ~x + <span class="number">0x1</span>) &amp; sign; <span class="comment">// y - x 的差值符号，当为0x1&lt;&lt;32时表示y&lt;x，当为全0时表示y&gt;=x。 有错误：当x为负，y为正时有可能溢出，因而不可靠。只有当符号相同时才可靠</span></span><br><span class="line">  <span class="type">int</span> same_res = !sign_diff;<span class="comment">// 符号相同时的结果</span></span><br><span class="line">  <span class="type">int</span> diff_res = !sign_y;<span class="comment">//符号不同时的结果，当y为正数时返回值就为1，否则返回0</span></span><br><span class="line">  <span class="keyword">return</span> (sign_inequal &amp; diff_res) + (!sign_inequal &amp; same_res);<span class="comment">//符号不同时，即sign_equal为1时，返回diff_res；否则返回same_res</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>比较x,y大小，返回比较结果。<br>第一眼看，我们也许会想用isAsciiDigit的思路做这题，但这是不行的。因为上一题我们只考虑0x30~0x39这一正数小区间，而现在我们需要考虑整个实数域。用相同的方法处理y为负数时会出现问题。<br>这时就要回退到一般运算思路，即符号不同正数为大，符号相同看差值符号即可。获取差值时，这里不能直接用’-‘，故用补码方式。<br>x,y和y-x的符号不难获得，但难点在于如何通过位运算在符号不同时正确选择正的那一个数，思路可参见代码注释。</p>
+<h3 id="4分题"><a href="#4分题" class="headerlink" title="4分题"></a>4分题</h3><p>这几位更是重量级。</p>
+<h5 id="logicalNeg"><a href="#logicalNeg" class="headerlink" title="logicalNeg"></a>logicalNeg</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * logicalNeg - implement the ! operator, using all of </span></span><br><span class="line"><span class="comment"> *              the legal operators except !</span></span><br><span class="line"><span class="comment"> *   Examples: logicalNeg(3) = 0, logicalNeg(0) = 1</span></span><br><span class="line"><span class="comment"> *   Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 12</span></span><br><span class="line"><span class="comment"> *   Rating: 4 </span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> ((x | (~x + <span class="number">1</span>)) &gt;&gt; <span class="number">31</span>) + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实现逻辑非运算符。要做出这题，首先需要清楚C语言中的右移对于有符号数是算术右移，以及整数中的1000…0000表示最小数而不是表示负零。其次，还是要想办法将位级表示的x的信息用一个比特表示出来，之前我们都是用!!，但这题就是需要我们实现!，故得采取新的思路。想到对于0来说，其原码和补码都是0x0000，符号位相或仍为0；而对于非0数，其源码和补码的符号位必然互补，从而相或时为1，进而就可以区分0和非0数了。最终要求是求反，故再加1即可。<br>真正实现起来，一行代码即可搞定，但背后的思考过程不是那么容易，你得想到0和非0数各自相反数符号位的差异，才能做出这题。</p>
+<h5 id="howManyBits"><a href="#howManyBits" class="headerlink" title="howManyBits"></a>howManyBits</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* howManyBits - return the minimum number of bits required to represent x in</span></span><br><span class="line"><span class="comment"> *             two&#x27;s complement</span></span><br><span class="line"><span class="comment"> *  Examples: howManyBits(12) = 5</span></span><br><span class="line"><span class="comment"> *            howManyBits(298) = 10</span></span><br><span class="line"><span class="comment"> *            howManyBits(-5) = 4</span></span><br><span class="line"><span class="comment"> *            howManyBits(0)  = 1</span></span><br><span class="line"><span class="comment"> *            howManyBits(-1) = 1</span></span><br><span class="line"><span class="comment"> *            howManyBits(0x80000000) = 32</span></span><br><span class="line"><span class="comment"> *  Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *  Max ops: 90</span></span><br><span class="line"><span class="comment"> *  Rating: 4</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">howManyBits</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">  <span class="type">int</span> b16, b8, b4, b2, b1, b0; <span class="comment">// 必须提前声明，否则dlc检查时会报错</span></span><br><span class="line">  <span class="type">int</span> sign = x &gt;&gt; <span class="number">31</span>; <span class="comment">// 提取符号位，sign为全1或全0</span></span><br><span class="line">  x = (sign &amp; ~x) | (~sign &amp; x); <span class="comment">// 这一步是为了方便处理负数。对负数取反，将找0转化为找1，这样对于正负数就可以统一处理了</span></span><br><span class="line">  <span class="comment">//经上一行操作后，x符号位总为0，故算术右移不会造成影响</span></span><br><span class="line">  b16 = !!(x &gt;&gt; <span class="number">16</span>) &lt;&lt; <span class="number">4</span>; <span class="comment">//考察高16位是否有1，若有，b16得16，否则得0，至少需要16位。</span></span><br><span class="line">  x = x &gt;&gt; b16; <span class="comment">//若高16位有1，则将x右移16位。对于b16=16，此为向左缩小搜索范围；对于b16=0，此为向右增大搜索范围</span></span><br><span class="line">  b8 = !!(x &gt;&gt; <span class="number">8</span>) &lt;&lt; <span class="number">3</span>; <span class="comment">//考察高8位是否有1，若有，b16得8，否则得0，至少需要位数再加8位</span></span><br><span class="line">  x = x &gt;&gt; b8; <span class="comment">//继续缩小范围，考察高4位。下面以此类推。</span></span><br><span class="line">  b4 = !!(x &gt;&gt; <span class="number">4</span>) &lt;&lt; <span class="number">2</span>;</span><br><span class="line">  x = x &gt;&gt; b4;</span><br><span class="line">  b2 = !!(x &gt;&gt; <span class="number">2</span>) &lt;&lt; <span class="number">1</span>;</span><br><span class="line">  x = x &gt;&gt; b2;</span><br><span class="line">  b1 = !!(x &gt;&gt; <span class="number">1</span>);</span><br><span class="line">  b0 = x &gt;&gt; b1; <span class="comment">// 最高两位是11时，所需位数还得加1</span></span><br><span class="line">  <span class="keyword">return</span> b16 + b8 + b4 + b2 + b1 + b0 + <span class="number">1</span>; <span class="comment">// 符号位必定占一位</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>求用补码表示x至少需要几位。思路很好想，符号位必定占一位，剩下的从左往右找第一个有效位(正数是1，负数是0)，其与之后剩下的位都是需要的位。但是代码实在写不出来，就copy别人的代码了。<br>实际上代码的思路也很简单，就是在这串32位比特上做<strong>二分搜索</strong>（<del>还能这样，艹</del>），找到第一个有效位,同时统计比特数量。<br>这里还有一个小插曲，即使用的临时变量都必须在函数的一开始提前声明，不能在使用时才声明并初始化，否则dlc检查时会报错，说你没有声明变量。不太清楚原因。</p>
+<h5 id="floatScale2"><a href="#floatScale2" class="headerlink" title="floatScale2"></a>floatScale2</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * floatScale2 - Return bit-level equivalent of expression 2*f for</span></span><br><span class="line"><span class="comment"> *   floating point argument f.</span></span><br><span class="line"><span class="comment"> *   Both the argument and result are passed as unsigned int&#x27;s, but</span></span><br><span class="line"><span class="comment"> *   they are to be interpreted as the bit-level representation of</span></span><br><span class="line"><span class="comment"> *   single-precision floating point values.</span></span><br><span class="line"><span class="comment"> *   When argument is NaN, return argument</span></span><br><span class="line"><span class="comment"> *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. also if, while</span></span><br><span class="line"><span class="comment"> *   Max ops: 30</span></span><br><span class="line"><span class="comment"> *   Rating: 4</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">unsigned</span> <span class="title function_">floatScale2</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;</span><br><span class="line">  <span class="type">int</span> <span class="built_in">exp</span> = (uf &amp; <span class="number">0x7f800000</span>) &gt;&gt; <span class="number">23</span>; <span class="comment">//exp低23位表示原数的阶码</span></span><br><span class="line">  <span class="type">int</span> sign = uf &amp; <span class="number">0x80000000</span>; <span class="comment">// sign最高位为原数符号位，其余位全为0</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">exp</span> == <span class="number">255</span>) <span class="keyword">return</span> uf; <span class="comment">// 无穷或NaN</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">exp</span> == <span class="number">0</span>) <span class="keyword">return</span> sign | (uf &lt;&lt; <span class="number">1</span>); <span class="comment">// 非规格数</span></span><br><span class="line">  <span class="keyword">if</span> (++<span class="built_in">exp</span> == <span class="number">255</span>) <span class="keyword">return</span> sign | <span class="number">0x7f800000</span>; <span class="comment">// 溢出，返回无穷大</span></span><br><span class="line">  <span class="keyword">return</span> (<span class="built_in">exp</span> &lt;&lt; <span class="number">23</span>) | (uf &amp; <span class="number">0x807fffff</span>); <span class="comment">// 规格数且无溢出</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实现2*f。与前面的题相比，这题其实不难，只要认真读了书，知道浮点数的表示方法就能做出来。<br>若为规格数，直接阶码加1即可。但若阶码加1后变为全1，则返回的应是对应符号的无穷大。<br>若为非规格数，则直接左移1位并补上符号位即可。这是因为当非规格数的小数字段最高位为0时，直接左移1位仍表示为非规格数，且小数字段因左移而乘以2，自然得到了结果<br>当小数字段最高位为1时，左移1位会导致阶码变为0x1而成为规格数。但对规格数而言，0x1阶码与非规格数表示的指数相同，都为1-Bias。且虽然小数最高位看似丢失了，但规格数表示的尾数本身就是1+f，与非规格数的尾数f相比，相当于把最高位的1表示成十进制的0.5乘以2得到的1单独提取了出来，其余位左移自然乘以2。得益于IEEE浮点标准的这种非规格数平滑向规格数过渡的设计，我们这里处理非规格数也简单很多，不需要担心溢出。<br>若为无穷大和NaN，直接返回原数即可</p>
+<h5 id="floatFloat2Int"><a href="#floatFloat2Int" class="headerlink" title="floatFloat2Int"></a>floatFloat2Int</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * floatFloat2Int - Return bit-level equivalent of expression (int) f</span></span><br><span class="line"><span class="comment"> *   for floating point argument f.</span></span><br><span class="line"><span class="comment"> *   Argument is passed as unsigned int, but</span></span><br><span class="line"><span class="comment"> *   it is to be interpreted as the bit-level representation of a</span></span><br><span class="line"><span class="comment"> *   single-precision floating point value.</span></span><br><span class="line"><span class="comment"> *   Anything out of range (including NaN and infinity) should return</span></span><br><span class="line"><span class="comment"> *   0x80000000u.</span></span><br><span class="line"><span class="comment"> *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. also if, while</span></span><br><span class="line"><span class="comment"> *   Max ops: 30</span></span><br><span class="line"><span class="comment"> *   Rating: 4</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">floatFloat2Int</span><span class="params">(<span class="type">unsigned</span> uf)</span> &#123;</span><br><span class="line">  <span class="type">int</span> <span class="built_in">exp</span>, E, tail, sign;</span><br><span class="line">  <span class="keyword">if</span> (!(uf &amp; <span class="number">0x7fffffff</span>)) <span class="keyword">return</span> <span class="number">0</span>; <span class="comment">// 当uf为0，-0时，直接返回0即可。注意这个-0容易遗漏</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">exp</span> = (uf &amp; <span class="number">0x7f800000</span>) &gt;&gt; <span class="number">23</span>;</span><br><span class="line">  sign = uf &amp; <span class="number">0x80000000</span>;</span><br><span class="line">  tail = (uf &amp; <span class="number">0x007fffff</span>) | <span class="number">0x00800000</span>; <span class="comment">// 由于之后的代码会排除非规格数，故对规格数而言，真实的小数表示为尾数+1，这里与0x00800000相或就是为了加上小数点前的1</span></span><br><span class="line"></span><br><span class="line">  E = <span class="built_in">exp</span> - <span class="number">127</span>; <span class="comment">// E表示由阶码复原得到的真实指数，注意E &gt; 31时，必定在左移时覆盖掉符号位，所以会溢出。此时也包括了NaN和INF（E=255-127必然大于31）</span></span><br><span class="line">  <span class="keyword">if</span> (E &gt; <span class="number">31</span>) <span class="keyword">return</span> <span class="number">0x80000000</span>;</span><br><span class="line">  <span class="keyword">if</span> (E &lt; <span class="number">0</span>) <span class="keyword">return</span> <span class="number">0</span>; <span class="comment">// 直观来理解，对于始终小于2的尾数，当E &lt; 0时，相当于至少除以2，所得一定是个小于1的小数，故取0。非规格数也在这里被排除</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 0 &lt;= E &lt;= 31时，依然有可能发生溢出，故需要做甄别并排除</span></span><br><span class="line">  <span class="comment">// 开始左移/右移。当E &gt; 23时，说明乘法后所有小数点后的原尾数位都移到了小数点前，此时结果为一个整数，故直接左移即可。 当E &lt; 23时， 说明乘法后仍含有小数部分，</span></span><br><span class="line">  <span class="comment">// 则转为Int时直接丢弃这些小数部分即可，对应的操作就是右移</span></span><br><span class="line">  tail = (E &gt; <span class="number">23</span>) ? tail &lt;&lt; (E - <span class="number">23</span>) : tail &gt;&gt; (<span class="number">23</span> - E);</span><br><span class="line">  <span class="comment">// 原来是按位表示的1+小数，故对E&gt;23来说，一开始乘2时会先移动小数点，故不会改变作为Int的各位数值。只有当超过23部分的E会导致数值开始乘2，即左移</span></span><br><span class="line">  <span class="comment">// 而对于E&lt;23来说，无论如何都只会改变小数点而不改变数值，因而不会左移。但因为此时含有小数，故权值不是从0而是从某个负数开始，因而各位上的权值对应都会衰减，本应是右移23位来对上小数</span></span><br><span class="line">  <span class="comment">// 的权值，但因为有乘E次2的操作，每次乘2都会使权值对应升高1位，故会抵消E次右移操作，最终效果就是右移23-E位。同时在右移的过程中，还舍去了小数的信息。</span></span><br><span class="line">  <span class="comment">// 统一的解释：因为小数从左向右的权值是从-1开始的，而不是从0开始的，故对于原小数的位级表示，应首先右移23位来对上正确的权值(&lt;&lt;-23 or &gt;&gt;23)。</span></span><br><span class="line">  <span class="comment">// 但因为有乘E次2的操作，每次乘2都会使权值对应升高1位，故会抵消E次右移操作，最终效果就是右移23-E位(&lt;&lt;E-23 or &gt;&gt; 23-E)。同时注意在右移的过程中，还会舍去小数的信息。</span></span><br><span class="line">  <span class="keyword">return</span> sign ? -tail : tail; <span class="comment">// 保留原符号</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实现<code>float</code>到<code>int</code>强制类型转换。这题也没写出来，copy了网上代码，代码解释看注释就行。</p>
+<h5 id="floatPower2"><a href="#floatPower2" class="headerlink" title="floatPower2"></a>floatPower2</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * floatPower2 - Return bit-level equivalent of the expression 2.0^x</span></span><br><span class="line"><span class="comment"> *   (2.0 raised to the power x) for any 32-bit integer x.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *   The unsigned value that is returned should have the identical bit</span></span><br><span class="line"><span class="comment"> *   representation as the single-precision floating-point number 2.0^x.</span></span><br><span class="line"><span class="comment"> *   If the result is too small to be represented as a denorm, return</span></span><br><span class="line"><span class="comment"> *   0. If too large, return +INF.</span></span><br><span class="line"><span class="comment"> * </span></span><br><span class="line"><span class="comment"> *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. Also if, while </span></span><br><span class="line"><span class="comment"> *   Max ops: 30 </span></span><br><span class="line"><span class="comment"> *   Rating: 4</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">unsigned</span> <span class="title function_">floatPower2</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">  <span class="type">int</span> <span class="built_in">exp</span> = x + <span class="number">127</span>; <span class="comment">// 加上bias得到位级表示的阶码</span></span><br><span class="line">  <span class="comment">// 阶码的范围是00000000~11111111，超出这个表示范围时，对应0(全0)和INF(0111_1111_1000_0...0)</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">exp</span> &lt;= <span class="number">0</span>) <span class="keyword">return</span> <span class="number">0</span>; <span class="comment">// 极小数，当做0</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">exp</span> &gt; <span class="number">0xff</span>) <span class="keyword">return</span> <span class="number">0x7f800000</span>; <span class="comment">// INF </span></span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">exp</span> &lt;&lt; <span class="number">23</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实现2的幂次方运算。这题简单一点，首先由x加上bias得到对应浮点数的阶码。由于2的幂符号位为0，尾数也为全0，故再对阶码移位到浮点数对应的位置即可。注意要排除极小数和无穷，即超过阶码表示的数。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>这里有个小插曲，编译btest时提示不兼容的gcc。这是因为我的机器是x86-64，但Lab的makefile中添加了-m32参数，而我缺少在64位机器编译32位程序的库。这里可以选择修改makefile，把这个参数删去或者改为-m64，或者安装需要的库，有<strong>gcc-multilib</strong>和<strong>module-assistant</strong>。<br>测试结果如图。<br><img src="https://s2.loli.net/2022/04/30/JahmHNLkZU2b8AY.png" alt="lab_1_result.png"></p>
+<h3 id="碎碎念"><a href="#碎碎念" class="headerlink" title="碎碎念"></a>碎碎念</h3><p>从这个学期开始，我一直处于一种浑浑噩噩的状态，课内没学好，加权卷不上去，课外的知识也进度缓慢（包括但不限于CSAPP只读到了第四章，计算机视觉半熟不熟，几个月没写安卓）。最近看了许多大牛学长的博客和他们的经历分享，收获了很多，还是希望能向强者靠拢。开始做CSAPP的lab，也算是自己挣脱摆烂状态的一次尝试。希望自己能继续努力，保持学习吧！</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/08/29/old-handler-src-analysis/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1004,20 +1437,20 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">12</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1067,12 +1500,12 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">40k</span>
+    <span title="站点总字数">56k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:13</span>
+    <span title="站点阅读时长">1:42</span>
 </div>
   <div class="powered-by">
     <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动 -->

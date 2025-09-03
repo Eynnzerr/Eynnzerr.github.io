@@ -6,7 +6,7 @@
   <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
   
   <link href="http://blog.eynnzerr.top/"/>
-  <updated>2025-08-29T12:50:29.166Z</updated>
+  <updated>2025-09-03T03:13:28.116Z</updated>
   <id>http://blog.eynnzerr.top/</id>
   
   <author>
@@ -15,6 +15,85 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>奇妙的 Sealed</title>
+    <link href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/"/>
+    <id>http://blog.eynnzerr.top/2025/09/03/old-sealed-class/</id>
+    <published>2025-09-03T07:21:27.000Z</published>
+    <updated>2025-09-03T03:13:28.116Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;该篇内容为原博客博文，原上传于2023年1月18日。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Sealed Class&lt;/strong&gt;和&lt;strong&gt;Sealed Interface&lt;/strong&gt;是 kotlin 引入的全新特性。在初学 ko</summary>
+      
+    
+    
+    
+    <category term="Kotlin" scheme="http://blog.eynnzerr.top/categories/Kotlin/"/>
+    
+    
+    <category term="Kotlin" scheme="http://blog.eynnzerr.top/tags/Kotlin/"/>
+    
+    <category term="Sealed Class" scheme="http://blog.eynnzerr.top/tags/Sealed-Class/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>old_scope_function</title>
+    <link href="http://blog.eynnzerr.top/2025/09/02/old-scope-function/"/>
+    <id>http://blog.eynnzerr.top/2025/09/02/old-scope-function/</id>
+    <published>2025-09-02T02:06:25.000Z</published>
+    <updated>2025-09-03T03:10:10.976Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;该篇内容为原博客博文，原上传于2021年11月29日。&lt;/strong&gt;&lt;/p&gt;
+&lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;kotlin是一款十分灵活而又强大的</summary>
+      
+    
+    
+    
+    <category term="Kotlin" scheme="http://blog.eynnzerr.top/categories/Kotlin/"/>
+    
+    
+    <category term="Kotlin" scheme="http://blog.eynnzerr.top/tags/Kotlin/"/>
+    
+    <category term="域函数" scheme="http://blog.eynnzerr.top/tags/%E5%9F%9F%E5%87%BD%E6%95%B0/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>《CSAPP》—— Data Lab</title>
+    <link href="http://blog.eynnzerr.top/2025/09/01/old-data-lab/"/>
+    <id>http://blog.eynnzerr.top/2025/09/01/old-data-lab/</id>
+    <published>2025-09-01T02:53:37.000Z</published>
+    <updated>2025-09-03T03:03:44.027Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;该篇内容为原博客博文，原上传于2022年4月30日。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;话说从寒假开始半摸半读《CS:APP》，但是一直没有写Lab。都说9个Lab是全书的精华，因此深感有必要做一下，所以前阵子抽空先把DataLab做了。虽说是第一个（&lt;del</summary>
+      
+    
+    
+    
+    <category term="CSAPP" scheme="http://blog.eynnzerr.top/categories/CSAPP/"/>
+    
+    <category term="C/C++" scheme="http://blog.eynnzerr.top/categories/CSAPP/C-C/"/>
+    
+    
+    <category term="CSAPP" scheme="http://blog.eynnzerr.top/tags/CSAPP/"/>
+    
+    <category term="C" scheme="http://blog.eynnzerr.top/tags/C/"/>
+    
+    <category term="计算机基础" scheme="http://blog.eynnzerr.top/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"/>
+    
+  </entry>
   
   <entry>
     <title>Handler 消息处理机制解析</title>

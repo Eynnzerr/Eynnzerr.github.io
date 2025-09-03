@@ -22,20 +22,21 @@
     var CONFIG = {"hostname":"blog.eynnzerr.top","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="在还是懵懂的大一本科生时，曾经折腾过一台服务器部署了一个博客网站，保持过一年的更新，最终却并未坚持下去。博客废弃了，域名早已过期，服务器也停机释放了。 三年后的今天，在整理旧电脑的数据时，无意间看到了曾经写过的几篇内容。也许文笔稚嫩，也许技术力尚欠缺，却一瞬间将我带回从前，那段时光中，最勤奋好学，贪婪地汲取知识，期待着变强的自己。 果然，博客还是要做下去。当再度萌生这个想法时，这个新的站点就诞生了">
+  <meta name="description" content="该篇内容为原博客博文，原上传于2023年1月18日。 Sealed Class和Sealed Interface是 kotlin 引入的全新特性。在初学 kotlin 时，我就一直没有掌握其用法，甚至到现在也不能在该用的时候立刻想到。 本篇文章主要总结Sealed Class的基本概念和常见用法。 什么是 Sealedjetbrains 对 Sealed Class&#x2F;Interface">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Eynnzerr&#39;s Blog 复活">
-<meta property="og:url" content="http://blog.eynnzerr.top/2025/08/29/hello-world/index.html">
+<meta property="og:title" content="奇妙的 Sealed">
+<meta property="og:url" content="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/index.html">
 <meta property="og:site_name" content="Eynnzerr&#39;s Blog">
-<meta property="og:description" content="在还是懵懂的大一本科生时，曾经折腾过一台服务器部署了一个博客网站，保持过一年的更新，最终却并未坚持下去。博客废弃了，域名早已过期，服务器也停机释放了。 三年后的今天，在整理旧电脑的数据时，无意间看到了曾经写过的几篇内容。也许文笔稚嫩，也许技术力尚欠缺，却一瞬间将我带回从前，那段时光中，最勤奋好学，贪婪地汲取知识，期待着变强的自己。 果然，博客还是要做下去。当再度萌生这个想法时，这个新的站点就诞生了">
+<meta property="og:description" content="该篇内容为原博客博文，原上传于2023年1月18日。 Sealed Class和Sealed Interface是 kotlin 引入的全新特性。在初学 kotlin 时，我就一直没有掌握其用法，甚至到现在也不能在该用的时候立刻想到。 本篇文章主要总结Sealed Class的基本概念和常见用法。 什么是 Sealedjetbrains 对 Sealed Class&#x2F;Interface">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-08-29T08:43:57.000Z">
-<meta property="article:modified_time" content="2025-08-29T12:51:27.637Z">
+<meta property="article:published_time" content="2025-09-03T07:21:27.000Z">
+<meta property="article:modified_time" content="2025-09-03T03:13:28.116Z">
 <meta property="article:author" content="Eynnzerr">
-<meta property="article:tag" content="Kotin,Android,iOS,Multi-platform">
+<meta property="article:tag" content="Kotlin">
+<meta property="article:tag" content="Sealed Class">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://blog.eynnzerr.top/2025/08/29/hello-world/">
+<link rel="canonical" href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/">
 
 
 <script id="page-configurations">
@@ -48,7 +49,7 @@
   };
 </script>
 
-  <title>Eynnzerr's Blog 复活 | Eynnzerr's Blog</title>
+  <title>奇妙的 Sealed | Eynnzerr's Blog</title>
   
 
 
@@ -200,7 +201,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/08/29/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/otae.jpg">
@@ -213,7 +214,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Eynnzerr's Blog 复活
+          奇妙的 Sealed
         </h1>
 
         <div class="post-meta">
@@ -224,7 +225,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2025-08-29 16:43:57 / 修改时间：20:51:27" itemprop="dateCreated datePublished" datetime="2025-08-29T16:43:57+08:00">2025-08-29</time>
+              <time title="创建时间：2025-09-03 15:21:27 / 修改时间：11:13:28" itemprop="dateCreated datePublished" datetime="2025-09-03T15:21:27+08:00">2025-09-03</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -232,7 +233,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%85%B6%E5%AE%83/" itemprop="url" rel="index"><span itemprop="name">其它</span></a>
+                  <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
                 </span>
             </span>
 
@@ -249,14 +250,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>404</span>
+              <span>2.8k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>5 分钟</span>
             </span>
 
         </div>
@@ -268,10 +269,61 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>在还是懵懂的大一本科生时，曾经折腾过一台服务器部署了一个博客网站，保持过一年的更新，最终却并未坚持下去。博客废弃了，域名早已过期，服务器也停机释放了。</p>
-<p>三年后的今天，在整理旧电脑的数据时，无意间看到了曾经写过的几篇内容。也许文笔稚嫩，也许技术力尚欠缺，却一瞬间将我带回从前，那段时光中，最勤奋好学，贪婪地汲取知识，期待着变强的自己。</p>
-<p>果然，博客还是要做下去。当再度萌生这个想法时，这个新的站点就诞生了。为了追求快速部署，采用了<strong>Github Pages</strong> + <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo">Hexo</a>，主题暂且还是使用了烂大街但是确实很简约耐看的<a target="_blank" rel="noopener" href="https://github.com/next-theme/hexo-theme-next">Next</a>。我会像从前一样，在这里记录自己的技术学习与实践经验，不仅为自己的反思总结，如果能帮到一些人那便更好。目前我会先对保留的老博客文章作筛选，将一部分仍有一定价值的文章搬运过来。</p>
-<p>同时在技术之外，这个网站也会收录一些个人在平常的所感所想，无意义的念叨，以及生活的碎片。我想，人总归还是希望能留下些什么东西。</p>
+        <p><strong>该篇内容为原博客博文，原上传于2023年1月18日。</strong></p>
+<p><strong>Sealed Class</strong>和<strong>Sealed Interface</strong>是 kotlin 引入的全新特性。在初学 kotlin 时，我就一直没有掌握其用法，甚至到现在也不能在该用的时候立刻想到。</p>
+<p>本篇文章主要总结<strong>Sealed Class</strong>的基本概念和常见用法。</p>
+<h3 id="什么是-Sealed"><a href="#什么是-Sealed" class="headerlink" title="什么是 Sealed"></a>什么是 Sealed</h3><p>jetbrains 对 Sealed Class&#x2F;Interface 的介绍如下：</p>
+<blockquote>
+<p>Sealed classes and interfaces represent restricted class hierarchies that provide more control over inheritance. All direct subclasses of a sealed class are known at compile time. No other subclasses may appear outside a module within which the sealed class is defined. For example, third-party clients can’t extend your sealed class in their code. Thus, each instance of a sealed class has a type from a limited set that is known when this class is compiled.</p>
+<p>The same works for sealed interfaces and their implementations: once a module with a sealed interface is compiled, no new implementations can appear.</p>
+<p>In some sense, sealed classes are similar to enum classes: the set of values for an enum type is also restricted, but each enum constant exists only as a single instance, whereas a subclass of a sealed class can have multiple instances, each with its own state.</p>
+</blockquote>
+<p>从以上介绍可以大致总结出 Sealed Class&#x2F;Interface 有如下特性：</p>
+<ul>
+<li><p>表示受限的类层次结构，并可以对继承提供更多的控制</p>
+</li>
+<li><p>密封类的子类在编译期即被确定为一个有限的集合内，不可扩展</p>
+</li>
+<li><p>密封类的子类只能位于定义了该密封类的<strong>包</strong>中</p>
+</li>
+<li><p>密封类的子类可以有多个实例</p>
+</li>
+</ul>
+<p>介绍中还提到，sealed class 和 enum class 在某种意义上是类似的，实际上，sealed class 诞生的重要原因之一正是为了克服 enum class 在某些场合下的局限性，也即上述特性的第一点和第四点。我们知道，枚举类有两个特性，在某些场合下是优点，但在另外一些场合下却可能成为缺点：</p>
+<ul>
+<li><p>每个枚举类型只能有一个实例（称为枚举常量）</p>
+</li>
+<li><p>各枚举常量只能使用相同类型的属性</p>
+</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="keyword">class</span> <span class="title class_">Drink</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>) &#123;</span><br><span class="line">    Milk(<span class="number">1</span>),</span><br><span class="line">    Coffee(<span class="number">2</span>),</span><br><span class="line">    Water(<span class="number">3</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在如上我们创建的枚举类中，各子类（Milk，Coffee，Water）无论有多少对象，都只能有一个实例（即单例的枚举常量），且其属性均只能为枚举类中定义的 Int 类型。</p>
+<p>而密封类则取消了以上限制，允许密封类的子类具有多个实例，且各子类可以定义自己的属性。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">class</span> <span class="title class_">Drink</span> &#123;</span><br><span class="line">    <span class="comment">// 这里直接在定义块内定义子类</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Milk</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>): Drink()</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Coffee</span>(<span class="keyword">val</span> id: <span class="built_in">Double</span>): Drink()</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Water</span>(<span class="keyword">val</span> id: String): Drink()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如上，密封类允许各子类具有不同类型的属性，只需要在子类的主构造函数中声明即可。需要注意的是，密封类在继承上的写法与抽象类区别较大，反而更加类似于一般的抽象类。实际上，密封类正是抽象的，不能直接生成实例，且可以具有抽象成员。因此，密封类可以像上述写法一样定义继承自密封类的子类，也可以用<code>object</code>直接定义子类对象，也可以再用<code>sealed class</code>，即密封类继承密封类，实现更加细粒度的类层次结构。</p>
+<p>各子类允许有多个不同状态的实例：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> milk1 = Drink.Milk(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> milk2 = Drink.Milk(<span class="number">2</span>)</span><br><span class="line">println(milk1.id)</span><br><span class="line">println(milk2.id)</span><br></pre></td></tr></table></figure>
+
+<p>上述特性的第二点意义在于，密封类对运行时的扩展是封闭的。程序在编译时，即可通过继承关系确认密封类的全部子类，由此产生了密封类一个非常实用的用处，在写 when 语句时不需要添加 else 分支，因为全部可能的分支在编译时即可确定，没有其他情况：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">test</span><span class="params">(drink: <span class="type">Drink</span>)</span></span> = <span class="keyword">when</span> (drink) &#123;</span><br><span class="line">    <span class="keyword">is</span> Drink.Milk -&gt; println(<span class="string">&quot;milk&quot;</span>)</span><br><span class="line">    <span class="keyword">is</span> Drink.Coffee -&gt; println(<span class="string">&quot;coffee&quot;</span>)</span><br><span class="line">    <span class="keyword">is</span> Drink.Water -&gt; println(<span class="string">&quot;water&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述特性的第三点意义在于，限制了密封类的作用空间，并且随着 kotlin 版本的更迭越来越宽松：从只能在 sealed class 内，到 1.1 支持同一文件内，到 1.5 支持同一包下。</p>
+<h3 id="怎么用-Sealed"><a href="#怎么用-Sealed" class="headerlink" title="怎么用 Sealed"></a>怎么用 Sealed</h3><p>kotlin 初学者往往会把<code>sealed class</code>当做<code>enum class</code>用，但<code>enum class</code>具有很明显的适用场景，这么做是不合适的。比如，你仅需要一系列相同类型的单例，且不需要任何额外描述，也不需要特殊的函数，那么用枚举就足够了，比如在我的《设计模式之状态模式》中，各状态有统一的处理方法，用枚举来表示。</p>
+<p>在 Android 开发中， <code>sealed class</code>有如下一些使用场景：</p>
+<ul>
+<li><p>列表有不同类型的子项（文字、图片），用密封类表示列表的 item</p>
+</li>
+<li><p>封装网络请求中成功（含有任意类型的请求数据）和失败（含有失败信息，如异常）返回的数据</p>
+</li>
+<li><p>使用<code>object</code>达到与枚举类似的效果（虽然在 google 的官方示例都出现了这种用法，但还是不推荐。为什么不直接用枚举呢？）</p>
+</li>
+<li><p>其他一切不满足枚举的应用场景，但需要与枚举类似效果，可以考虑用密封类</p>
+</li>
+</ul>
+<h3 id="关于-Sealed-Interface"><a href="#关于-Sealed-Interface" class="headerlink" title="关于 Sealed Interface"></a>关于 Sealed Interface</h3><p>以上都在讨论<code>sealed class</code>，而<code>sealed interface</code>作为 kotlin1.5 中登场的新特性，也值得说道说道。</p>
+<p>密封接口进一步补足了密封类和枚举类的一些不足之处，如枚举类编译后继承自<code>Enum</code>，由于单继承不能再继承其他类，此时可以用密封接口，对枚举类做进一步划分。当然直接用嵌套密封类也未尝不可。</p>
 
     </div>
 
@@ -287,7 +339,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://blog.eynnzerr.top/2025/08/29/hello-world/" title="Eynnzerr&#39;s Blog 复活">http://blog.eynnzerr.top/2025/08/29/hello-world/</a>
+    <a href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/" title="奇妙的 Sealed">http://blog.eynnzerr.top/2025/09/03/old-sealed-class/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -297,17 +349,21 @@
 
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kotlin/" rel="tag"># Kotlin</a>
+              <a href="/tags/Sealed-Class/" rel="tag"># Sealed Class</a>
+          </div>
 
         
 
 
         
     <div class="post-nav">
-      <div class="post-nav-item"></div>
       <div class="post-nav-item">
-    <a href="/2025/08/29/old-docker-principle/" rel="next" title="Docker基础原理探究">
-      Docker基础原理探究 <i class="fa fa-chevron-right"></i>
+    <a href="/2025/09/02/old-scope-function/" rel="prev" title="old_scope_function">
+      <i class="fa fa-chevron-left"></i> old_scope_function
     </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -366,6 +422,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Sealed"><span class="nav-number">1.</span> <span class="nav-text">什么是 Sealed</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E7%94%A8-Sealed"><span class="nav-number">2.</span> <span class="nav-text">怎么用 Sealed</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-Sealed-Interface"><span class="nav-number">3.</span> <span class="nav-text">关于 Sealed Interface</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
