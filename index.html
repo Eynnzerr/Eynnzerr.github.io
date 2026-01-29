@@ -195,6 +195,125 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/01/29/package-size-incre-md/" class="post-title-link" itemprop="url">package_size_incre.md</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-01-29 16:48:52 / 修改时间：17:06:07" itemprop="dateCreated datePublished" datetime="2026-01-29T16:48:52+08:00">2026-01-29</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Compose-Multiplatform/" itemprop="url" rel="index"><span itemprop="name">Compose Multiplatform</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="案例一"><a href="#案例一" class="headerlink" title="案例一"></a>案例一</h2><p>2025年12月18日，发现v1.0.3版本桌面端安装包体积爆炸增大，从原本的150MB左右暴涨到1GB，如下图所示。<br><img src="/package-size-incre-md/image.png" alt="image.png"></p>
+<p>由于三端均产生该问题，以 macOS 端(.dmg)为例展开排查。解包产物，切入<code>contents</code> 目录查看文件夹大小，执行<code>du -sh ./*</code>，结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">116K ./Contents/_CodeSignature </span><br><span class="line">999M ./Contents/app </span><br><span class="line">4.0K ./Contents/Info.plist </span><br><span class="line">196K ./Contents/MacOS </span><br><span class="line">4.0K ./Contents/PkgInfo </span><br><span class="line">16K ./Contents/Resources </span><br><span class="line">158M ./Contents/runtime</span><br></pre></td></tr></table></figure>
+
+<p>显然 <strong><code>Contents/app</code>（999MB）</strong> 炸了。这也就是说：这次膨胀原因主要来自 <strong>应用层打包进去的 jar&#x2F;依赖&#x2F;资源</strong> 异常地多，初步怀疑是某个库发生了问题，将三份native包全都打包到一个native平台上了。</p>
+<p>切入 <code>Contents/app</code> 执行<code>du -sh ./*</code> ，结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">22M	./opencv-4.6.0-1.5.8-android-x86-b38c986c415ad7d34111fa1ff684a19a.jar</span><br><span class="line">26M	./opencv-4.6.0-1.5.8-ios-arm64-5a95a9fd33b458cf8dc8538fff16.jar</span><br><span class="line">28M	./opencv-4.6.0-1.5.8-ios-x86_64-d3cdf6cb93ba33f2240a97fd5193.jar</span><br><span class="line">24M	./opencv-4.6.0-1.5.8-linux-arm64-91b0d28db0dcbe847ead233f99a2831.jar</span><br><span class="line">22M	./opencv-4.6.0-1.5.8-linux-armhf-4d45d47f293943abde4163761b744fc.jar</span><br><span class="line">27M	./opencv-4.6.0-1.5.8-linux-ppc64le-511dfd3698bebebd724d4052e6a34b90.jar</span><br><span class="line">27M	./opencv-4.6.0-1.5.8-linux-x86_64-91c04431ec13e27014c25b8f77ece6.jar</span><br><span class="line">28M	./opencv-4.6.0-1.5.8-linux-x86-941136bbfad2956a86b10f9242fad34.jar</span><br><span class="line">20M	./opencv-4.6.0-1.5.8-macosx-arm64-699b23fa8d64ced8f96a65d012ff48.jar</span><br><span class="line">25M	./opencv-4.6.0-1.5.8-macosx-x86_64-855f22d26a3e7eb65122adacf1e5cee4.jar</span><br><span class="line">29M	./opencv-4.6.0-1.5.8-windows-x86_64-149da917d80e13db6cac72fd53170cc.jar</span><br><span class="line">27M	./opencv-4.6.0-1.5.8-windows-x86-e136927b1d9446f968ea2bd45dfa13e.jar</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>这就很显然了，验证了猜想是对的。明明是macOS平台的包，却连 windows 及 linux 的jar都被打包进来，所以导致了包体积暴涨。下一步是排查最终的罪魁祸首，是谁干了这件蠢事。回到项目中运行<code>./gradlew :composeApp:dependencyInsight --configuration desktopRuntimeClasspath --dependency javacv-platform</code>，输出如下：</p>
+<p><img src="/package-size-incre-md/image-1.png" alt="image-1.png"></p>
+<p>水落石出，结果显示是<code>cmp-image-pick-n-crop-jvm:1.1.2</code> 这个库依赖<code>org.bytedeco:javacv-platform:1.5.8</code> 又依赖 <code>org.bytedeco:opencv-platform:4.6.0-1.5.8</code>。<code>cmp-image-pick-n-crop</code> 是我在Github上找的一个用来裁剪图片的第三方库，它的JVM平台包依赖了<code>*-platform</code> 全家桶，导致暴增。我在本次更新的改动中将其版本从<code>1.1.1</code> 升级到<code>1.1.2</code> 才出现这个问题，看来是作者在更新他的库依赖时犯了个低级错误。</p>
+<p>修复很简单，回退到<code>1.1.1</code> 即可解决，但是治标不治本。本着开源精神至上的原则我把该库fork并拉了下来准备直接修并提PR，结果这才发现这是个假开源项目。源代码是空的，只有个示例app。对印度人的刻板印象再次加深。无奈只好提了个issue作罢，但估计也不会被理睬，看commit日期这个库已经被放弃维护了，令人感叹。</p>
+<h2 id="案例二"><a href="#案例二" class="headerlink" title="案例二"></a>案例二</h2><p>2026年1月28日，发现v1.0.4版本桌面端安装包体积再次出现异常增大，但这次涨幅不如上次，且只有 Win &#x2F; Linux 平台受影响。</p>
+<p><img src="/package-size-incre-md/image-2.png" alt="image-2.png"></p>
+<p>这次以 Linux 平台 (.deb) 为例进行排查，还是老方法，解包然后看谁变大了。分别对新老版本安装包运行<code>du -h -d 4 old | sort -h | tail -n 30</code> 查看：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># old</span><br><span class="line">4.0K    old/opt/bandoristationm/share</span><br><span class="line">4.0K    old/opt/bandoristationm/share/doc</span><br><span class="line"> 20K    old/opt/bandoristationm/bin</span><br><span class="line">129M    old/opt/bandoristationm/lib/app</span><br><span class="line">168M    old/opt/bandoristationm/lib/runtime</span><br><span class="line">298M    old</span><br><span class="line">298M    old/opt</span><br><span class="line">298M    old/opt/bandoristationm</span><br><span class="line">298M    old/opt/bandoristationm/lib</span><br><span class="line"></span><br><span class="line"># new</span><br><span class="line">4.0K    new/opt/bandoristationm/share</span><br><span class="line">4.0K    new/opt/bandoristationm/share/doc</span><br><span class="line"> 24K    new/opt/bandoristationm/bin</span><br><span class="line">129M    new/opt/bandoristationm/lib/app</span><br><span class="line">480M    new/opt/bandoristationm/lib/runtime</span><br><span class="line">610M    new</span><br><span class="line">610M    new/opt</span><br><span class="line">610M    new/opt/bandoristationm</span><br><span class="line">610M    new/opt/bandoristationm/lib</span><br></pre></td></tr></table></figure>
+
+<p><code>lib/runtime</code> 炸了，显然这次不是依赖包的问题，而是JRE出了差错，就像没被裁剪一样。在新版本包中运行<code>find new/opt/bandoristationm/lib/runtime/lib -type f -print0 | xargs -0 ls -lnS | head -n 30</code>，结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-rw-r--r--  1 501  20  209861688 Jan 28 17:05 new/opt/bandoristationm/lib/runtime/lib/libcef.so</span><br><span class="line">-rw-r--r--  1 501  20  147634191 Jan 28 17:05 new/opt/bandoristationm/lib/runtime/lib/modules</span><br><span class="line">-rw-r--r--  1 501  20   26726528 Jan 28 17:05 new/opt/bandoristationm/lib/runtime/lib/server/libjvm.so</span><br><span class="line">-rw-r--r--  1 501  20   10717392 Jan 28 17:05 new/opt/bandoristationm/lib/runtime/lib/icudtl.dat</span><br><span class="line">-rw-r--r--  1 501  20   10715134 Jan 28 17:05 new/opt/bandoristationm/lib/runtime/lib/ct.sym</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>一上来就看懂了，怎么混进来个庞然大物<code>libcef.so</code>，我这是不知道被谁塞了整套 Chromium 啊。翻了翻过去的 commit 记录，定位了罪魁祸首：在 Android Studio 建议迁移 gradle 后，gradle 在升级到9.0.0的同时，顺手给我塞了个<code>gradle-daemon-jvm.properties</code>。我没有在意，但是这个配置文件里面设置了<code>toolchainVendor=JETBRAINS</code>，即指定 JBR 为 Gradle Daemon 的运行时，而上面的URL里面又指定了 JBR 的版本是带 JCEF 的版本：</p>
+<ul>
+<li>Linux: <code>jbrsdk_jcef-21.0.9-linux-x64-b895.149.tar.gz</code></li>
+<li>Windows: <code>jbrsdk_jcef-21.0.9-windows-x64-b895.149.zip</code></li>
+<li>macOS: <code>jbrsdk_jcef-21.0.9-osx-aarch64-b895.149.tar.gz</code></li>
+</ul>
+<p>这也导致当workflow在跑时，Gradle构建时，不会再用我指定的 temurin，而是现场下带JCEF 的 JBR 用，自然打包时把 libcef.so 等一系列不需要的东西也拐进来了。</p>
+<p>解决：直接rollback即可。</p>
+<h2 id="经验总结"><a href="#经验总结" class="headerlink" title="经验总结"></a>经验总结</h2><p>遇到包体积暴涨不用慌，凡事皆有迹可循。桌面端打包（Compose Desktop&#x2F;jpackage）有个特点：<strong>最终体积主要由两部分决定</strong>：</p>
+<ul>
+<li><strong>应用层</strong>：<code>lib/app</code>（jar、资源、代码）-&gt; 通常增长是渐进的</li>
+<li><strong>运行时层</strong>：<code>lib/runtime</code>（JRE&#x2F;JBR、native、资源包）-&gt; <strong>一旦策略变了就是断崖式增长</strong></li>
+</ul>
+<p>不要用“总大小”当指标，而是要抓“结构”，把体积拆成可解释的结构指标，迅速归因：</p>
+<ul>
+<li><code>app</code> 变大 → 依赖&#x2F;资源&#x2F;重复打包</li>
+<li><code>runtime</code> 变大 → JDK&#x2F;JBR 变更、jlink 失效、引入 JCEF、debug 符号等</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/08/index_in_kotlin/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1660,20 +1779,20 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">8</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1725,12 +1844,12 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">60k</span>
+    <span title="站点总字数">64k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:49</span>
+    <span title="站点阅读时长">1:57</span>
 </div>
   <div class="powered-by">
     <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动 -->

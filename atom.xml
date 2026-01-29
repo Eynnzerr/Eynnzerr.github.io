@@ -6,7 +6,7 @@
   <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
   
   <link href="http://blog.eynnzerr.top/"/>
-  <updated>2026-01-27T07:53:21.452Z</updated>
+  <updated>2026-01-29T09:06:07.520Z</updated>
   <id>http://blog.eynnzerr.top/</id>
   
   <author>
@@ -15,6 +15,30 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>package_size_incre.md</title>
+    <link href="http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/"/>
+    <id>http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/</id>
+    <published>2026-01-29T08:48:52.000Z</published>
+    <updated>2026-01-29T09:06:07.520Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;案例一&quot;&gt;&lt;a href=&quot;#案例一&quot; class=&quot;headerlink&quot; title=&quot;案例一&quot;&gt;&lt;/a&gt;案例一&lt;/h2&gt;&lt;p&gt;2025年12月18日，发现v1.0.3版本桌面端安装包体积爆炸增大，从原本的150MB左右暴涨到1GB，如下图所示。&lt;br&gt;&lt;im</summary>
+      
+    
+    
+    
+    <category term="Compose Multiplatform" scheme="http://blog.eynnzerr.top/categories/Compose-Multiplatform/"/>
+    
+    
+    <category term="Compose Multiplatform" scheme="http://blog.eynnzerr.top/tags/Compose-Multiplatform/"/>
+    
+    <category term="Gradle" scheme="http://blog.eynnzerr.top/tags/Gradle/"/>
+    
+  </entry>
   
   <entry>
     <title>Kotlin 中的 &#39;[]&#39;</title>

@@ -22,21 +22,25 @@
     var CONFIG = {"hostname":"blog.eynnzerr.top","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="该篇内容为原博客博文，原上传于2023年1月18日。 Sealed Class和Sealed Interface是 kotlin 引入的全新特性。在初学 kotlin 时，我就一直没有掌握其用法，甚至到现在也不能在该用的时候立刻想到。 本篇文章主要总结Sealed Class的基本概念和常见用法。 什么是 Sealedjetbrains 对 Sealed Class&#x2F;Interface">
+  <meta name="description" content="案例一2025年12月18日，发现v1.0.3版本桌面端安装包体积爆炸增大，从原本的150MB左右暴涨到1GB，如下图所示。 由于三端均产生该问题，以 macOS 端(.dmg)为例展开排查。解包产物，切入contents 目录查看文件夹大小，执行du -sh .&#x2F;*，结果如下： 1234567116K .&#x2F;Contents&#x2F;_CodeSignature 999M .&#x2F;Contents&#x2F;app 4">
 <meta property="og:type" content="article">
-<meta property="og:title" content="奇妙的 Sealed">
-<meta property="og:url" content="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/index.html">
+<meta property="og:title" content="package_size_incre.md">
+<meta property="og:url" content="http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/index.html">
 <meta property="og:site_name" content="Eynnzerr&#39;s Blog">
-<meta property="og:description" content="该篇内容为原博客博文，原上传于2023年1月18日。 Sealed Class和Sealed Interface是 kotlin 引入的全新特性。在初学 kotlin 时，我就一直没有掌握其用法，甚至到现在也不能在该用的时候立刻想到。 本篇文章主要总结Sealed Class的基本概念和常见用法。 什么是 Sealedjetbrains 对 Sealed Class&#x2F;Interface">
+<meta property="og:description" content="案例一2025年12月18日，发现v1.0.3版本桌面端安装包体积爆炸增大，从原本的150MB左右暴涨到1GB，如下图所示。 由于三端均产生该问题，以 macOS 端(.dmg)为例展开排查。解包产物，切入contents 目录查看文件夹大小，执行du -sh .&#x2F;*，结果如下： 1234567116K .&#x2F;Contents&#x2F;_CodeSignature 999M .&#x2F;Contents&#x2F;app 4">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-09-03T07:21:27.000Z">
-<meta property="article:modified_time" content="2025-09-03T03:13:28.116Z">
+<meta property="og:image" content="http://blog.eynnzerr.top/package-size-incre-md/image.png">
+<meta property="og:image" content="http://blog.eynnzerr.top/package-size-incre-md/image-1.png">
+<meta property="og:image" content="http://blog.eynnzerr.top/package-size-incre-md/image-2.png">
+<meta property="article:published_time" content="2026-01-29T08:48:52.000Z">
+<meta property="article:modified_time" content="2026-01-29T09:06:07.520Z">
 <meta property="article:author" content="Eynnzerr">
-<meta property="article:tag" content="Kotlin">
-<meta property="article:tag" content="Sealed Class">
+<meta property="article:tag" content="Compose Multiplatform">
+<meta property="article:tag" content="Gradle">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.eynnzerr.top/package-size-incre-md/image.png">
 
-<link rel="canonical" href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/">
+<link rel="canonical" href="http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/">
 
 
 <script id="page-configurations">
@@ -49,7 +53,7 @@
   };
 </script>
 
-  <title>奇妙的 Sealed | Eynnzerr's Blog</title>
+  <title>package_size_incre.md | Eynnzerr's Blog</title>
   
 
 
@@ -201,7 +205,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/otae.jpg">
@@ -214,7 +218,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          奇妙的 Sealed
+          package_size_incre.md
         </h1>
 
         <div class="post-meta">
@@ -225,7 +229,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2025-09-03 15:21:27 / 修改时间：11:13:28" itemprop="dateCreated datePublished" datetime="2025-09-03T15:21:27+08:00">2025-09-03</time>
+              <time title="创建时间：2026-01-29 16:48:52 / 修改时间：17:06:07" itemprop="dateCreated datePublished" datetime="2026-01-29T16:48:52+08:00">2026-01-29</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -233,7 +237,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
+                  <a href="/categories/Compose-Multiplatform/" itemprop="url" rel="index"><span itemprop="name">Compose Multiplatform</span></a>
                 </span>
             </span>
 
@@ -250,14 +254,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.8k</span>
+              <span>4k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
+              <span>7 分钟</span>
             </span>
 
         </div>
@@ -269,61 +273,44 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p><strong>该篇内容为原博客博文，原上传于2023年1月18日。</strong></p>
-<p><strong>Sealed Class</strong>和<strong>Sealed Interface</strong>是 kotlin 引入的全新特性。在初学 kotlin 时，我就一直没有掌握其用法，甚至到现在也不能在该用的时候立刻想到。</p>
-<p>本篇文章主要总结<strong>Sealed Class</strong>的基本概念和常见用法。</p>
-<h3 id="什么是-Sealed"><a href="#什么是-Sealed" class="headerlink" title="什么是 Sealed"></a>什么是 Sealed</h3><p>jetbrains 对 Sealed Class&#x2F;Interface 的介绍如下：</p>
-<blockquote>
-<p>Sealed classes and interfaces represent restricted class hierarchies that provide more control over inheritance. All direct subclasses of a sealed class are known at compile time. No other subclasses may appear outside a module within which the sealed class is defined. For example, third-party clients can’t extend your sealed class in their code. Thus, each instance of a sealed class has a type from a limited set that is known when this class is compiled.</p>
-<p>The same works for sealed interfaces and their implementations: once a module with a sealed interface is compiled, no new implementations can appear.</p>
-<p>In some sense, sealed classes are similar to enum classes: the set of values for an enum type is also restricted, but each enum constant exists only as a single instance, whereas a subclass of a sealed class can have multiple instances, each with its own state.</p>
-</blockquote>
-<p>从以上介绍可以大致总结出 Sealed Class&#x2F;Interface 有如下特性：</p>
+        <h2 id="案例一"><a href="#案例一" class="headerlink" title="案例一"></a>案例一</h2><p>2025年12月18日，发现v1.0.3版本桌面端安装包体积爆炸增大，从原本的150MB左右暴涨到1GB，如下图所示。<br><img src="/package-size-incre-md/image.png" alt="image.png"></p>
+<p>由于三端均产生该问题，以 macOS 端(.dmg)为例展开排查。解包产物，切入<code>contents</code> 目录查看文件夹大小，执行<code>du -sh ./*</code>，结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">116K ./Contents/_CodeSignature </span><br><span class="line">999M ./Contents/app </span><br><span class="line">4.0K ./Contents/Info.plist </span><br><span class="line">196K ./Contents/MacOS </span><br><span class="line">4.0K ./Contents/PkgInfo </span><br><span class="line">16K ./Contents/Resources </span><br><span class="line">158M ./Contents/runtime</span><br></pre></td></tr></table></figure>
+
+<p>显然 <strong><code>Contents/app</code>（999MB）</strong> 炸了。这也就是说：这次膨胀原因主要来自 <strong>应用层打包进去的 jar&#x2F;依赖&#x2F;资源</strong> 异常地多，初步怀疑是某个库发生了问题，将三份native包全都打包到一个native平台上了。</p>
+<p>切入 <code>Contents/app</code> 执行<code>du -sh ./*</code> ，结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">22M	./opencv-4.6.0-1.5.8-android-x86-b38c986c415ad7d34111fa1ff684a19a.jar</span><br><span class="line">26M	./opencv-4.6.0-1.5.8-ios-arm64-5a95a9fd33b458cf8dc8538fff16.jar</span><br><span class="line">28M	./opencv-4.6.0-1.5.8-ios-x86_64-d3cdf6cb93ba33f2240a97fd5193.jar</span><br><span class="line">24M	./opencv-4.6.0-1.5.8-linux-arm64-91b0d28db0dcbe847ead233f99a2831.jar</span><br><span class="line">22M	./opencv-4.6.0-1.5.8-linux-armhf-4d45d47f293943abde4163761b744fc.jar</span><br><span class="line">27M	./opencv-4.6.0-1.5.8-linux-ppc64le-511dfd3698bebebd724d4052e6a34b90.jar</span><br><span class="line">27M	./opencv-4.6.0-1.5.8-linux-x86_64-91c04431ec13e27014c25b8f77ece6.jar</span><br><span class="line">28M	./opencv-4.6.0-1.5.8-linux-x86-941136bbfad2956a86b10f9242fad34.jar</span><br><span class="line">20M	./opencv-4.6.0-1.5.8-macosx-arm64-699b23fa8d64ced8f96a65d012ff48.jar</span><br><span class="line">25M	./opencv-4.6.0-1.5.8-macosx-x86_64-855f22d26a3e7eb65122adacf1e5cee4.jar</span><br><span class="line">29M	./opencv-4.6.0-1.5.8-windows-x86_64-149da917d80e13db6cac72fd53170cc.jar</span><br><span class="line">27M	./opencv-4.6.0-1.5.8-windows-x86-e136927b1d9446f968ea2bd45dfa13e.jar</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>这就很显然了，验证了猜想是对的。明明是macOS平台的包，却连 windows 及 linux 的jar都被打包进来，所以导致了包体积暴涨。下一步是排查最终的罪魁祸首，是谁干了这件蠢事。回到项目中运行<code>./gradlew :composeApp:dependencyInsight --configuration desktopRuntimeClasspath --dependency javacv-platform</code>，输出如下：</p>
+<p><img src="/package-size-incre-md/image-1.png" alt="image-1.png"></p>
+<p>水落石出，结果显示是<code>cmp-image-pick-n-crop-jvm:1.1.2</code> 这个库依赖<code>org.bytedeco:javacv-platform:1.5.8</code> 又依赖 <code>org.bytedeco:opencv-platform:4.6.0-1.5.8</code>。<code>cmp-image-pick-n-crop</code> 是我在Github上找的一个用来裁剪图片的第三方库，它的JVM平台包依赖了<code>*-platform</code> 全家桶，导致暴增。我在本次更新的改动中将其版本从<code>1.1.1</code> 升级到<code>1.1.2</code> 才出现这个问题，看来是作者在更新他的库依赖时犯了个低级错误。</p>
+<p>修复很简单，回退到<code>1.1.1</code> 即可解决，但是治标不治本。本着开源精神至上的原则我把该库fork并拉了下来准备直接修并提PR，结果这才发现这是个假开源项目。源代码是空的，只有个示例app。对印度人的刻板印象再次加深。无奈只好提了个issue作罢，但估计也不会被理睬，看commit日期这个库已经被放弃维护了，令人感叹。</p>
+<h2 id="案例二"><a href="#案例二" class="headerlink" title="案例二"></a>案例二</h2><p>2026年1月28日，发现v1.0.4版本桌面端安装包体积再次出现异常增大，但这次涨幅不如上次，且只有 Win &#x2F; Linux 平台受影响。</p>
+<p><img src="/package-size-incre-md/image-2.png" alt="image-2.png"></p>
+<p>这次以 Linux 平台 (.deb) 为例进行排查，还是老方法，解包然后看谁变大了。分别对新老版本安装包运行<code>du -h -d 4 old | sort -h | tail -n 30</code> 查看：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># old</span><br><span class="line">4.0K    old/opt/bandoristationm/share</span><br><span class="line">4.0K    old/opt/bandoristationm/share/doc</span><br><span class="line"> 20K    old/opt/bandoristationm/bin</span><br><span class="line">129M    old/opt/bandoristationm/lib/app</span><br><span class="line">168M    old/opt/bandoristationm/lib/runtime</span><br><span class="line">298M    old</span><br><span class="line">298M    old/opt</span><br><span class="line">298M    old/opt/bandoristationm</span><br><span class="line">298M    old/opt/bandoristationm/lib</span><br><span class="line"></span><br><span class="line"># new</span><br><span class="line">4.0K    new/opt/bandoristationm/share</span><br><span class="line">4.0K    new/opt/bandoristationm/share/doc</span><br><span class="line"> 24K    new/opt/bandoristationm/bin</span><br><span class="line">129M    new/opt/bandoristationm/lib/app</span><br><span class="line">480M    new/opt/bandoristationm/lib/runtime</span><br><span class="line">610M    new</span><br><span class="line">610M    new/opt</span><br><span class="line">610M    new/opt/bandoristationm</span><br><span class="line">610M    new/opt/bandoristationm/lib</span><br></pre></td></tr></table></figure>
+
+<p><code>lib/runtime</code> 炸了，显然这次不是依赖包的问题，而是JRE出了差错，就像没被裁剪一样。在新版本包中运行<code>find new/opt/bandoristationm/lib/runtime/lib -type f -print0 | xargs -0 ls -lnS | head -n 30</code>，结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-rw-r--r--  1 501  20  209861688 Jan 28 17:05 new/opt/bandoristationm/lib/runtime/lib/libcef.so</span><br><span class="line">-rw-r--r--  1 501  20  147634191 Jan 28 17:05 new/opt/bandoristationm/lib/runtime/lib/modules</span><br><span class="line">-rw-r--r--  1 501  20   26726528 Jan 28 17:05 new/opt/bandoristationm/lib/runtime/lib/server/libjvm.so</span><br><span class="line">-rw-r--r--  1 501  20   10717392 Jan 28 17:05 new/opt/bandoristationm/lib/runtime/lib/icudtl.dat</span><br><span class="line">-rw-r--r--  1 501  20   10715134 Jan 28 17:05 new/opt/bandoristationm/lib/runtime/lib/ct.sym</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>一上来就看懂了，怎么混进来个庞然大物<code>libcef.so</code>，我这是不知道被谁塞了整套 Chromium 啊。翻了翻过去的 commit 记录，定位了罪魁祸首：在 Android Studio 建议迁移 gradle 后，gradle 在升级到9.0.0的同时，顺手给我塞了个<code>gradle-daemon-jvm.properties</code>。我没有在意，但是这个配置文件里面设置了<code>toolchainVendor=JETBRAINS</code>，即指定 JBR 为 Gradle Daemon 的运行时，而上面的URL里面又指定了 JBR 的版本是带 JCEF 的版本：</p>
 <ul>
-<li><p>表示受限的类层次结构，并可以对继承提供更多的控制</p>
-</li>
-<li><p>密封类的子类在编译期即被确定为一个有限的集合内，不可扩展</p>
-</li>
-<li><p>密封类的子类只能位于定义了该密封类的<strong>包</strong>中</p>
-</li>
-<li><p>密封类的子类可以有多个实例</p>
-</li>
+<li>Linux: <code>jbrsdk_jcef-21.0.9-linux-x64-b895.149.tar.gz</code></li>
+<li>Windows: <code>jbrsdk_jcef-21.0.9-windows-x64-b895.149.zip</code></li>
+<li>macOS: <code>jbrsdk_jcef-21.0.9-osx-aarch64-b895.149.tar.gz</code></li>
 </ul>
-<p>介绍中还提到，sealed class 和 enum class 在某种意义上是类似的，实际上，sealed class 诞生的重要原因之一正是为了克服 enum class 在某些场合下的局限性，也即上述特性的第一点和第四点。我们知道，枚举类有两个特性，在某些场合下是优点，但在另外一些场合下却可能成为缺点：</p>
+<p>这也导致当workflow在跑时，Gradle构建时，不会再用我指定的 temurin，而是现场下带JCEF 的 JBR 用，自然打包时把 libcef.so 等一系列不需要的东西也拐进来了。</p>
+<p>解决：直接rollback即可。</p>
+<h2 id="经验总结"><a href="#经验总结" class="headerlink" title="经验总结"></a>经验总结</h2><p>遇到包体积暴涨不用慌，凡事皆有迹可循。桌面端打包（Compose Desktop&#x2F;jpackage）有个特点：<strong>最终体积主要由两部分决定</strong>：</p>
 <ul>
-<li><p>每个枚举类型只能有一个实例（称为枚举常量）</p>
-</li>
-<li><p>各枚举常量只能使用相同类型的属性</p>
-</li>
+<li><strong>应用层</strong>：<code>lib/app</code>（jar、资源、代码）-&gt; 通常增长是渐进的</li>
+<li><strong>运行时层</strong>：<code>lib/runtime</code>（JRE&#x2F;JBR、native、资源包）-&gt; <strong>一旦策略变了就是断崖式增长</strong></li>
 </ul>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="keyword">class</span> <span class="title class_">Drink</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>) &#123;</span><br><span class="line">    Milk(<span class="number">1</span>),</span><br><span class="line">    Coffee(<span class="number">2</span>),</span><br><span class="line">    Water(<span class="number">3</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在如上我们创建的枚举类中，各子类（Milk，Coffee，Water）无论有多少对象，都只能有一个实例（即单例的枚举常量），且其属性均只能为枚举类中定义的 Int 类型。</p>
-<p>而密封类则取消了以上限制，允许密封类的子类具有多个实例，且各子类可以定义自己的属性。</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">class</span> <span class="title class_">Drink</span> &#123;</span><br><span class="line">    <span class="comment">// 这里直接在定义块内定义子类</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Milk</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>): Drink()</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Coffee</span>(<span class="keyword">val</span> id: <span class="built_in">Double</span>): Drink()</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Water</span>(<span class="keyword">val</span> id: String): Drink()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>如上，密封类允许各子类具有不同类型的属性，只需要在子类的主构造函数中声明即可。需要注意的是，密封类在继承上的写法与抽象类区别较大，反而更加类似于一般的抽象类。实际上，密封类正是抽象的，不能直接生成实例，且可以具有抽象成员。因此，密封类可以像上述写法一样定义继承自密封类的子类，也可以用<code>object</code>直接定义子类对象，也可以再用<code>sealed class</code>，即密封类继承密封类，实现更加细粒度的类层次结构。</p>
-<p>各子类允许有多个不同状态的实例：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> milk1 = Drink.Milk(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> milk2 = Drink.Milk(<span class="number">2</span>)</span><br><span class="line">println(milk1.id)</span><br><span class="line">println(milk2.id)</span><br></pre></td></tr></table></figure>
-
-<p>上述特性的第二点意义在于，密封类对运行时的扩展是封闭的。程序在编译时，即可通过继承关系确认密封类的全部子类，由此产生了密封类一个非常实用的用处，在写 when 语句时不需要添加 else 分支，因为全部可能的分支在编译时即可确定，没有其他情况：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">test</span><span class="params">(drink: <span class="type">Drink</span>)</span></span> = <span class="keyword">when</span> (drink) &#123;</span><br><span class="line">    <span class="keyword">is</span> Drink.Milk -&gt; println(<span class="string">&quot;milk&quot;</span>)</span><br><span class="line">    <span class="keyword">is</span> Drink.Coffee -&gt; println(<span class="string">&quot;coffee&quot;</span>)</span><br><span class="line">    <span class="keyword">is</span> Drink.Water -&gt; println(<span class="string">&quot;water&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>上述特性的第三点意义在于，限制了密封类的作用空间，并且随着 kotlin 版本的更迭越来越宽松：从只能在 sealed class 内，到 1.1 支持同一文件内，到 1.5 支持同一包下。</p>
-<h3 id="怎么用-Sealed"><a href="#怎么用-Sealed" class="headerlink" title="怎么用 Sealed"></a>怎么用 Sealed</h3><p>kotlin 初学者往往会把<code>sealed class</code>当做<code>enum class</code>用，但<code>enum class</code>具有很明显的适用场景，这么做是不合适的。比如，你仅需要一系列相同类型的单例，且不需要任何额外描述，也不需要特殊的函数，那么用枚举就足够了，比如在我的《设计模式之状态模式》中，各状态有统一的处理方法，用枚举来表示。</p>
-<p>在 Android 开发中， <code>sealed class</code>有如下一些使用场景：</p>
+<p>不要用“总大小”当指标，而是要抓“结构”，把体积拆成可解释的结构指标，迅速归因：</p>
 <ul>
-<li><p>列表有不同类型的子项（文字、图片），用密封类表示列表的 item</p>
-</li>
-<li><p>封装网络请求中成功（含有任意类型的请求数据）和失败（含有失败信息，如异常）返回的数据</p>
-</li>
-<li><p>使用<code>object</code>达到与枚举类似的效果（虽然在 google 的官方示例都出现了这种用法，但还是不推荐。为什么不直接用枚举呢？）</p>
-</li>
-<li><p>其他一切不满足枚举的应用场景，但需要与枚举类似效果，可以考虑用密封类</p>
-</li>
+<li><code>app</code> 变大 → 依赖&#x2F;资源&#x2F;重复打包</li>
+<li><code>runtime</code> 变大 → JDK&#x2F;JBR 变更、jlink 失效、引入 JCEF、debug 符号等</li>
 </ul>
-<h3 id="关于-Sealed-Interface"><a href="#关于-Sealed-Interface" class="headerlink" title="关于 Sealed Interface"></a>关于 Sealed Interface</h3><p>以上都在讨论<code>sealed class</code>，而<code>sealed interface</code>作为 kotlin1.5 中登场的新特性，也值得说道说道。</p>
-<p>密封接口进一步补足了密封类和枚举类的一些不足之处，如枚举类编译后继承自<code>Enum</code>，由于单继承不能再继承其他类，此时可以用密封接口，对枚举类做进一步划分。当然直接用嵌套密封类也未尝不可。</p>
 
     </div>
 
@@ -339,7 +326,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/" title="奇妙的 Sealed">http://blog.eynnzerr.top/2025/09/03/old-sealed-class/</a>
+    <a href="http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/" title="package_size_incre.md">http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -350,8 +337,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Kotlin/" rel="tag"># Kotlin</a>
-              <a href="/tags/Sealed-Class/" rel="tag"># Sealed Class</a>
+              <a href="/tags/Compose-Multiplatform/" rel="tag"># Compose Multiplatform</a>
+              <a href="/tags/Gradle/" rel="tag"># Gradle</a>
           </div>
 
         
@@ -360,13 +347,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2025/09/02/old-scope-function/" rel="prev" title="old_scope_function">
-      <i class="fa fa-chevron-left"></i> old_scope_function
+    <a href="/2025/09/08/index_in_kotlin/" rel="prev" title="Kotlin 中的 '[]'">
+      <i class="fa fa-chevron-left"></i> Kotlin 中的 '[]'
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2025/09/08/index_in_kotlin/" rel="next" title="Kotlin 中的 '[]'">
-      Kotlin 中的 '[]' <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -425,7 +409,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Sealed"><span class="nav-number">1.</span> <span class="nav-text">什么是 Sealed</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E7%94%A8-Sealed"><span class="nav-number">2.</span> <span class="nav-text">怎么用 Sealed</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-Sealed-Interface"><span class="nav-number">3.</span> <span class="nav-text">关于 Sealed Interface</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B%E4%B8%80"><span class="nav-number">1.</span> <span class="nav-text">案例一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B%E4%BA%8C"><span class="nav-number">2.</span> <span class="nav-text">案例二</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">经验总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
