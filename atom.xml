@@ -6,7 +6,7 @@
   <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
   
   <link href="http://blog.eynnzerr.top/"/>
-  <updated>2026-01-30T04:29:26.782Z</updated>
+  <updated>2026-01-30T04:39:31.117Z</updated>
   <id>http://blog.eynnzerr.top/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Kotlin的基本类型与装箱机制简析</title>
+    <link href="http://blog.eynnzerr.top/2026/01/30/kotlin-primitive-md/"/>
+    <id>http://blog.eynnzerr.top/2026/01/30/kotlin-primitive-md/</id>
+    <published>2026-01-30T04:27:02.000Z</published>
+    <updated>2026-01-30T04:39:31.117Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;本文从 Kotlin 的基本类型出发，深入探讨数值字面量的实现原理，并全面剖析 Kotlin 与 Java 中的装箱&amp;#x2F;拆箱机制，力求做到知其然知其所以然。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h2 id=&quot;一、Kotlin-基</summary>
+      
+    
+    
+    
+    <category term="Kotlin" scheme="http://blog.eynnzerr.top/categories/Kotlin/"/>
+    
+    
+    <category term="Kotlin" scheme="http://blog.eynnzerr.top/tags/Kotlin/"/>
+    
+  </entry>
   
   <entry>
     <title>Compose Multiplatform 包体积暴涨原因排查记录</title>
@@ -88,11 +114,11 @@
   </entry>
   
   <entry>
-    <title>old_scope_function</title>
+    <title>Scope Function 速记速查</title>
     <link href="http://blog.eynnzerr.top/2025/09/02/old-scope-function/"/>
     <id>http://blog.eynnzerr.top/2025/09/02/old-scope-function/</id>
     <published>2025-09-02T02:06:25.000Z</published>
-    <updated>2025-09-03T03:10:10.976Z</updated>
+    <updated>2026-01-30T04:40:01.256Z</updated>
     
     
       

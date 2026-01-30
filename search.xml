@@ -587,7 +587,7 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
       </tags>
   </entry>
   <entry>
-    <title>old_scope_function</title>
+    <title>Scope Function 速记速查</title>
     <url>/2025/09/02/old-scope-function/</url>
     <content><![CDATA[<p><strong>该篇内容为原博客博文，原上传于2021年11月29日。</strong></p>
 <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>kotlin是一款十分灵活而又强大的语言。合理地运用kotlin的一些特性，可以极大地提高代码可读性和质量，提高效率。下面我们就来说一说kotlin中的<strong>scope function</strong>。</p>
@@ -943,6 +943,276 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
       <tags>
         <tag>Compose Multiplatform</tag>
         <tag>Gradle</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Kotlin的基本类型与装箱机制简析</title>
+    <url>/2026/01/30/kotlin-primitive-md/</url>
+    <content><![CDATA[<blockquote>
+<p>本文从 Kotlin 的基本类型出发，深入探讨数值字面量的实现原理，并全面剖析 Kotlin 与 Java 中的装箱&#x2F;拆箱机制，力求做到知其然知其所以然。</p>
+</blockquote>
+<hr>
+<h2 id="一、Kotlin-基本类型概览"><a href="#一、Kotlin-基本类型概览" class="headerlink" title="一、Kotlin 基本类型概览"></a>一、Kotlin 基本类型概览</h2><p>Kotlin 作为一门现代 JVM 语言，对基本类型的处理既保留了 Java 的高效性，又增添了更优雅的语法设计。与 Java 区分原始类型和包装类的理念不同，Kotlin 中<strong>一切皆对象</strong>——没有原始类型（primitive types）的概念，但编译器会在底层自动优化为 JVM 原始类型以保证性能。</p>
+<h3 id="1-1-数值类型"><a href="#1-1-数值类型" class="headerlink" title="1.1 数值类型"></a>1.1 数值类型</h3><p>Kotlin 提供了多种数值类型，覆盖不同精度需求：</p>
+<table>
+<thead>
+<tr>
+<th><strong>类型</strong></th>
+<th><strong>位宽</strong></th>
+<th><strong>取值范围</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Byte</code></td>
+<td>8 位</td>
+<td>-128 ~ 127</td>
+</tr>
+<tr>
+<td><code>Short</code></td>
+<td>16 位</td>
+<td>-32768 ~ 32767</td>
+</tr>
+<tr>
+<td><code>Int</code></td>
+<td>32 位</td>
+<td>$-2^{31}$ ~ 2^{31}-1</td>
+</tr>
+<tr>
+<td><code>Long</code></td>
+<td>64 位</td>
+<td>$-2^{63}$ ~ $2^{63}-1$</td>
+</tr>
+<tr>
+<td><code>Float</code></td>
+<td>32 位</td>
+<td>单精度浮点</td>
+</tr>
+<tr>
+<td><code>Double</code></td>
+<td>64 位</td>
+<td>双精度浮点</td>
+</tr>
+<tr>
+<td>注：<code>Byte</code>, <code>Short</code>, <code>Int</code>, <code>Long</code> 还具有对应无符号类型：<code>UByte</code>, <code>UShort</code>, <code>UInt</code>, <code>ULong</code>。</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>字面量写法：</strong></p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> intNum = <span class="number">100</span>          <span class="comment">// 默认推断为 Int</span></span><br><span class="line"><span class="keyword">val</span> longNum = <span class="number">100L</span>        <span class="comment">// L 后缀表示 Long</span></span><br><span class="line"><span class="keyword">val</span> floatNum = <span class="number">3.14f</span>      <span class="comment">// f 后缀表示 Float</span></span><br><span class="line"><span class="keyword">val</span> doubleNum = <span class="number">3.14</span>      <span class="comment">// 默认推断为 Double</span></span><br><span class="line"><span class="keyword">val</span> hexNum = <span class="number">0xFF</span>         <span class="comment">// 十六进制</span></span><br><span class="line"><span class="keyword">val</span> binaryNum = <span class="number">0b1010</span>    <span class="comment">// 二进制</span></span><br><span class="line"><span class="keyword">val</span> readable = <span class="number">1_000_000</span>  <span class="comment">// 支持下划线分隔，提升可读性</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>显式类型转换：</strong> ⚠️Kotlin 不支持隐式类型转换，必须显式调用转换函数：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> i: <span class="built_in">Int</span> = <span class="number">100</span></span><br><span class="line"><span class="keyword">val</span> l: <span class="built_in">Long</span> = i.toLong()  <span class="comment">// ✅ 正确</span></span><br><span class="line"><span class="comment">// val l: Long = i        // ❌ 编译错误</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="1-1-1-Number-类"><a href="#1-1-1-Number-类" class="headerlink" title="1.1.1 Number 类"></a>1.1.1 Number 类</h4><p>以上数值类型都有一个共同的父类：<code>Number</code>，这是一个抽象类，并定义了一系列显示类型转换函数：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Number</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="function"><span class="keyword">fun</span> <span class="title">toDouble</span><span class="params">()</span></span>: <span class="built_in">Double</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="function"><span class="keyword">fun</span> <span class="title">toFloat</span><span class="params">()</span></span>: <span class="built_in">Float</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="function"><span class="keyword">fun</span> <span class="title">toLong</span><span class="params">()</span></span>: <span class="built_in">Long</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="function"><span class="keyword">fun</span> <span class="title">toInt</span><span class="params">()</span></span>: <span class="built_in">Int</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="function"><span class="keyword">fun</span> <span class="title">toChar</span><span class="params">()</span></span>: <span class="built_in">Char</span>  <span class="comment">// Deprecated</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="function"><span class="keyword">fun</span> <span class="title">toShort</span><span class="params">()</span></span>: <span class="built_in">Short</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="function"><span class="keyword">fun</span> <span class="title">toByte</span><span class="params">()</span></span>: <span class="built_in">Byte</span>  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过继承 <code>Number</code>类并实现 <code>Comparable</code>接口，派生出以上数值类型。</p>
+<h3 id="1-2-字符与字符串"><a href="#1-2-字符与字符串" class="headerlink" title="1.2 字符与字符串"></a>1.2 字符与字符串</h3><p><code>Char</code> 表示单个字符（16-bit Unicode），用单引号包裹；字符串用双引号或三引号表示：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> letter: <span class="built_in">Char</span> = <span class="string">&#x27;A&#x27;</span></span><br><span class="line"><span class="keyword">val</span> str = <span class="string">&quot;Hello, Kotlin&quot;</span></span><br><span class="line"><span class="keyword">val</span> multiLine = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    这是多行字符串</span></span><br><span class="line"><span class="string">    保留原始格式</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span>.trimIndent()</span><br></pre></td></tr></table></figure>
+
+<p>注意 <code>Char</code> 与数值类型互转的方法，直接调用 <code>toChar()</code>或 <code>toLong()</code>等已经弃用，需要以 <code>Int</code>类型作为媒介：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> char: <span class="built_in">Char</span> = <span class="string">&#x27;A&#x27;</span>  </span><br><span class="line"><span class="keyword">val</span> i: <span class="built_in">Int</span> = char.code <span class="comment">// Code of a Char is the value it was constructed with, and the UTF-16 code unit corresponding to this Char.  </span></span><br><span class="line"><span class="keyword">val</span> l: <span class="built_in">Long</span> = char.code.toLong()  </span><br><span class="line"><span class="keyword">val</span> c: <span class="built_in">Char</span> = i.toChar() <span class="comment">// significant 16 bits of this Int value.  </span></span><br><span class="line"><span class="keyword">val</span> d: <span class="built_in">Char</span> = i.digitToChar() <span class="comment">// decimal digit</span></span><br></pre></td></tr></table></figure>
+
+<p>Kotlin 支持<strong>字符串模板</strong>，这在构造特定字符串以及日志打印等场景都非常好用：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> name = <span class="string">&quot;World&quot;</span></span><br><span class="line">println(<span class="string">&quot;Hello, <span class="variable">$name</span>!&quot;</span>)           <span class="comment">// 简单变量</span></span><br><span class="line">println(<span class="string">&quot;长度是 <span class="subst">$&#123;name.length&#125;</span>&quot;</span>)    <span class="comment">// 表达式</span></span><br></pre></td></tr></table></figure>
+
+<p>Kotlin String 还有更多值得说道的知识点，在此先略过，之后另写一篇博客来详细探讨。</p>
+<h3 id="1-3-布尔类型与数组"><a href="#1-3-布尔类型与数组" class="headerlink" title="1.3 布尔类型与数组"></a>1.3 布尔类型与数组</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> isKotlinFun: <span class="built_in">Boolean</span> = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 泛型数组</span></span><br><span class="line"><span class="keyword">val</span> arr = arrayOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 原始类型数组（避免装箱开销）</span></span><br><span class="line"><span class="keyword">val</span> intArr = intArrayOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、数值字面量的实现机制"><a href="#二、数值字面量的实现机制" class="headerlink" title="二、数值字面量的实现机制"></a>二、数值字面量的实现机制</h2><p>既然 Kotlin 中 <code>Int</code> 是一个类，为什么 <code>val x = 1</code> 不需要写成 <code>val x = Int(1)</code> 这样的构造函数形式？</p>
+<h3 id="2-1-字面量是语言级别的语法糖"><a href="#2-1-字面量是语言级别的语法糖" class="headerlink" title="2.1 字面量是语言级别的语法糖"></a>2.1 字面量是语言级别的语法糖</h3><p>数值字面量是 Kotlin 语言规范直接支持的特殊语法，编译器看到 <code>1</code> 时，直接将其识别为 <code>Int</code> 类型的字面量常量，<strong>不需要</strong>经过任何构造函数调用。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> x = <span class="number">1</span>        <span class="comment">// 字面量语法，编译器直接处理</span></span><br><span class="line"><span class="keyword">val</span> y = <span class="built_in">Int</span>(<span class="number">1</span>)   <span class="comment">// ❌ 编译错误！Int 没有公开构造函数</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-为什么-Int-没有构造函数？"><a href="#2-2-为什么-Int-没有构造函数？" class="headerlink" title="2.2 为什么 Int 没有构造函数？"></a>2.2 为什么 Int 没有构造函数？</h3><p>Kotlin 的数值类型是<strong>特殊的内置类型</strong>，构造函数是私有的：</p>
+<table>
+<thead>
+<tr>
+<th><strong>设计原因</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>性能优化</td>
+<td>编译器可以直接映射到 JVM 原始类型，无需真正的对象分配</td>
+</tr>
+<tr>
+<td>语义清晰</td>
+<td><code>1</code> 就是 <code>1</code>，不需要 <code>new Integer(1)</code> 的冗余</td>
+</tr>
+<tr>
+<td>防止滥用</td>
+<td>避免 <code>Int(someString)</code> 这种容易出错的用法</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h3 id="2-3-编译过程示例"><a href="#2-3-编译过程示例" class="headerlink" title="2.3 编译过程示例"></a>2.3 编译过程示例</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│  Kotlin 源码        val x = 1                       │</span><br><span class="line">├─────────────────────────────────────────────────────┤</span><br><span class="line">│  编译器理解          x 是 Int 类型，值为字面量 1      │</span><br><span class="line">├─────────────────────────────────────────────────────┤</span><br><span class="line">│  字节码输出          ICONST_1  (JVM 原始 int 指令)   │</span><br><span class="line">│                     ISTORE x                        │</span><br><span class="line">└─────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>反编译为 Java 代码，就是简单的 <code>int x = 1;</code>——直接是原始类型，零开销。</p>
+<hr>
+<h2 id="三、Kotlin-中的装箱机制"><a href="#三、Kotlin-中的装箱机制" class="headerlink" title="三、Kotlin 中的装箱机制"></a>三、Kotlin 中的装箱机制</h2><p>虽然 Kotlin 在语法层面”隐藏”了装箱的概念，但<strong>装箱并不是就消失了</strong>——只是编译器帮我们自动处理了。</p>
+<h3 id="3-1-什么时候会发生装箱？"><a href="#3-1-什么时候会发生装箱？" class="headerlink" title="3.1 什么时候会发生装箱？"></a>3.1 什么时候会发生装箱？</h3><table>
+<thead>
+<tr>
+<th><strong>场景</strong></th>
+<th><strong>是否装箱</strong></th>
+<th><strong>底层类型</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>val x: Int = 1</code></td>
+<td>❌ 不装箱</td>
+<td>JVM <code>int</code></td>
+</tr>
+<tr>
+<td><code>val x: Int? = 1</code></td>
+<td>✅ 装箱</td>
+<td>JVM <code>Integer</code></td>
+</tr>
+<tr>
+<td><code>val list: List&lt;Int&gt;</code></td>
+<td>✅ 装箱</td>
+<td><code>List&lt;Integer&gt;</code></td>
+</tr>
+<tr>
+<td><code>fun foo(x: Any)</code> 传入 <code>Int</code></td>
+<td>✅ 装箱</td>
+<td><code>Object</code></td>
+</tr>
+<tr>
+<td><code>val arr: IntArray</code></td>
+<td>❌ 不装箱</td>
+<td>JVM <code>int[]</code></td>
+</tr>
+<tr>
+<td><code>val arr: Array&lt;Int&gt;</code></td>
+<td>✅ 装箱</td>
+<td>JVM <code>Integer[]</code></td>
+</tr>
+</tbody></table>
+<h3 id="3-2-可空类型必须装箱"><a href="#3-2-可空类型必须装箱" class="headerlink" title="3.2 可空类型必须装箱"></a>3.2 可空类型必须装箱</h3><p>JVM 原始类型无法表示 null，所以可空数值必须用包装类：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">1</span>      <span class="comment">// 底层: int</span></span><br><span class="line"><span class="keyword">val</span> b: <span class="built_in">Int</span>? = <span class="number">1</span>     <span class="comment">// 底层: Integer（才能存 null）</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-泛型强制装箱"><a href="#3-3-泛型强制装箱" class="headerlink" title="3.3 泛型强制装箱"></a>3.3 泛型强制装箱</h3><p>JVM 的泛型使用类型擦除，不支持原始类型作为类型参数：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> list = listOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)  <span class="comment">// List&lt;Int&gt; → List&lt;Integer&gt;</span></span><br><span class="line"><span class="comment">// 每个元素都被装箱了！</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-Array-vs-IntArray"><a href="#3-4-Array-vs-IntArray" class="headerlink" title="3.4 Array&lt;Int&gt; vs IntArray"></a>3.4 Array&lt;Int&gt; vs IntArray</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 装箱数组</span></span><br><span class="line"><span class="keyword">val</span> boxed: Array&lt;<span class="built_in">Int</span>&gt; = arrayOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"><span class="comment">// 底层: Integer[] &#123;Integer.valueOf(1), Integer.valueOf(2), ...&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 原始类型数组</span></span><br><span class="line"><span class="keyword">val</span> primitive: IntArray = intArrayOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"><span class="comment">// 底层: int[] &#123;1, 2, 3&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>内存布局差异：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Array&lt;Int&gt; (装箱)                    IntArray (原始)</span><br><span class="line">┌─────────────────┐                 ┌─────────────────┐</span><br><span class="line">│ Integer 引用 ──────→ [Integer 对象] │ int: 1          │</span><br><span class="line">│ Integer 引用 ──────→ [Integer 对象] │ int: 2          │</span><br><span class="line">│ Integer 引用 ──────→ [Integer 对象] │ int: 3          │</span><br><span class="line">└─────────────────┘                 └─────────────────┘</span><br><span class="line">   额外的对象开销 + 指针跳转              连续内存，零开销</span><br></pre></td></tr></table></figure>
+
+<p>所以多使用诸如 <code>IntArray</code>的原始数据类型数组可以避免装箱开销，算是 Kotlin 使用的基本技巧。</p>
+<hr>
+<h2 id="四、Java-中的装箱机制"><a href="#四、Java-中的装箱机制" class="headerlink" title="四、Java 中的装箱机制"></a>四、Java 中的装箱机制</h2><p>Java 的装箱机制比 Kotlin 更”显眼”——因为 Java <strong>明确区分原始类型和包装类</strong>。</p>
+<h3 id="4-1-原始类型-vs-包装类"><a href="#4-1-原始类型-vs-包装类" class="headerlink" title="4.1 原始类型 vs 包装类"></a>4.1 原始类型 vs 包装类</h3><table>
+<thead>
+<tr>
+<th><strong>原始类型</strong></th>
+<th><strong>包装类</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>int</code></td>
+<td><code>Integer</code></td>
+</tr>
+<tr>
+<td><code>long</code></td>
+<td><code>Long</code></td>
+</tr>
+<tr>
+<td><code>double</code></td>
+<td><code>Double</code></td>
+</tr>
+<tr>
+<td><code>boolean</code></td>
+<td><code>Boolean</code></td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-自动装箱与拆箱"><a href="#4-2-自动装箱与拆箱" class="headerlink" title="4.2 自动装箱与拆箱"></a>4.2 自动装箱与拆箱</h3><p>Java 5 引入了自动装箱，让两种类型可以”无缝”转换：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 自动装箱：int → Integer</span></span><br><span class="line"><span class="type">Integer</span> <span class="variable">x</span> <span class="operator">=</span> <span class="number">100</span>;  <span class="comment">// 编译器转换为: Integer.valueOf(100)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 自动拆箱：Integer → int</span></span><br><span class="line"><span class="type">int</span> <span class="variable">y</span> <span class="operator">=</span> x;        <span class="comment">// 编译器转换为: x.intValue()</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-装箱的经典陷阱"><a href="#4-3-装箱的经典陷阱" class="headerlink" title="4.3 装箱的经典陷阱"></a>4.3 装箱的经典陷阱</h3><p><strong>陷阱一：&#x3D;&#x3D; 比较的诡异行为（面试常考）</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Integer</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">127</span>;</span><br><span class="line"><span class="type">Integer</span> <span class="variable">b</span> <span class="operator">=</span> <span class="number">127</span>;</span><br><span class="line">System.out.println(a == b);  <span class="comment">// true ✅</span></span><br><span class="line"></span><br><span class="line"><span class="type">Integer</span> <span class="variable">c</span> <span class="operator">=</span> <span class="number">128</span>;</span><br><span class="line"><span class="type">Integer</span> <span class="variable">d</span> <span class="operator">=</span> <span class="number">128</span>;</span><br><span class="line">System.out.println(c == d);  <span class="comment">// false ❌</span></span><br></pre></td></tr></table></figure>
+
+<p>原因是 <code>Integer.valueOf()</code> 对 -128 ~ 127 范围内的值使用了缓存池，超出范围则创建新对象。<strong>比较值永远用 <code>equals()</code>！</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Integer <span class="title function_">valueOf</span><span class="params">(<span class="type">int</span> i)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (i &gt;= -<span class="number">128</span> &amp;&amp; i &lt;= <span class="number">127</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> IntegerCache.cache[i + <span class="number">128</span>];  <span class="comment">// 返回缓存对象</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(i);  <span class="comment">// 超出范围，创建新对象</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>陷阱二：NullPointerException</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Integer</span> <span class="variable">x</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"><span class="type">int</span> <span class="variable">y</span> <span class="operator">=</span> x;  <span class="comment">// 💥 NullPointerException!</span></span><br><span class="line"><span class="comment">// 因为实际执行的是: x.intValue()</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>陷阱三：循环中的性能杀手</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 糟糕的写法：每次迭代都装箱</span></span><br><span class="line"><span class="type">Long</span> <span class="variable">sum</span> <span class="operator">=</span> <span class="number">0L</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">long</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">1000000</span>; i++) &#123;</span><br><span class="line">    sum += i;  <span class="comment">// 拆箱 → 相加 → 装箱，创建大量临时对象</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 正确的写法</span></span><br><span class="line"><span class="type">long</span> <span class="variable">sum</span> <span class="operator">=</span> <span class="number">0L</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">long</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">1000000</span>; i++) &#123;</span><br><span class="line">    sum += i;  <span class="comment">// 纯原始类型操作</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-内存开销对比"><a href="#4-4-内存开销对比" class="headerlink" title="4.4 内存开销对比"></a>4.4 内存开销对比</h3><ul>
+<li>原始类型 int: 4 bytes</li>
+<li>包装类 Integer:   对象头 (12 bytes) + value (4 bytes) + 对齐 ≈ 16 bytes + 引用指针 4-8 bytes</li>
+</ul>
+<p><strong>可见一个 Integer 比 int 多占用约 4-5 倍内存！</strong></p>
+<hr>
+<h2 id="五、Kotlin-vs-Java-装箱对比"><a href="#五、Kotlin-vs-Java-装箱对比" class="headerlink" title="五、Kotlin vs Java 装箱对比"></a>五、Kotlin vs Java 装箱对比</h2><table>
+<thead>
+<tr>
+<th><strong>特性</strong></th>
+<th><strong>Java</strong></th>
+<th><strong>Kotlin</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型区分</td>
+<td>显式区分 <code>int</code> &#x2F; <code>Integer</code></td>
+<td>统一为 <code>Int</code>，编译器决定</td>
+</tr>
+<tr>
+<td>装箱语法</td>
+<td>可见 (<code>Integer x = 1</code>)</td>
+<td>隐藏 (<code>val x: Int? = 1</code>)</td>
+</tr>
+<tr>
+<td>null 安全</td>
+<td>运行时抛异常</td>
+<td>编译期检查</td>
+</tr>
+<tr>
+<td>原始数组</td>
+<td><code>int[]</code></td>
+<td><code>IntArray</code></td>
+</tr>
+<tr>
+<td>包装数组</td>
+<td><code>Integer[]</code></td>
+<td><code>Array&lt;Int&gt;</code></td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Java：你必须自己选择</span></span><br><span class="line"><span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">1</span>;        <span class="comment">// 原始类型</span></span><br><span class="line"><span class="type">Integer</span> <span class="variable">b</span> <span class="operator">=</span> <span class="number">1</span>;    <span class="comment">// 包装类（自动装箱）</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Kotlin：编译器帮你选择</span></span><br><span class="line"><span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">1</span>    <span class="comment">// 底层是 int</span></span><br><span class="line"><span class="keyword">val</span> b: <span class="built_in">Int</span>? = <span class="number">1</span>   <span class="comment">// 底层是 Integer（因为可空）</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、最佳实践"><a href="#六、最佳实践" class="headerlink" title="六、最佳实践"></a>六、最佳实践</h2><h3 id="Kotlin-最佳实践"><a href="#Kotlin-最佳实践" class="headerlink" title="Kotlin 最佳实践"></a>Kotlin 最佳实践</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 尽量用非空类型</span></span><br><span class="line"><span class="keyword">val</span> x: <span class="built_in">Int</span> = <span class="number">1</span>      <span class="comment">// ✅ 底层是 int</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 数值数组用原始类型版本</span></span><br><span class="line"><span class="keyword">val</span> arr = IntArray(<span class="number">1000</span>)       <span class="comment">// ✅ int[]</span></span><br><span class="line"><span class="keyword">val</span> arr = Array&lt;<span class="built_in">Int</span>&gt;(<span class="number">1000</span>)&#123;<span class="number">0</span>&#125;  <span class="comment">// ❌ Integer[]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 性能敏感场景注意泛型集合的装箱开销</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Java-最佳实践"><a href="#Java-最佳实践" class="headerlink" title="Java 最佳实践"></a>Java 最佳实践</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 优先使用原始类型</span></span><br><span class="line"><span class="type">int</span> <span class="variable">count</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 比较包装类用 equals()</span></span><br><span class="line"><span class="keyword">if</span> (integer1.equals(integer2)) &#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 拆箱前检查 null</span></span><br><span class="line"><span class="keyword">if</span> (value != <span class="literal">null</span> &amp;&amp; value &gt; <span class="number">0</span>) &#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 避免在循环中使用包装类做累加</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、总结"><a href="#七、总结" class="headerlink" title="七、总结"></a>七、总结</h2><p>理解类型系统和装箱机制，是写出高质量 JVM 代码的基础：</p>
+<ul>
+<li><strong>Kotlin</strong> 通过统一的类型语法和空安全设计，将装箱的复杂性隐藏在编译器背后，让开发者专注于业务逻辑</li>
+<li><strong>Java</strong> 的显式双轨制要求开发者时刻意识到原始类型和包装类的区别，避免性能陷阱和 NPE</li>
+</ul>
+<p>无论使用哪种语言，记住一个原则即可：<strong>在性能敏感的场景下，优先使用原始类型；在需要对象语义的场景下，注意装箱的开销和空值处理</strong>。</p>
+]]></content>
+      <categories>
+        <category>Kotlin</category>
+      </categories>
+      <tags>
+        <tag>Kotlin</tag>
       </tags>
   </entry>
 </search>
