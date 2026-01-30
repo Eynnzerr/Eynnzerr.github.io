@@ -6,7 +6,7 @@
   <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
   
   <link href="http://blog.eynnzerr.top/"/>
-  <updated>2026-01-29T09:06:07.520Z</updated>
+  <updated>2026-01-30T04:29:26.782Z</updated>
   <id>http://blog.eynnzerr.top/</id>
   
   <author>
@@ -17,11 +17,11 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>package_size_incre.md</title>
+    <title>Compose Multiplatform 包体积暴涨原因排查记录</title>
     <link href="http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/"/>
     <id>http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/</id>
     <published>2026-01-29T08:48:52.000Z</published>
-    <updated>2026-01-29T09:06:07.520Z</updated>
+    <updated>2026-01-30T04:29:26.782Z</updated>
     
     
       
