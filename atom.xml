@@ -6,7 +6,7 @@
   <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
   
   <link href="http://blog.eynnzerr.top/"/>
-  <updated>2026-01-30T04:39:31.117Z</updated>
+  <updated>2026-02-20T12:47:11.961Z</updated>
   <id>http://blog.eynnzerr.top/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>ThreadLocal 笔记</title>
+    <link href="http://blog.eynnzerr.top/2026/02/11/threadLocal-md/"/>
+    <id>http://blog.eynnzerr.top/2026/02/11/threadLocal-md/</id>
+    <published>2026-02-11T12:45:37.000Z</published>
+    <updated>2026-02-20T12:47:11.961Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;在 Java &amp;#x2F; JVM Kotlin 并发开发中，&lt;code&gt;ThreadLocal&lt;/code&gt; 经常被用来保存“与一次请求&amp;#x2F;一次任务绑定的上下文信息”，比如 &lt;code&gt;traceId&lt;/code&gt;、用户信息、租户信息、事</summary>
+      
+    
+    
+    
+    <category term="Java" scheme="http://blog.eynnzerr.top/categories/Java/"/>
+    
+    
+    <category term="Java" scheme="http://blog.eynnzerr.top/tags/Java/"/>
+    
+    <category term="ThreadLocal" scheme="http://blog.eynnzerr.top/tags/ThreadLocal/"/>
+    
+  </entry>
   
   <entry>
     <title>Kotlin的基本类型与装箱机制简析</title>
