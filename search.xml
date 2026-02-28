@@ -1358,4 +1358,59 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
         <tag>ThreadLocal</tag>
       </tags>
   </entry>
+  <entry>
+    <title>对 MVI 与 MVVM 的思考.md</title>
+    <url>/2026/03/01/MVI%E4%B8%8EMVVM-md/</url>
+    <content><![CDATA[<p>经常能在网上看到开发者争吵对于Android开发，究竟什么样的架构才是最好的。MVC 早已过时，MVP 在现代compose框架下很别扭，所以争论的焦点往往是 <strong>MVVM VS MVI</strong>。</p>
+<p>明确概念区分是有必要的，但我觉得实在是没必要把它当成非黑即白的大事。看过许多开源项目，<strong>在 Android + Compose 语境里，所谓 MVVM 和 MVI，实际落地后确实只差一层皮：</strong></p>
+<p>现在大家对于状态管理的普遍写法是：</p>
+<ul>
+<li><code>ViewModel</code> 持有 <code>StateFlow</code></li>
+<li>Compose <code>collect</code></li>
+<li>UI 调 <code>viewModel.xxx()</code></li>
+</ul>
+<p>这时如果有人嘴上说自己是 MVI，但代码只是：</p>
+<ul>
+<li>多定义了个 <code>Intent</code></li>
+<li>多定义了个 <code>Effect</code></li>
+<li><code>onClick</code> 改成 <code>sendEvent(intent)</code></li>
+<li>内部拿<code>when</code>识别接着走不同逻辑</li>
+</ul>
+<p>那在我看来，这只是<strong>MVVM 套了 MVI 命名风格</strong>，不是什么本质区别，这样的MVI实际上根本不足以称之为MVI。MVI 与 MVVM 的真正区别，不在于有没有 <code>Intent</code> &#x2F; <code>Effect</code> 类型，而在于是否真的在代码中采用了两种不同的状态管理哲学。对于MVI来说：</p>
+<ul>
+<li>是否有 reducer 思维？</li>
+<li>是否有严格的单向状态演化约束？</li>
+<li>是否真正分离了状态和副作用？</li>
+</ul>
+<p>在 MVVM 中，ViewModel 是页面逻辑中心，对外暴露状态，并直接提供若干命令式方法给 UI 调用，状态更新逻辑也散落在各方式中，相对自由奔放。例如：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">onRefresh</span><span class="params">()</span></span> &#123; ... &#125;</span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">onRetry</span><span class="params">()</span></span> &#123; ... &#125;</span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">onKeywordChange</span><span class="params">(value: <span class="type">String</span>)</span></span> &#123; ... &#125;</span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">onItemClick</span><span class="params">(id: <span class="type">String</span>)</span></span> &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这使得业务代码写起来很灵活，直接新增方法就好了，逻辑都写方法里，状态有变化直接在这里update就好了，UI按需调用。代价则是基本没有对状态的任何范式约束。</p>
+<p>而在 MVI 中，所有输入先被建模成 <code>Intent</code>；所有页面可见信息收敛成单一 <code>State</code>；状态变化应只通过 reducer 统一规则演化，并且明确隔离副作用，派生出<code>Effect</code>。也就是说，MVI 的重点不是“多定义几个 sealed class”，而是：</p>
+<ul>
+<li><strong>状态转移是否被统一建模</strong></li>
+<li><strong>所有用户动作和系统动作是否都走统一入口</strong></li>
+<li><strong>副作用是否被明确区分，不混进 state</strong></li>
+</ul>
+<p>所以说，很多人把区别理解成：MVVM就是UI调用 <code>onClick()</code>，MVI就是UI调用 <code>sendEvent(Intent.Click)</code>，这太浅了，也根本不是核心。如果还纠结于类似方法名怎么起、sealed class 要不要写、 一次性事件叫 effect 还是 event 这类价值不高的争论上，实属可惜。真正的区别更接近于：MVVM把ViewModel用来当页面管理者，功能自己设计；而MVI则是把ViewModel当成一个出入口，统一输入输出，内部维护一个状态机，所有输入都驱动状态机的转移，输出新状态。</p>
+<p>也因此在我看来，虽然这两种架构经常被放在一起对比，但实际上他们所反映的思路并非同一维度：</p>
+<ul>
+<li>MVVM 是一种更强调对架构的严格分层与View&#x2F;Model解耦</li>
+<li>MVI 则是在此基础之上，强调状态流转的建模思路</li>
+</ul>
+<p>严格讲，很多 Android 项目其实就是<strong>MVVM 外壳 + MVI 风格状态管理</strong>：</p>
+<ul>
+<li>MVVM解决架构分层：View层对应Composable，ViewModel层就是ViewModel，Model层对应依赖的Repository及其下的数据源；</li>
+<li>MVI解决页面状态流转与事件消费：用 Intent &#x2F; State &#x2F; Effect &#x2F; Reducer 的方式组织。</li>
+</ul>
+<p>所以在我看来它们并不完全互斥，很多成熟写法其实就是架构层面是 MVVM 而状态管理层面借鉴 MVI。过度区分是没有必要的，不应为了比较而比较，谁优谁劣更是没有定数。</p>
+]]></content>
+      <categories>
+        <category>Android</category>
+      </categories>
+      <tags>
+        <tag>MVI</tag>
+        <tag>MVVM</tag>
+      </tags>
+  </entry>
 </search>

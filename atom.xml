@@ -6,7 +6,7 @@
   <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
   
   <link href="http://blog.eynnzerr.top/"/>
-  <updated>2026-02-20T12:47:11.961Z</updated>
+  <updated>2026-02-28T17:04:15.433Z</updated>
   <id>http://blog.eynnzerr.top/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>对 MVI 与 MVVM 的思考.md</title>
+    <link href="http://blog.eynnzerr.top/2026/03/01/MVI%E4%B8%8EMVVM-md/"/>
+    <id>http://blog.eynnzerr.top/2026/03/01/MVI%E4%B8%8EMVVM-md/</id>
+    <published>2026-02-28T17:03:32.000Z</published>
+    <updated>2026-02-28T17:04:15.433Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;经常能在网上看到开发者争吵对于Android开发，究竟什么样的架构才是最好的。MVC 早已过时，MVP 在现代compose框架下很别扭，所以争论的焦点往往是 &lt;strong&gt;MVVM VS MVI&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;明确概念区分是有必要的，但我觉得实在是没</summary>
+      
+    
+    
+    
+    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    
+    
+    <category term="MVI" scheme="http://blog.eynnzerr.top/tags/MVI/"/>
+    
+    <category term="MVVM" scheme="http://blog.eynnzerr.top/tags/MVVM/"/>
+    
+  </entry>
   
   <entry>
     <title>ThreadLocal 笔记</title>
