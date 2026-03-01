@@ -6,7 +6,7 @@
   <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
   
   <link href="http://blog.eynnzerr.top/"/>
-  <updated>2026-02-28T17:04:15.433Z</updated>
+  <updated>2026-03-01T14:22:13.035Z</updated>
   <id>http://blog.eynnzerr.top/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>leakCanary 源码解析</title>
+    <link href="http://blog.eynnzerr.top/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/"/>
+    <id>http://blog.eynnzerr.top/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/</id>
+    <published>2026-03-01T14:18:15.000Z</published>
+    <updated>2026-03-01T14:22:13.035Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;该篇内容为原博客博文，原上传于2022年10月29日。&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&quot;前置知识&quot;&gt;&lt;a href=&quot;#前置知识&quot; class=&quot;headerlink&quot; title=&quot;前置知识&quot;&gt;&lt;/a&gt;前置知识&lt;/h2&gt;&lt;h3 id=&quot;自动内存管</summary>
+      
+    
+    
+    
+    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    
+    
+    <category term="LeakCanary" scheme="http://blog.eynnzerr.top/tags/LeakCanary/"/>
+    
+    <category term="JVM" scheme="http://blog.eynnzerr.top/tags/JVM/"/>
+    
+  </entry>
   
   <entry>
     <title>对 MVI 与 MVVM 的思考.md</title>
