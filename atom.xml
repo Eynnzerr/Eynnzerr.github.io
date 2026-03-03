@@ -6,7 +6,7 @@
   <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
   
   <link href="http://blog.eynnzerr.top/"/>
-  <updated>2026-03-01T14:22:13.035Z</updated>
+  <updated>2026-03-03T04:39:05.356Z</updated>
   <id>http://blog.eynnzerr.top/</id>
   
   <author>
@@ -15,6 +15,60 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>移植FFmpeg命令行</title>
+    <link href="http://blog.eynnzerr.top/2026/03/03/%E7%A7%BB%E6%A4%8DFFmpeg%E5%91%BD%E4%BB%A4%E8%A1%8C/"/>
+    <id>http://blog.eynnzerr.top/2026/03/03/%E7%A7%BB%E6%A4%8DFFmpeg%E5%91%BD%E4%BB%A4%E8%A1%8C/</id>
+    <published>2026-03-03T04:33:50.000Z</published>
+    <updated>2026-03-03T04:39:05.356Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;该篇内容为原博客博文，原上传于2022年2月27日。可能已过时，仅作补档用途，谨慎参考！&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h3&gt;&lt;p&gt;上</summary>
+      
+    
+    
+    
+    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    
+    
+    <category term="NDK" scheme="http://blog.eynnzerr.top/tags/NDK/"/>
+    
+    <category term="FFmpeg" scheme="http://blog.eynnzerr.top/tags/FFmpeg/"/>
+    
+    <category term="音视频" scheme="http://blog.eynnzerr.top/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>集成ffmpeg</title>
+    <link href="http://blog.eynnzerr.top/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/"/>
+    <id>http://blog.eynnzerr.top/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/</id>
+    <published>2026-03-03T03:29:58.000Z</published>
+    <updated>2026-03-03T04:33:08.106Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;该篇内容为原博客博文，原上传于2022年2月12日。可能已过时，仅作补档用途，谨慎参考！&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h3&gt;&lt;p&gt;F</summary>
+      
+    
+    
+    
+    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    
+    
+    <category term="NDK" scheme="http://blog.eynnzerr.top/tags/NDK/"/>
+    
+    <category term="FFmpeg" scheme="http://blog.eynnzerr.top/tags/FFmpeg/"/>
+    
+    <category term="音视频" scheme="http://blog.eynnzerr.top/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/"/>
+    
+  </entry>
   
   <entry>
     <title>leakCanary 源码解析</title>
