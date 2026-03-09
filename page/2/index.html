@@ -441,10 +441,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2025-09-03 15:21:27 / 修改时间：11:13:28" itemprop="dateCreated datePublished" datetime="2025-09-03T15:21:27+08:00">2025-09-03</time>
+              <time title="创建时间：2025-09-03 15:21:27" itemprop="dateCreated datePublished" datetime="2025-09-03T15:21:27+08:00">2025-09-03</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-09 17:54:01" itemprop="dateModified" datetime="2026-03-09T17:54:01+08:00">2026-03-09</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -461,14 +467,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.8k</span>
+              <span>3.5k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
+              <span>6 分钟</span>
             </span>
 
         </div>
@@ -491,21 +497,15 @@
 </blockquote>
 <p>从以上介绍可以大致总结出 Sealed Class&#x2F;Interface 有如下特性：</p>
 <ul>
-<li><p>表示受限的类层次结构，并可以对继承提供更多的控制</p>
-</li>
-<li><p>密封类的子类在编译期即被确定为一个有限的集合内，不可扩展</p>
-</li>
-<li><p>密封类的子类只能位于定义了该密封类的<strong>包</strong>中</p>
-</li>
-<li><p>密封类的子类可以有多个实例</p>
-</li>
+<li>表示受限的类层次结构，并可以对继承提供更多的控制</li>
+<li>密封类的子类在编译期即被确定为一个有限的集合内，不可扩展</li>
+<li>密封类的子类只能位于定义了该密封类的<strong>包</strong>中</li>
+<li>密封类的子类可以有多个实例</li>
 </ul>
 <p>介绍中还提到，sealed class 和 enum class 在某种意义上是类似的，实际上，sealed class 诞生的重要原因之一正是为了克服 enum class 在某些场合下的局限性，也即上述特性的第一点和第四点。我们知道，枚举类有两个特性，在某些场合下是优点，但在另外一些场合下却可能成为缺点：</p>
 <ul>
-<li><p>每个枚举类型只能有一个实例（称为枚举常量）</p>
-</li>
-<li><p>各枚举常量只能使用相同类型的属性</p>
-</li>
+<li>每个枚举类型只能有一个实例（称为枚举常量）</li>
+<li>各枚举常量只能使用相同类型的属性</li>
 </ul>
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="keyword">class</span> <span class="title class_">Drink</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>) &#123;</span><br><span class="line">    Milk(<span class="number">1</span>),</span><br><span class="line">    Coffee(<span class="number">2</span>),</span><br><span class="line">    Water(<span class="number">3</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -535,6 +535,24 @@
 </ul>
 <h3 id="关于-Sealed-Interface"><a href="#关于-Sealed-Interface" class="headerlink" title="关于 Sealed Interface"></a>关于 Sealed Interface</h3><p>以上都在讨论<code>sealed class</code>，而<code>sealed interface</code>作为 kotlin1.5 中登场的新特性，也值得说道说道。</p>
 <p>密封接口进一步补足了密封类和枚举类的一些不足之处，如枚举类编译后继承自<code>Enum</code>，由于单继承不能再继承其他类，此时可以用密封接口，对枚举类做进一步划分。当然直接用嵌套密封类也未尝不可。</p>
+<h3 id="Sealed-的收益在哪"><a href="#Sealed-的收益在哪" class="headerlink" title="Sealed 的收益在哪"></a>Sealed 的收益在哪</h3><p>一开始我对使用<code>sealed</code>没感觉到必要性，认为他绕来绕去其实也就只是帮我省个<code>when else</code> 分支罢了，这确实是有眼不识泰山，严重低估了<code>sealed</code>的使用收益。</p>
+<p>实际上，它不是单纯省 else，而是帮编译器对相关类型推断从“只能靠猜”提升成“已知”。用了 sealed 以后，Kotlin 编译器就可以知道直接子类型是有限的，并且不允许再在模块和包外冒出新的直接子类或实现。这就带了许多潜在好处：</p>
+<ul>
+<li>设计层面更清晰</li>
+<li>重构时更安全</li>
+<li>新增分支时更容易被全局发现</li>
+</ul>
+<p>比如一个常见的使用场景，定义一个<code>Result</code>类&#x2F;接口，写几个子类表示具体操作结果：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">when</span> (result) &#123;</span><br><span class="line">    Result.Loading -&gt; ...</span><br><span class="line">    Result.Success -&gt; ...</span><br><span class="line">    <span class="keyword">else</span> -&gt; ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>假设现在我们需要新增一种 Result:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">data</span> <span class="keyword">object</span> Empty : Result</span><br></pre></td></tr></table></figure>
+
+<p>由于我们之前写了 else 兜底处理，所以新增之后， Empty 会悄悄掉进 else 分支，这就是隐患，如果这种分支在项目中大量存在，很难全部发现并加上。</p>
+<p>但如果我们用 sealed 来表示结果的受限继承结构：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">interface</span> <span class="title class_">Result</span> &#123;</span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">object</span> Loading : Result</span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">object</span> Success : Result</span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">object</span> Error : Result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>除了省去 else，在我们新增 Empty 后，所有没处理完的 when 都会爆红，这就天然形成一张保护网，帮助我们规避隐藏的重构问题，并且分支越多越复杂，收益也越大。</p>
 
       
     </div>
@@ -1765,7 +1783,7 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:21</span>
+    <span title="站点阅读时长">4:22</span>
 </div>
   <div class="powered-by">
     <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动 -->
