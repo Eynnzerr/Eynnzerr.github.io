@@ -195,6 +195,129 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/" class="post-title-link" itemprop="url">SparseArray解析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-04 17:20:52" itemprop="dateCreated datePublished" datetime="2026-03-04T17:20:52+08:00">2026-03-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-09 17:30:14" itemprop="dateModified" datetime="2026-03-09T17:30:14+08:00">2026-03-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>此为旧博客补档，原文上传于2022年3月23日。</strong></p>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>数据结构是每个程序员的必修课。无论是链表，堆，队列，栈，还是树，图，无疑都是伟大的发明。而基于这些数据结构之上的集合(collections)，更是被广泛运用。在java开发中，我们经常使用诸如arrayList,hashmap这样的集合，对这些想必我们都已非常熟悉；然而，在android开发中，其实也有着一些特有的数据结构。使用这些数据结构，有时也许会带来出乎意料的优化效果，今天，我们就来分析一波稀疏数组(sparse array)。稀疏数组是android特有的集合，其作用类似于map，但是通过两个数组分别存储key和value。都用来存储键值对，但是短小精悍（其源码带上注释也不过500行），且拥有一套非常独特的机制。</p>
+<h1 id="sparseArray字段"><a href="#sparseArray字段" class="headerlink" title="sparseArray字段"></a>sparseArray字段</h1><p>sparseArray有如下一些字段，我们一一进行分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Object</span> <span class="variable">DELETED</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line"><span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">mGarbage</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@UnsupportedAppUsage(maxTargetSdk = 28)</span> <span class="comment">// Use keyAt(int)</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">int</span>[] mKeys;</span><br><span class="line"><span class="meta">@UnsupportedAppUsage(maxTargetSdk = 28)</span> <span class="comment">// Use valueAt(int), setValueAt(int, E)</span></span><br><span class="line"><span class="keyword">private</span> Object[] mValues;</span><br><span class="line"><span class="meta">@UnsupportedAppUsage(maxTargetSdk = 28)</span> <span class="comment">// Use size()</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">int</span> mSize;</span><br></pre></td></tr></table></figure>
+
+<p>首先看mKeys数组，这是一个int类型数组，用来存储key，其值正是对应的value在mValues数组中的下标。可以看到sparsearray内部采用int类型表示key，而不像map,set一样可以自己通过泛型定义key的类型。这决定了sparsearray拥有一些独特的性质：(1)keys数组按照升序排序，通过二分查找定位key（而不是使用hash）；(2)避免了一些装箱、拆箱的过程，提高了效率。</p>
+<p>然后是mValues数组，从名字就可以看出这个数组存储value。sparsearray使用Object类型而不是泛型来存储value。</p>
+<p>接着是一个int类型变量mSize,代表mKeys和mValues<strong>有效</strong>的长度（也是二分查找过程的右基准）。<br>然后是DELETED。这是sparseArray的<strong>延迟删除</strong>机制的体现，其是一个object类型对象，用于在删除键值对时替换原来的旧值。然后是mGarbage，这是一个bool类型变量。当数组中存在被标记为删除（但没有真正删除）的元素（即DELETED）时，这个标记位会变为true，表示数组中存在无效的废弃值（就像垃圾一样），用以触发sparseArray的gc（注意这里是sparseArray自己的一个方法，而不是系统的gc）。<br>初步了解这些字段后，我们就可以看看sparsearray的方法，并洞悉其原理了。</p>
+<h1 id="contains-int-key"><a href="#contains-int-key" class="headerlink" title="contains(int key)"></a>contains(int key)</h1><p>这个方法用来查找某一key是否在数组中存在。其内部调用了另一方法indexOfKey：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">indexOfKey</span><span class="params">(<span class="type">int</span> key)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (mGarbage) &#123;</span><br><span class="line">        gc();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ContainerHelpers.binarySearch(mKeys, mSize, key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先检查mGarbage值，如果为true，说明数组中存在无效元素，应该先调用gc清除再查找。关于gc()方法下文再做分析。这里我们可以先看一看返回中的binarySearch方法，sparseArray中大量使用这个方法。其与JavaSE中的二分查找有什么不同：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ContainerHelpers</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// This is Arrays.binarySearch(), but doesn&#x27;t do any argument validation.</span></span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">binarySearch</span><span class="params">(<span class="type">int</span>[] array, <span class="type">int</span> size, <span class="type">int</span> value)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">lo</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">hi</span> <span class="operator">=</span> size - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (lo &lt;= hi) &#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> (lo + hi) &gt;&gt;&gt; <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">int</span> <span class="variable">midVal</span> <span class="operator">=</span> array[mid];</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (midVal &lt; value) &#123;</span><br><span class="line">                lo = mid + <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (midVal &gt; value) &#123;</span><br><span class="line">                hi = mid - <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> mid;  <span class="comment">// value found</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ~lo;  <span class="comment">// value not present</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">binarySearch</span><span class="params">(<span class="type">long</span>[] array, <span class="type">int</span> size, <span class="type">long</span> value)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">lo</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">hi</span> <span class="operator">=</span> size - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (lo &lt;= hi) &#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> (lo + hi) &gt;&gt;&gt; <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">long</span> <span class="variable">midVal</span> <span class="operator">=</span> array[mid];</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (midVal &lt; value) &#123;</span><br><span class="line">                lo = mid + <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (midVal &gt; value) &#123;</span><br><span class="line">                hi = mid - <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> mid;  <span class="comment">// value found</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ~lo;  <span class="comment">// value not present</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先这个方法写在ContainerHelpers这个工具类中，这个类只有这一个方法的两种重载。基本代码是正宗的二分查找写法，而重要区别在于最后当查找失败时返回的值：~lo。一般二分查找会返回-1这样没有意义的负值，表示元素不存在，但这里返回的却是最后一次查找时得到的low值取反。这是非常优秀的设计。这也是一个负值，但为什么标新立异，要返回这样的值呢？这是因为，sparseArray通过二分查找寻找key，而二分查找的前提是数组有序。当找不到一个key时，证明我们需要在mKeys数组中插入这个key，且其插入的位置应该满足升序。又因为，当二分查找失败时，最后应该有low &#x3D; high &#x3D; mid，而这个low正是理想的插入位置，在这个位置上插入新的key，数组整体依然保持有序。所以我们希望知道这个位置的值，以方便下次插入。但又需要提醒调用者查找是失败的（即需要负值这样的特殊值），所以最终就对low取反并返回。这样，我们既能知道二分查找失败，当前key不存在，又能知道应该插入的理想位置，一举两得。</p>
+<h1 id="delete-int-key"><a href="#delete-int-key" class="headerlink" title="delete(int key)"></a>delete(int key)</h1><p>我们接下来先讲sparseArray比较重要的删除操作。源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">delete</span><span class="params">(<span class="type">int</span> key)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> ContainerHelpers.binarySearch(mKeys, mSize, key);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (i &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mValues[i] != DELETED) &#123;</span><br><span class="line">            mValues[i] = DELETED;</span><br><span class="line">            mGarbage = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其思路十分清晰，也验证了我们之前所说：当要根据key删除一个value时，首先二分查找从mKeys中找到value的位置，如果i不为负，说明key确实存在，继续判断：如果当前元素不是DELETED(即为有效元素)，就需要把它删除：设为DELETED，并将mGarbage设为true。这便是<strong>延迟删除</strong>：并没有真实地删除这一元素，其key值依然存在且有效。只有当调用gc()时，才会真正删除这些元素。除delete外还有一个removeReturnOld方法，效果同delete，只是多了返回旧值的功能；delete还有一个别名方法remove。</p>
+<p>细心的读者应该已经注意到，我们反复提到了”延迟删除”这一机制。为什么sparseArray非要搞这么个机制？为什么不直接删掉元素呢？其实这正是为了减少数组迁移的次数，从而提高效率。我们通过接下来的put方法就能体会到这种设计的好处。</p>
+<h1 id="put-int-key-E-value"><a href="#put-int-key-E-value" class="headerlink" title="put(int key, E value)"></a>put(int key, E value)</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">put</span><span class="params">(<span class="type">int</span> key, E value)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> ContainerHelpers.binarySearch(mKeys, mSize, key);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (i &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        mValues[i] = value;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        i = ~i;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (i &lt; mSize &amp;&amp; mValues[i] == DELETED) &#123;</span><br><span class="line">            mKeys[i] = key;</span><br><span class="line">            mValues[i] = value;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mGarbage &amp;&amp; mSize &gt;= mKeys.length) &#123;</span><br><span class="line">            gc();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Search again because indices may have changed.</span></span><br><span class="line">            i = ~ContainerHelpers.binarySearch(mKeys, mSize, key);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        mKeys = GrowingArrayUtils.insert(mKeys, mSize, i, key);</span><br><span class="line">        mValues = GrowingArrayUtils.insert(mValues, mSize, i, value);</span><br><span class="line">        mSize++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>顺着源码，我们可以很容易地得出sparseArray插入键值对的思路：首先，还是从mKeys数组中二分查找当前key是否已经存在。如果已经有相同的key，则直接用当前新的value覆盖掉原来key对应的value。而如果没有当前key，就先对二分查找返回的i取反，即得到了当前key应该插入的位置。接下来就找到这个位置，看看其value是否为DELETED（延迟删除标记值），如果是，则证明当前值已经被废弃，可以直接覆盖，插入也就完成了；否则，就说明数组满了，无法插入。</p>
+<p>重点来了：通常情况下，当遇到数组已满而需要插入新值时，需要对数组进行扩容。ArrayList就采取这样的思路。但对于sparseArray来说，这时会触发其延迟删除机制，从而规避了大部分可能需要扩容的情况。下面我们来看gc()方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">private void gc() &#123;</span><br><span class="line">    // Log.e(&quot;SparseArray&quot;, &quot;gc start with &quot; + mSize);</span><br><span class="line"></span><br><span class="line">    int n = mSize;</span><br><span class="line">    int o = 0;</span><br><span class="line">    int[] keys = mKeys;</span><br><span class="line">    Object[] values = mValues;</span><br><span class="line"></span><br><span class="line">    for (int i = 0; i &lt; n; i++) &#123;</span><br><span class="line">        Object val = values[i];</span><br><span class="line"></span><br><span class="line">        if (val != DELETED) &#123;</span><br><span class="line">            if (i != o) &#123;</span><br><span class="line">                keys[o] = keys[i];</span><br><span class="line">                values[o] = val;</span><br><span class="line">                values[i] = null;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            o++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mGarbage = false;</span><br><span class="line">    mSize = o;</span><br><span class="line"></span><br><span class="line">    // Log.e(&quot;SparseArray&quot;, &quot;gc end with &quot; + mSize);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>gc()方法的实现思路很简单。首先，取数组旧的有效长度mSize（由于触发gc时数组内有DELETED元素，所以实际上新的有效长度应该减小）赋值给n，同时新建一个初值为0的int变量o。从下面的代码可以看出，这个o即代表新的有效长度。接下来对values数组进行遍历：如果当前值不为DELETED，且当前位置i !&#x3D; o，则说明<strong>在当前位置前存在DELETED元素</strong>，且其下标正是o。因此覆盖位置o处的keys和values，同时将当前位置的value置零。同时因为遇到了有效元素，o自加1。就这样迭代下去，最后values数组会被整理成前o个位置均为有效元素，后面则为null，所有的DELETED元素全部删除。也就是在此时，无效的keys和values才真正被清除。最后将象征有garbage的标志位置为false，同时更新有效长度mSize为o，一次gc就结束了。</p>
+<p>回到之前的put()方法，由于进行了gc，此时的数组中可能出现了能够插入的空位，因此再做一次二分查找，并尝试插入。最后，我们就来看看执行插入的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span>[] insert(<span class="type">int</span>[] array, <span class="type">int</span> currentSize, <span class="type">int</span> index, <span class="type">int</span> element) &#123;</span><br><span class="line">    <span class="keyword">assert</span> currentSize &lt;= array.length;</span><br><span class="line">    <span class="keyword">if</span> (currentSize + <span class="number">1</span> &lt;= array.length) &#123;</span><br><span class="line">        System.arraycopy(array, index, array, index + <span class="number">1</span>, currentSize - index);</span><br><span class="line">        array[index] = element;</span><br><span class="line">        <span class="keyword">return</span> array;</span><br><span class="line">    <span class="type">int</span>[] newArray = ArrayUtils.newUnpaddedIntArray(growSize(currentSize));</span><br><span class="line">    System.arraycopy(array, <span class="number">0</span>, newArray, <span class="number">0</span>, index);</span><br><span class="line">    newArray[index] = element;</span><br><span class="line">    System.arraycopy(array, index, newArray, index + <span class="number">1</span>, array.length - index);</span><br><span class="line">    <span class="keyword">return</span> newArray;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果currentSize + 1 &lt;&#x3D; array.length，说明数组仍有插入空间，无需扩容，则直接调用arraycopy将需要插入的地方index后所有元素往后平移一位，再将待插入元素赋给index位置。否则，实在没有办法，需要扩容了。<br>总结一下put()的流程：检查key是否已经存在–&gt;已经存在，直接覆盖值；不存在–&gt;待插入位置为DELETED，直接覆盖；为有效值–&gt;触发gc–&gt;gc后有空位，插入；仍然没有空位–&gt;扩容并插入。</p>
+<h1 id="get-int-key"><a href="#get-int-key" class="headerlink" title="get(int key)"></a>get(int key)</h1><p>最后简单地看一下get方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> E <span class="title function_">get</span><span class="params">(<span class="type">int</span> key)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> get(key, <span class="literal">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Gets the Object mapped from the specified key, or the specified Object</span></span><br><span class="line"><span class="comment"> * if no such mapping has been made.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line"><span class="keyword">public</span> E <span class="title function_">get</span><span class="params">(<span class="type">int</span> key, E valueIfKeyNotFound)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> ContainerHelpers.binarySearch(mKeys, mSize, key);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (i &lt; <span class="number">0</span> || mValues[i] == DELETED) &#123;</span><br><span class="line">        <span class="keyword">return</span> valueIfKeyNotFound;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (E) mValues[i];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>就是二分查找，没什么好说的。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>以上就是sparseArray基本的操作方法。同相同功能的hashmap相比，其采用简单的数组和int存储，成本更低，避免装箱，且在数据量较小时，随机访问的速度也很快。但是虽然采取了延迟删除，其插入操作仍可能需要复制数组，导致效率降低；当数据量增大到一定规模时，其他方法（如gc()）等需要遍历数组，也相当费时，弊端越来越明显。因此，我们可以权衡sparseArray和hashmap不同的使用情景，合理选择，提高效率。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/03/03/%E7%A7%BB%E6%A4%8DFFmpeg%E5%91%BD%E4%BB%A4%E8%A1%8C/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -835,6 +958,258 @@
 <li>MVI解决页面状态流转与事件消费：用 Intent &#x2F; State &#x2F; Effect &#x2F; Reducer 的方式组织。</li>
 </ul>
 <p>所以在我看来它们并不完全互斥，很多成熟写法其实就是架构层面是 MVVM 而状态管理层面借鉴 MVI。过度区分是没有必要的，不应为了比较而比较，谁优谁劣更是没有定数。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/02/18/ResNet%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/02/18/ResNet%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">ResNet 学习笔记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-02-18 17:16:48" itemprop="dateCreated datePublished" datetime="2026-02-18T17:16:48+08:00">2026-02-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-09 17:24:39" itemprop="dateModified" datetime="2026-03-09T17:24:39+08:00">2026-03-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Computer-Vision/" itemprop="url" rel="index"><span itemprop="name">Computer Vision</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>9 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>此为旧博客补档，原文上传于2022年7月5日。</strong></p>
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>自从AlexNet以来，人们一直致力于探索更深的神经网络，以更好地解决计算机视觉等领域的问题。从2012年到2014年，ILSVRC大赛的优胜者一直在增加网络的深度。更多的卷积层可以使得提取的特征更加丰富，但同时也会带来梯度消失&#x2F;爆炸和过拟合的问题，导致模型不收敛。虽然当时大牛们已经提出了诸如Batch Normalization的方法解决这些问题，但人们依然发现一个奇怪的现象：随着网络深度的不断增加，网络预测准确度先逐渐增大趋于饱和，最后反而将重新开始下降！并且这还并不是过拟合导致的结果，因为误差依然在增大。这似乎是相当反常识的一个现象，因为只要我们让更深的网络层采取恒等映射，理论上就能保证网络性能至少不会比浅层神经网络下降，而对于能模拟几乎任何映射的神经网络来说，恒等映射简直是小菜一碟。由此可见，是神经网络背后隐藏的学习思路出现了问题，比如更深处的多个网络层的堆叠因为非线性变化的大量使用，连恒等映射都无法学习了。</p>
+<p><img src="https://s2.loli.net/2022/07/05/lYawdfBRih1nUZJ.png" alt="退化现象"></p>
+<p>何恺明大佬将这个现象称为“退化”(degradation)，并提出了一种全新的网络结构以解决退化问题，使得神经网络能继续从提高深度获得准确度的收益。这就是“残差网络”(ResNet)的诞生。</p>
+<h3 id="残差单元的原理"><a href="#残差单元的原理" class="headerlink" title="残差单元的原理"></a>残差单元的原理</h3><p>ResNet的设计核心思想正是受到了退化现象的启发。与其学习目标映射$H(x)$，转而学习映射的残差$F(x)&#x3D;H(x)- x$，进而原先的映射可以表示为$F(x)+x$。残差的获取是通过<strong>短路连接</strong>实现。</p>
+<p><img src="https://s2.loli.net/2022/07/05/PH6uOlmRkyG9pD1.png" alt="短路连接网络"></p>
+<p>为什么这样以来就能避免退化了呢？我尝试从数学上进行了推导：</p>
+<p>首先，对于一个图2所示的残差单元，假设其输入为$x$，输出为$y$，$F(x)$是学习得到的残差，并且$F(x)$和$x$具有相同的维度，则有</p>
+<p>$$<br>y &#x3D; F(x) + x<br>$$</p>
+<p>若省略bias，并令$\sigma$表示ReLU，W1, W2分别表示两个weight layer(可以是卷积或全连接)的权值，则$F(x)$又可写成：</p>
+<p>$$<br>F(x) &#x3D; W_2\sigma(W_1x)<br>$$</p>
+<p>进而，y可表示为：</p>
+<p>$$<br>y &#x3D; W_2\sigma(W_1x) + x<br>$$</p>
+<p>如果我们堆叠多个这样的残差单元，并令$x_i$表示为第i个残差单元的输入，同时也是第(i-1)个残差单元的输出，那么上式可以改写为如下形式：</p>
+<p>$$<br>x_{i+1} &#x3D; W_2\sigma(W_1x_i) + x_i<br>$$</p>
+<p>则从第a个残差单元开始，到第b个残差单元结束，这样一组残差单元整体端到端的输入输出关系可由<strong>累加</strong>得到：</p>
+<p>$$<br>x_{b+1} &#x3D; \sum_{i&#x3D;a}^b W_{2i}\sigma(W_{1i}x_i) + x_a<br>$$</p>
+<p>更明确地写，将$x_{b+1}$换为$y_b$，则最终得到第b个残差单元的输出和第a个残差单元的输入间的关系为：</p>
+<p>$$<br>y_b &#x3D; \sum_{i&#x3D;a}^b W_{2i}\sigma(W_{1i}x_i) + x_a<br>$$</p>
+<p>接下类就可以利用链式法则，求得反向传播到第a层的梯度：</p>
+<p>$$<br>\frac{\partial loss}{\partial x_a} &#x3D; \frac{\partial loss}{\partial y_b} \frac{\partial y_b}{\partial x_a} &#x3D; \frac{\partial loss}{\partial y_b}(1 + \frac{\partial}{\partial x_i}\sum_{i&#x3D;a}^b W_{2i}\sigma(W_{1i}x_i))<br>$$</p>
+<p>上式说明，在进行反向传播时，首先括号中的第二项十分容易计算，此外由于括号中”1”这一项的存在，除非第二项为-1，否则是不会发生梯度消失的，而第二项求和为-1附近值的概率是极小的，即能实现梯度的无损传播，完美规避了传统DNN的弊端。</p>
+<h3 id="网络结构与PyTorch源码阅读"><a href="#网络结构与PyTorch源码阅读" class="headerlink" title="网络结构与PyTorch源码阅读"></a>网络结构与PyTorch源码阅读</h3><p>笔者在此先偷了个懒，因为光看论文没有太搞明白，于是先大致阅读了ResNet在<code>torchvision.models</code>中的实现，自己手撸的轮子版本就下次一定了！下面以<code>resnet34</code>为例，开始分析其源码。</p>
+<p>首先从论文中可以找到<code>resnet34</code>的结构示意图：</p>
+<p><img src="https://s2.loli.net/2022/07/05/JC5FmAgU4IWND1H.png" alt="resnet1"></p>
+<p><img src="https://s2.loli.net/2022/07/05/Tl9ws6qncdK7PzX.png" alt="resnet2"></p>
+<p>可以看到通过引入残差单元，可以把网络做的很深。</p>
+<p>在<code>resnet34</code>中，网络可以分为开头的一层卷积+池化，中间4组不同深度的残差单元，和最终的均值池化与分类器。</p>
+<p>当调用<code>resnet34</code>时，实际上是返回了一个内部的<code>_resnet</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">resnet34</span>(<span class="params">pretrained: <span class="built_in">bool</span> = <span class="literal">False</span>, progress: <span class="built_in">bool</span> = <span class="literal">True</span>, **kwargs: <span class="type">Any</span></span>) -&gt; ResNet:</span><br><span class="line">    <span class="string">r&quot;&quot;&quot;ResNet-34 model from</span></span><br><span class="line"><span class="string">    `&quot;Deep Residual Learning for Image Recognition&quot; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span></span><br><span class="line"><span class="string">        progress (bool): If True, displays a progress bar of the download to stderr</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> _resnet(<span class="string">&#x27;resnet34&#x27;</span>, BasicBlock, [<span class="number">3</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">3</span>], pretrained, progress,</span><br><span class="line">                   **kwargs)</span><br></pre></td></tr></table></figure>
+
+<p>注意这里传入的<code>BasicBlock</code>，实际上就是上文中的残差单元：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 网络定义</span></span><br><span class="line"><span class="variable language_">self</span>.conv1 = conv3x3(inplanes, planes, stride)</span><br><span class="line"><span class="variable language_">self</span>.bn1 = norm_layer(planes)</span><br><span class="line"><span class="variable language_">self</span>.relu = nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line"><span class="variable language_">self</span>.conv2 = conv3x3(planes, planes)</span><br><span class="line"><span class="variable language_">self</span>.bn2 = norm_layer(planes)</span><br><span class="line"><span class="variable language_">self</span>.downsample = downsample</span><br><span class="line"><span class="variable language_">self</span>.stride = stride</span><br><span class="line"></span><br><span class="line"><span class="comment"># 前向传播</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x: Tensor</span>) -&gt; Tensor:</span><br><span class="line">    identity = x</span><br><span class="line"></span><br><span class="line">    out = <span class="variable language_">self</span>.conv1(x)</span><br><span class="line">    out = <span class="variable language_">self</span>.bn1(out)</span><br><span class="line">    out = <span class="variable language_">self</span>.relu(out)</span><br><span class="line"></span><br><span class="line">    out = <span class="variable language_">self</span>.conv2(out)</span><br><span class="line">    out = <span class="variable language_">self</span>.bn2(out)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="variable language_">self</span>.downsample <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        identity = <span class="variable language_">self</span>.downsample(x)</span><br><span class="line"></span><br><span class="line">    out += identity</span><br><span class="line">    out = <span class="variable language_">self</span>.relu(out)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> out</span><br></pre></td></tr></table></figure>
+
+<p>而传入<code>_resnet</code>的第三个参数，一个int列表，稍后可以看到是指定了各组残差单元中包括的残差单元个数，可以由结构图验证。</p>
+<p>再看<code>_resnet</code>内部，实际上就是调用了真正的<code>Resnet</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_resnet</span>(<span class="params"></span></span><br><span class="line"><span class="params">    arch: <span class="built_in">str</span>,</span></span><br><span class="line"><span class="params">    block: <span class="type">Type</span>[<span class="type">Union</span>[BasicBlock, Bottleneck]],</span></span><br><span class="line"><span class="params">    layers: <span class="type">List</span>[<span class="built_in">int</span>],</span></span><br><span class="line"><span class="params">    pretrained: <span class="built_in">bool</span>,</span></span><br><span class="line"><span class="params">    progress: <span class="built_in">bool</span>,</span></span><br><span class="line"><span class="params">    **kwargs: <span class="type">Any</span></span></span><br><span class="line"><span class="params"></span>) -&gt; ResNet:</span><br><span class="line">    model = ResNet(block, layers, **kwargs)</span><br><span class="line">    <span class="keyword">if</span> pretrained:</span><br><span class="line">        state_dict = load_state_dict_from_url(model_urls[arch],</span><br><span class="line">                                              progress=progress)</span><br><span class="line">        model.load_state_dict(state_dict)</span><br><span class="line">    <span class="keyword">return</span> model</span><br></pre></td></tr></table></figure>
+
+<p>进入<code>ResNet</code>，我们就能真正看到它的结构了：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">self</span>.conv1 = nn.Conv2d(<span class="number">3</span>, <span class="variable language_">self</span>.inplanes, kernel_size=<span class="number">7</span>, stride=<span class="number">2</span>, padding=<span class="number">3</span>,</span><br><span class="line">                       bias=<span class="literal">False</span>)</span><br><span class="line"><span class="variable language_">self</span>.bn1 = norm_layer(<span class="variable language_">self</span>.inplanes)</span><br><span class="line"><span class="variable language_">self</span>.relu = nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line"><span class="variable language_">self</span>.maxpool = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, padding=<span class="number">1</span>)</span><br><span class="line"><span class="variable language_">self</span>.layer1 = <span class="variable language_">self</span>._make_layer(block, <span class="number">64</span>, layers[<span class="number">0</span>])</span><br><span class="line"><span class="variable language_">self</span>.layer2 = <span class="variable language_">self</span>._make_layer(block, <span class="number">128</span>, layers[<span class="number">1</span>], stride=<span class="number">2</span>,</span><br><span class="line">                               dilate=replace_stride_with_dilation[<span class="number">0</span>])</span><br><span class="line"><span class="variable language_">self</span>.layer3 = <span class="variable language_">self</span>._make_layer(block, <span class="number">256</span>, layers[<span class="number">2</span>], stride=<span class="number">2</span>,</span><br><span class="line">                               dilate=replace_stride_with_dilation[<span class="number">1</span>])</span><br><span class="line"><span class="variable language_">self</span>.layer4 = <span class="variable language_">self</span>._make_layer(block, <span class="number">512</span>, layers[<span class="number">3</span>], stride=<span class="number">2</span>,</span><br><span class="line">                               dilate=replace_stride_with_dilation[<span class="number">2</span>])</span><br><span class="line"><span class="variable language_">self</span>.avgpool = nn.AdaptiveAvgPool2d((<span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line"><span class="variable language_">self</span>.fc = nn.Linear(<span class="number">512</span> * block.expansion, num_classes)</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，以上代码与结构图遥相呼应，其中layer1~4对应4个残差单元组。那么可想而知<code>_makelayer</code>的作用正是根据传入的模块结构，通道数和模块数构建网络层了：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_make_layer</span>(<span class="params">self, block: <span class="type">Type</span>[<span class="type">Union</span>[BasicBlock, Bottleneck]], planes: <span class="built_in">int</span>, blocks: <span class="built_in">int</span>,</span></span><br><span class="line"><span class="params">                stride: <span class="built_in">int</span> = <span class="number">1</span>, dilate: <span class="built_in">bool</span> = <span class="literal">False</span></span>) -&gt; nn.Sequential:</span><br><span class="line">    norm_layer = <span class="variable language_">self</span>._norm_layer</span><br><span class="line">    downsample = <span class="literal">None</span></span><br><span class="line">    previous_dilation = <span class="variable language_">self</span>.dilation</span><br><span class="line">    <span class="keyword">if</span> dilate:</span><br><span class="line">        <span class="variable language_">self</span>.dilation *= stride</span><br><span class="line">        stride = <span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> stride != <span class="number">1</span> <span class="keyword">or</span> <span class="variable language_">self</span>.inplanes != planes * block.expansion:</span><br><span class="line">        downsample = nn.Sequential(</span><br><span class="line">            conv1x1(<span class="variable language_">self</span>.inplanes, planes * block.expansion, stride),</span><br><span class="line">            norm_layer(planes * block.expansion),</span><br><span class="line">        )</span><br><span class="line">    <span class="comment"># 通道数不一致(即虚线)的处理</span></span><br><span class="line"></span><br><span class="line">    layers = []</span><br><span class="line">    layers.append(block(<span class="variable language_">self</span>.inplanes, planes, stride, downsample, <span class="variable language_">self</span>.groups,</span><br><span class="line">                        <span class="variable language_">self</span>.base_width, previous_dilation, norm_layer))</span><br><span class="line">    <span class="variable language_">self</span>.inplanes = planes * block.expansion</span><br><span class="line">    <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, blocks):</span><br><span class="line">        layers.append(block(<span class="variable language_">self</span>.inplanes, planes, groups=<span class="variable language_">self</span>.groups,</span><br><span class="line">                            base_width=<span class="variable language_">self</span>.base_width, dilation=<span class="variable language_">self</span>.dilation,</span><br><span class="line">                            norm_layer=norm_layer))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> nn.Sequential(*layers)</span><br></pre></td></tr></table></figure>
+
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>AlexNet的横空出世，开创了DNN在CV中应用的热潮；VGG在AlexNet的基础上，做到了更深的深度；GoogleNet创新性地提出Inception模块和1x1卷积在数据降维中的应用；ResNet解决了前面网络都无从对策的退化问题，开辟了DNN的深度新的上限……现在，各种网络层出不穷，但这些经典网络可以说是奠定了它们共同的坚实基础，因此很有学习和掌握的必要。</p>
+<p>至此，这四种网络的基础知识就学习完毕了。接下来，我希望复习几种目标检测中常用的算法(RCNN, Fast-RCNN, Faster-RCNN, YOLO, SSD)，以巩固自己的知识，并为项目积累经验。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Inception 学习笔记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-02-15 17:13:59" itemprop="dateCreated datePublished" datetime="2026-02-15T17:13:59+08:00">2026-02-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-09 17:24:12" itemprop="dateModified" datetime="2026-03-09T17:24:12+08:00">2026-03-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Computer-Vision/" itemprop="url" rel="index"><span itemprop="name">Computer Vision</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>13 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>此为旧博客补档，原文上传于2022年7月4日。</strong></p>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>用英文写了前两篇笔记，主要是为了契合周报，但相对于读者可能不太友好，于是从这一篇开始还是用中文做笔记了。这次带来的是对GoogleNet V1的主要结构复现。</p>
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>上一篇笔记中我们复现的经典网络是VGGNet,它是2014年ImageNet大赛的第二名，而当年的第一名正是GoogleNet。如果说VGG只是对AlexNet的结构作改进，那么GoogleNet则是针对当时DNN设计的痛点做出了许多创新，提出了行之有效的解决方案。<strong>随着网络长宽的不断增大和深度的不断加深，其准确度会相应不断提升，但同时参数也在急剧增多，过拟合发生的可能性也越来越大。</strong> 当时，一般的DNN的构建思路如下：堆叠卷积层，间以池化层，并通过LRN，Dropout等技巧防止过拟合。然而对于稍深的DNN，对硬件的要求依然很高，问题没有很好地解决。比如VGG相对于AlexNet，换用了更小的卷积核，参数数量固然减少了，但基数依然很大。即便放到现在，笔者笔记本搭载的 RTX2060 也只能保证训练 VGG11(batch_size为32) 而不显存溢出，并且针对一个具有以万为单位的中型数据集能保证一、两个小时完成训练。</p>
+<p>对此，GoogleNet主要提出了两点新的加快训练速度和减少参数数量的方案：</p>
+<ul>
+<li>利用 1x1卷积核(Network in Network)对数据降维，同时增加非线性，并做到减少参数和防止过拟合。</li>
+<li>提出Inception模块，可以理解为对相似尺度的特征提取的卷积核分组，将大的不利计算的稀疏矩阵转化为多个小的便于计算的密集矩阵，并且结合了1x1卷积核降维处理。Inception的灵感来自Hebbian principle，即如果两个神经元常常同时产生动作电位，这两个神经元之间的连接就会变强，反之则变弱。</li>
+</ul>
+<h3 id="网络结构"><a href="#网络结构" class="headerlink" title="网络结构"></a>网络结构</h3><p>GoogleNet中主要涉及到3个网络结构：Inception Module，和Auxiliary Classifier，以及最终的GoogleNet主干网络。</p>
+<h4 id="Inception-Module"><a href="#Inception-Module" class="headerlink" title="Inception Module"></a>Inception Module</h4><p>直观来看，Inception其实就是将多个卷积和池化的操作放在一起组装为一个小型网络模块，使得神经网络的设计模块化。下图是Inception模块的结构：</p>
+<p><img src="https://s2.loli.net/2022/07/04/G6PuijTULCxpN39.png" alt="Inception"></p>
+<p>从图中可见，Inception包含了一组不同卷积核大小的卷积核和一个必要的均值池化层。不同尺度的特征，往往需要不同大小的感受野来捕获。传统的网络结构中，在一层卷积层只能有一种大小卷积核，其能获得的特征不一定是最佳的，而可能需要别的大小的卷积核。Inception所做的正是将这一过程交给神经网络判断，网络通过调节参数，自主选择合适大小的卷积核。原始的Inception结构如图(a)所示，这样的结构仍会带来较多参数，不能直接用于网络。解决方案是加入先前所述的1x1卷积核，做到数据降维，减少参数数量，于是最终形成了图(b)所示的结构。<br>用Pytorch实现如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Inception</span>(nn.Module):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, ch_in, ch1x1, ch3x3_reduce, ch3x3, ch5x5_reduce, ch5x5, pool_proj</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.parallel1 = ReluConv(ch_in=ch_in, ch_out=ch1x1, kernel_size=<span class="number">1</span>, stride=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.parallel2 = nn.Sequential(</span><br><span class="line">            ReluConv(</span><br><span class="line">                ch_in=ch_in,</span><br><span class="line">                ch_out=ch3x3_reduce,</span><br><span class="line">                kernel_size=<span class="number">1</span>,</span><br><span class="line">                stride=<span class="number">1</span></span><br><span class="line">            ),</span><br><span class="line">            ReluConv(</span><br><span class="line">                ch_in=ch3x3_reduce,</span><br><span class="line">                ch_out=ch3x3,</span><br><span class="line">                kernel_size=<span class="number">3</span>,</span><br><span class="line">                stride=<span class="number">1</span>,</span><br><span class="line">                padding=<span class="number">1</span></span><br><span class="line">            )</span><br><span class="line">        )</span><br><span class="line">        <span class="variable language_">self</span>.parallel3 = nn.Sequential(</span><br><span class="line">            ReluConv(</span><br><span class="line">                ch_in=ch_in,</span><br><span class="line">                ch_out=ch5x5_reduce,</span><br><span class="line">                kernel_size=<span class="number">1</span>,</span><br><span class="line">                stride=<span class="number">1</span></span><br><span class="line">            ),</span><br><span class="line">            ReluConv(</span><br><span class="line">                ch_in=ch5x5_reduce,</span><br><span class="line">                ch_out=ch5x5,</span><br><span class="line">                kernel_size=<span class="number">5</span>,</span><br><span class="line">                stride=<span class="number">1</span>,</span><br><span class="line">                padding=<span class="number">2</span></span><br><span class="line">            )</span><br><span class="line">        )</span><br><span class="line">        <span class="variable language_">self</span>.parallel4 = nn.Sequential(</span><br><span class="line">            nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>),</span><br><span class="line">            ReluConv(</span><br><span class="line">                ch_in=ch_in,</span><br><span class="line">                ch_out=pool_proj,</span><br><span class="line">                kernel_size=<span class="number">1</span>,</span><br><span class="line">                stride=<span class="number">1</span></span><br><span class="line">            )</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="comment"># Do DepthConcat</span></span><br><span class="line">        parallel1 = <span class="variable language_">self</span>.parallel1(x)</span><br><span class="line">        parallel2 = <span class="variable language_">self</span>.parallel2(x)</span><br><span class="line">        parallel3 = <span class="variable language_">self</span>.parallel3(x)</span><br><span class="line">        parallel4 = <span class="variable language_">self</span>.parallel4(x)</span><br><span class="line">        <span class="keyword">return</span> torch.cat((parallel1, parallel2, parallel3, parallel4), <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Auxiliary-Classifier"><a href="#Auxiliary-Classifier" class="headerlink" title="Auxiliary Classifier"></a>Auxiliary Classifier</h4><p>Auxiliary Classifier，即辅助分类器，是为了增强梯度(防止出现梯度消失)，以及增加正则化而设计的一种子模块网络。它只在训练过程加入，其运算结果在乘以一个权重系数(0.3)后与最终输出结果一起作用于反向传播。它由一个均值池化层，一个1x1卷积+ReLU激活层，一个全连接层，一个Dropout层，和一个接了softmax的全连接层构成。</p>
+<p>用pytorch实现如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">AuxClassifier</span>(nn.Module):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, ch_in, num_classes=<span class="number">2</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.pool = nn.AvgPool2d(kernel_size=<span class="number">5</span>, stride=<span class="number">3</span>)</span><br><span class="line">        <span class="variable language_">self</span>.conv = ReluConv(ch_in=ch_in, ch_out=<span class="number">128</span>, kernel_size=<span class="number">1</span>, stride=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.fc1 = nn.Linear(in_features=<span class="number">2048</span>, out_features=<span class="number">1024</span>)  <span class="comment"># input is N x 128 x 4 x 4</span></span><br><span class="line">        <span class="variable language_">self</span>.fc2 = nn.Linear(in_features=<span class="number">1024</span>, out_features=num_classes)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = <span class="variable language_">self</span>.pool(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.conv(x)</span><br><span class="line">        x = torch.flatten(x, <span class="number">1</span>)  <span class="comment"># as input of fc layer</span></span><br><span class="line">        x = <span class="variable language_">self</span>.fc1(x)</span><br><span class="line">        x = F.relu(x)</span><br><span class="line">        x = F.dropout(x, <span class="number">0.7</span>, training=<span class="variable language_">self</span>.training)</span><br><span class="line">        x = <span class="variable language_">self</span>.fc2(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+
+<h4 id="GoogleNet"><a href="#GoogleNet" class="headerlink" title="GoogleNet"></a>GoogleNet</h4><p>GoogleNet的结构如下：</p>
+<p><img src="https://s2.loli.net/2022/07/04/suoGLmEKOCyVw7c.png" alt="Screenshot from 2022-07-04 20-41-50.png"></p>
+<p>可见，在较浅层，主要组成部分依然是传统的卷积+池化。随后便是Inception模块的不断堆叠，间以最大池化，最后是dropout+全连接层输出分类结果。需要注意的是这里的全连接层实际上是一个均值池化层，通过7x7的滤波器大小，将前一层输入的7x7大小的特征直接转化为1x1。论文提到这里用池化层代替卷积层，实现了0.6%的准确度提升。</p>
+<p>用pytorch实现如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">GoogleNet</span>(nn.Module):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_classes=<span class="number">2</span>, aux_enabled=<span class="literal">True</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 227 x 227 x 3</span></span><br><span class="line"><span class="string">        output: 56 x 56 x 64</span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.conv1 = ReluConv(ch_in=<span class="number">3</span>, ch_out=<span class="number">64</span>, kernel_size=<span class="number">7</span>, stride=<span class="number">2</span>, padding=<span class="number">3</span>)</span><br><span class="line">        <span class="variable language_">self</span>.pool1 = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, ceil_mode=<span class="literal">True</span>)</span><br><span class="line">        <span class="comment"># LRN?</span></span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 56 x 56 x 64</span></span><br><span class="line"><span class="string">        output: 28 x 28 x 192</span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.conv2 = ReluConv(ch_in=<span class="number">64</span>, ch_out=<span class="number">64</span>, kernel_size=<span class="number">1</span>, stride=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.conv3 = ReluConv(ch_in=<span class="number">64</span>, ch_out=<span class="number">192</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.pool2 = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, ceil_mode=<span class="literal">True</span>)</span><br><span class="line">        <span class="comment"># LRN?</span></span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 28 x 28 x 192</span></span><br><span class="line"><span class="string">        output: 28 x 28 x 256  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception3a = Inception(</span><br><span class="line">            ch_in=<span class="number">192</span>,</span><br><span class="line">            ch1x1=<span class="number">64</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">96</span>,</span><br><span class="line">            ch3x3=<span class="number">128</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">16</span>,</span><br><span class="line">            ch5x5=<span class="number">32</span>,</span><br><span class="line">            pool_proj=<span class="number">32</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 28 x 28 x 256</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 480  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception3b = Inception(</span><br><span class="line">            ch_in=<span class="number">256</span>,</span><br><span class="line">            ch1x1=<span class="number">128</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">128</span>,</span><br><span class="line">            ch3x3=<span class="number">192</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">32</span>,</span><br><span class="line">            ch5x5=<span class="number">96</span>,</span><br><span class="line">            pool_proj=<span class="number">64</span></span><br><span class="line">        )</span><br><span class="line">        <span class="variable language_">self</span>.pool3 = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, ceil_mode=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 14 x 14 x 480</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 512  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception4a = Inception(</span><br><span class="line">            ch_in=<span class="number">480</span>,</span><br><span class="line">            ch1x1=<span class="number">192</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">96</span>,</span><br><span class="line">            ch3x3=<span class="number">208</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">16</span>,</span><br><span class="line">            ch5x5=<span class="number">48</span>,</span><br><span class="line">            pool_proj=<span class="number">64</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 14 x 14 x 512</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 512  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception4b = Inception(</span><br><span class="line">            ch_in=<span class="number">512</span>,</span><br><span class="line">            ch1x1=<span class="number">160</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">112</span>,</span><br><span class="line">            ch3x3=<span class="number">224</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">24</span>,</span><br><span class="line">            ch5x5=<span class="number">64</span>,</span><br><span class="line">            pool_proj=<span class="number">64</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 14 x 14 x 512</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 512  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception4c = Inception(</span><br><span class="line">            ch_in=<span class="number">512</span>,</span><br><span class="line">            ch1x1=<span class="number">128</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">128</span>,</span><br><span class="line">            ch3x3=<span class="number">256</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">24</span>,</span><br><span class="line">            ch5x5=<span class="number">64</span>,</span><br><span class="line">            pool_proj=<span class="number">64</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 14 x 14 x 512</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 528  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception4d = Inception(</span><br><span class="line">            ch_in=<span class="number">512</span>,</span><br><span class="line">            ch1x1=<span class="number">112</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">144</span>,</span><br><span class="line">            ch3x3=<span class="number">288</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">32</span>,</span><br><span class="line">            ch5x5=<span class="number">64</span>,</span><br><span class="line">            pool_proj=<span class="number">64</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 14 x 14 x 528</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 832  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception4e = Inception(</span><br><span class="line">            ch_in=<span class="number">528</span>,</span><br><span class="line">            ch1x1=<span class="number">256</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">160</span>,</span><br><span class="line">            ch3x3=<span class="number">320</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">32</span>,</span><br><span class="line">            ch5x5=<span class="number">128</span>,</span><br><span class="line">            pool_proj=<span class="number">128</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">self</span>.pool4 = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, ceil_mode=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 7 x 7 x 832</span></span><br><span class="line"><span class="string">        output: 7 x 7 x 832  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception5a = Inception(</span><br><span class="line">            ch_in=<span class="number">832</span>,</span><br><span class="line">            ch1x1=<span class="number">256</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">160</span>,</span><br><span class="line">            ch3x3=<span class="number">320</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">32</span>,</span><br><span class="line">            ch5x5=<span class="number">128</span>,</span><br><span class="line">            pool_proj=<span class="number">128</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 7 x 7 x 832</span></span><br><span class="line"><span class="string">        output: 7 x 7 x 1024  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception5b = Inception(</span><br><span class="line">            ch_in=<span class="number">832</span>,</span><br><span class="line">            ch1x1=<span class="number">384</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">192</span>,</span><br><span class="line">            ch3x3=<span class="number">384</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">48</span>,</span><br><span class="line">            ch5x5=<span class="number">128</span>,</span><br><span class="line">            pool_proj=<span class="number">128</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 7 x 7 x 1024</span></span><br><span class="line"><span class="string">        output: 1 x 1 x 1024  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.pool5 = nn.AvgPool2d(kernel_size=<span class="number">7</span>, stride=<span class="number">1</span>, ceil_mode=<span class="literal">True</span>)</span><br><span class="line">        <span class="variable language_">self</span>.dropout = nn.Dropout(<span class="number">0.4</span>)</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 1024</span></span><br><span class="line"><span class="string">        output: 2  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.fc = nn.Linear(in_features=<span class="number">1024</span>, out_features=num_classes)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> aux_enabled:</span><br><span class="line">            <span class="variable language_">self</span>.aux_enabled = <span class="literal">True</span></span><br><span class="line">            <span class="variable language_">self</span>.aux0 = AuxClassifier(ch_in=<span class="number">512</span>, num_classes=<span class="number">2</span>)</span><br><span class="line">            <span class="variable language_">self</span>.aux1 = AuxClassifier(ch_in=<span class="number">528</span>, num_classes=<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = <span class="variable language_">self</span>.conv1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.pool1(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.conv2(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.conv3(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.pool2(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.inception3a(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.inception3b(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.pool3(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.inception4a(x)</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.training <span class="keyword">and</span> <span class="variable language_">self</span>.aux_enabled:</span><br><span class="line">            aux0 = <span class="variable language_">self</span>.aux0(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.inception4b(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.inception4c(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.inception4d(x)</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.training <span class="keyword">and</span> <span class="variable language_">self</span>.aux_enabled:</span><br><span class="line">            aux1 = <span class="variable language_">self</span>.aux1(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.inception4e(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.pool4(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.inception5a(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.inception5b(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.pool5(x)</span><br><span class="line">        x = torch.flatten(x, <span class="number">1</span>)</span><br><span class="line">        x = <span class="variable language_">self</span>.dropout(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.fc(x)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.training <span class="keyword">and</span> <span class="variable language_">self</span>.aux_enabled:</span><br><span class="line">            <span class="keyword">return</span> x, aux0, aux1</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+
+<p>注意这里我们和之前一样，用较小的数据集代替ImageNet，并对网络中输出层做相应调整。</p>
+<h3 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h3><p>设置batch_size为32，经过20个epoch，得到训练结果如下：<br>loss图像：</p>
+<p><img src="https://s2.loli.net/2022/07/04/pqZOLAvFXQd1eKH.png" alt="loss.png"></p>
+<p>accuracy图像：</p>
+<p><img src="https://s2.loli.net/2022/07/04/9k5G3gI2WZBJdqu.png" alt="accuracy.png"></p>
+<p>这里依然出现了之前一样的问题：loss曲线剧烈抖动，同时accuracy每轮epoch开始有毛刺？新手上路，实在没弄清楚原因。虽然图像不甚完美，但可看到loss还是随训练总体上是降低的，而accuracy是升高的。并且在验证集中也能达到准确率目标。</p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>GoogleNet作为一种经典DNN，还有许多值得学习的设计思想，并且其本身也经过了多次迭代升级，这里仅仅是对初代GoogleNet(V1)进行了Pytorch的代码复现。</p>
+<p>下一个学习目标定为ResNet的论文阅读和pytorch复现。</p>
 
       
     </div>
@@ -1533,535 +1908,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/08/index_in_kotlin/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/otae.jpg">
-      <meta itemprop="name" content="Eynnzerr">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Eynnzerr's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/09/08/index_in_kotlin/" class="post-title-link" itemprop="url">Kotlin 中的 '[]'</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2025-09-08 15:53:59" itemprop="dateCreated datePublished" datetime="2025-09-08T15:53:59+08:00">2025-09-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-01-27 15:53:21" itemprop="dateModified" datetime="2026-01-27T15:53:21+08:00">2026-01-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>3.9k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="Kotlin-的-到底是什么"><a href="#Kotlin-的-到底是什么" class="headerlink" title="Kotlin 的 [] 到底是什么"></a>Kotlin 的 <code>[]</code> 到底是什么</h2><p>刚写 Kotlin 时，我就很快爱上了 <code>map[&quot;key&quot;]</code>、<code>list[i]</code> 这种简洁的 <code>[]</code> 写法。它看起来就像在其他语言中早已熟悉的“下标访问”，但更准确的说法是：<strong><code>[]</code> 是编译器提供的运算符约定（operator convention）语法糖</strong>。它既能访问 List&#x2F;Array，也能用于 Map，甚至可以被自定义到任何类型上。</p>
-<hr>
-<h2 id="1-的原理：编译期改写为-get-set"><a href="#1-的原理：编译期改写为-get-set" class="headerlink" title="1) [] 的原理：编译期改写为 get/set"></a>1) <code>[]</code> 的原理：编译期改写为 <code>get/set</code></h2><p>Kotlin 的 <code>[]</code> 并不是某种“运行时特性”。编译器会把它<strong>静态地改写</strong>成函数调用：</p>
-<ul>
-<li>读取：<code>a[b]</code>  →  <code>a.get(b)</code></li>
-<li>写入：<code>a[b] = c</code>  →  <code>a.set(b, c)</code></li>
-</ul>
-<p>只要你的类型（成员函数或扩展函数）提供了相应签名，并用 <code>operator</code> 修饰，就可以使用 <code>[]</code>。一个简单的自定义类实现例子如下：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Grid</span>&lt;<span class="type">T</span>&gt;(<span class="keyword">private</span> <span class="keyword">val</span> <span class="keyword">data</span>: Array&lt;Array&lt;T&gt;&gt;) &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">get</span><span class="params">(x: <span class="type">Int</span>, y: <span class="type">Int</span>)</span></span>: T = <span class="keyword">data</span>[x][y]</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">set</span><span class="params">(x: <span class="type">Int</span>, y: <span class="type">Int</span>, v: <span class="type">T</span>)</span></span> &#123; <span class="keyword">data</span>[x][y] = v &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">val</span> g = Grid(arrayOf(arrayOf(<span class="number">1</span>, <span class="number">2</span>), arrayOf(<span class="number">3</span>, <span class="number">4</span>)))</span><br><span class="line">	println(g[<span class="number">1</span>, <span class="number">0</span>]) <span class="comment">// 等价于 g.get(1, 0)</span></span><br><span class="line">	g[<span class="number">0</span>, <span class="number">1</span>] = <span class="number">9</span>      <span class="comment">// 等价于 g.set(0, 1, 9)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>然而细心的小伙伴可能就已注意到了：当我们在 Kotlin 中使用 <code>mutableMapOf&lt;K, V&gt;()</code> 在底层创建<code>java.util.LinkedHashMap&lt;K, V&gt;</code>时， Java 类本身并没有定义<code>set</code>方法，我们却仍可以在 Kotlin 侧直接用索引语法。这是因为其借助了 Kotlin 另一个强大的功能：<strong>扩展方法</strong>。</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@kotlin</span>.<span class="keyword">internal</span>.InlineOnly  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;@kotlin.internal.OnlyInputTypes K, V&gt;</span> Map<span class="type">&lt;out K, V&gt;</span>.<span class="title">get</span><span class="params">(key: <span class="type">K</span>)</span></span>: V? =  </span><br><span class="line">    <span class="meta">@Suppress(<span class="string">&quot;UNCHECKED_CAST&quot;</span>)</span> (<span class="keyword">this</span> <span class="keyword">as</span> Map&lt;K, V&gt;).<span class="keyword">get</span>(key)  </span><br><span class="line">  </span><br><span class="line"><span class="comment">/**  </span></span><br><span class="line"><span class="comment"> * Allows to use the index operator for storing values in a mutable map. */</span><span class="meta">@kotlin</span>.<span class="keyword">internal</span>.InlineOnly  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;K, V&gt;</span> MutableMap<span class="type">&lt;K, V&gt;</span>.<span class="title">set</span><span class="params">(key: <span class="type">K</span>, value: <span class="type">V</span>)</span></span>: <span class="built_in">Unit</span> &#123;  </span><br><span class="line">    put(key, value)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>另外，在 Kotlin&#x2F;Java 互操作里，<strong>只要 Java 类上确实存在符合签名的 <code>get(...)</code> &#x2F; <code>set(...)</code> 实例方法，Kotlin 侧通常就可以直接用 <code>[]</code></strong>——不需要在 Java 里写什么 <code>operator</code>（Java 也没这个关键字）。Kotlin 编译器会把 <code>a[i]</code>&#x2F;<code>a[i]=v</code> 按“运算符约定”解析到这些方法上。</p>
-<blockquote>
-<p>关键点 </p>
-</blockquote>
-<ul>
-<li><strong>索引参数不必一定是 Int</strong>：Map 的 key 就是泛型 <code>K</code>。</li>
-<li><code>a[x, y]</code> 这种“多参数索引”是合法的，本质是 <code>get(x, y)</code>。</li>
-<li>这是<strong>编译期语法糖</strong>：是否能用 <code>[]</code>，由静态类型上有没有匹配的 <code>operator get/set</code> 决定。</li>
-</ul>
-<hr>
-<h2 id="2-Kotlin-标准集合里-的语义：Map-≠-List-Array"><a href="#2-Kotlin-标准集合里-的语义：Map-≠-List-Array" class="headerlink" title="2) Kotlin 标准集合里 [] 的语义：Map ≠ List&#x2F;Array"></a>2) Kotlin 标准集合里 <code>[]</code> 的语义：Map ≠ List&#x2F;Array</h2><p>虽然都用 <code>[]</code>，但 Map 与 List&#x2F;Array 的失败策略完全不同。这是 Kotlin 设计中很重要的语义区分，写码时也需要注意。</p>
-<h3 id="2-1-Map：查询语义（缺失返回-null）"><a href="#2-1-Map：查询语义（缺失返回-null）" class="headerlink" title="2.1 Map：查询语义（缺失返回 null）"></a>2.1 Map：查询语义（缺失返回 null）</h3><p>对 <code>Map&lt;K, V&gt;</code>：</p>
-<ul>
-<li><code>map[key]</code> 会调用 <code>get(key)</code></li>
-<li><strong>key 不存在 → 返回 <code>null</code></strong></li>
-<li>因此返回类型通常是 <strong><code>V?</code></strong></li>
-</ul>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> m = mapOf(<span class="string">&quot;a&quot;</span> to <span class="number">1</span>)</span><br><span class="line">println(m[<span class="string">&quot;a&quot;</span>]) <span class="comment">// 1</span></span><br><span class="line">println(m[<span class="string">&quot;b&quot;</span>]) <span class="comment">// null</span></span><br></pre></td></tr></table></figure>
-
-<p>注意：即使 key 存在，value 也可能是 <code>null</code>（当 <code>V</code> 允许为 null 时）。所以 <code>null</code> 可能表示两种情况：</p>
-<ol>
-<li>key 不存在  </li>
-<li>key 存在但 value 本来就是 null</li>
-</ol>
-<p>如果希望“缺 key 就直接失败（抛异常等）”，常见的处理方式是：</p>
-<ul>
-<li><code>map.getValue(key)</code>：缺失抛 <code>NoSuchElementException</code></li>
-<li><code>requireNotNull(map[key])</code></li>
-<li><code>map[key] ?: error(&quot;...&quot;)</code></li>
-</ul>
-<h3 id="2-2-List-Array-String：索引语义（越界抛异常）"><a href="#2-2-List-Array-String：索引语义（越界抛异常）" class="headerlink" title="2.2 List &#x2F; Array &#x2F; String：索引语义（越界抛异常）"></a>2.2 List &#x2F; Array &#x2F; String：索引语义（越界抛异常）</h3><p>对 <code>List</code>、<code>Array</code>、<code>String</code>：</p>
-<ul>
-<li><code>list[i]</code> &#x2F; <code>arr[i]</code> &#x2F; <code>s[i]</code> 是严格索引访问</li>
-<li><strong>越界会抛异常</strong>（如 <code>IndexOutOfBoundsException</code>、<code>StringIndexOutOfBoundsException</code>）</li>
-</ul>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> list = listOf(<span class="number">10</span>, <span class="number">20</span>)</span><br><span class="line">println(list[<span class="number">1</span>]) <span class="comment">// 20</span></span><br><span class="line">println(list[<span class="number">2</span>]) <span class="comment">// 抛异常</span></span><br></pre></td></tr></table></figure>
-
-<p>Kotlin也提供了更安全的替代版本：</p>
-<ul>
-<li><code>getOrNull(i)</code>：越界返回 <code>null</code></li>
-<li><code>getOrElse(i) &#123; default &#125;</code>：越界返回默认值</li>
-</ul>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">println(list.getOrNull(<span class="number">2</span>))         <span class="comment">// null</span></span><br><span class="line">println(list.getOrElse(<span class="number">2</span>) &#123; -<span class="number">1</span> &#125;)  <span class="comment">// -1</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="2-3-Set：通常没有"><a href="#2-3-Set：通常没有" class="headerlink" title="2.3 Set：通常没有 []"></a>2.3 Set：通常没有 <code>[]</code></h3><p><code>Set</code> 不支持“按位置”或“按 key”索引，因此没有 <code>set[i]</code> 这种形式。常用的是：</p>
-<ul>
-<li><code>x in set</code> &#x2F; <code>set.contains(x)</code> 判断元素是否存在</li>
-</ul>
-<hr>
-<h2 id="3-和-C-Java-Python-的-对比"><a href="#3-和-C-Java-Python-的-对比" class="headerlink" title="3) 和 C &#x2F; Java &#x2F; Python 的 [] 对比"></a>3) 和 C &#x2F; Java &#x2F; Python 的 <code>[]</code> 对比</h2><p><code>[]</code> 是一个长得很像、但在不同语言里“底层机制与语义”差别极大的符号。如果你像我一样日常需要经常在不同语言的项目间来回切换时，可能会搞混，或者直接认为 Kotlin的 <code>[]</code> 与其他语言完全是一种东西。然而他们虽为同一个符号，实际却有着不同的契约。</p>
-<h3 id="3-1-Kotlin-vs-Java：Java-没有通用的-重载"><a href="#3-1-Kotlin-vs-Java：Java-没有通用的-重载" class="headerlink" title="3.1 Kotlin vs Java：Java 没有通用的 [] 重载"></a>3.1 Kotlin vs Java：Java 没有通用的 <code>[]</code> 重载</h3><p>Java 的 <code>[]</code> 只用于数组访问（和数组类型语法），例如 <code>arr[i]</code>。<br>Java <strong>不能</strong>把 <code>obj[key]</code> 解释成方法调用（没有运算符重载），所以 Java 中 Map 访问只能写：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">map.get(key)</span><br></pre></td></tr></table></figure>
-
-<p>而 Kotlin 的 <code>map[key]</code> 对 JVM 来说仍然只是一次 <code>get(key)</code> 方法调用，是 Kotlin 编译器提供的语法糖。</p>
-<h3 id="3-2-Kotlin-vs-C：C-的-是指针算术（无边界检查）"><a href="#3-2-Kotlin-vs-C：C-的-是指针算术（无边界检查）" class="headerlink" title="3.2 Kotlin vs C：C 的 [] 是指针算术（无边界检查）"></a>3.2 Kotlin vs C：C 的 <code>[]</code> 是指针算术（无边界检查）</h3><p>C 里 <code>a[i]</code> 等价于 <code>*(a + i)</code>：</p>
-<ul>
-<li>越界通常是<strong>未定义行为</strong>（可能崩溃，也可能悄悄读错）</li>
-<li>不存在“缺失返回 null”的统一约定</li>
-</ul>
-<p>而Kotlin 的 List&#x2F;Array 越界是<strong>受控失败（抛异常）</strong>，错误更可见、更可定位。</p>
-<h3 id="3-3-Kotlin-vs-Python：都“像方法”，但-Kotlin-是静态的、Python-更动态"><a href="#3-3-Kotlin-vs-Python：都“像方法”，但-Kotlin-是静态的、Python-更动态" class="headerlink" title="3.3 Kotlin vs Python：都“像方法”，但 Kotlin 是静态的、Python 更动态"></a>3.3 Kotlin vs Python：都“像方法”，但 Kotlin 是静态的、Python 更动态</h3><p>Python 的：</p>
-<ul>
-<li><code>obj[key]</code> → <code>obj.__getitem__(key)</code></li>
-<li><code>obj[key] = v</code> → <code>obj.__setitem__(key, v)</code></li>
-</ul>
-<p>这和 Kotlin 的“映射到方法”很相似，但差异非常关键：</p>
-<ul>
-<li><strong>动态 vs 静态</strong>：Python 在运行时决定调用谁；Kotlin 在编译期由静态类型解析 <code>get/set</code>。</li>
-<li><strong>切片语法</strong>：Python 有内建 <code>a[1:5]</code>（slice）。<br>Kotlin <strong>没有内建切片 <code>[]</code></strong>：<code>list[1..5]</code> 默认不表示切片（除非自己定义 <code>get(IntRange)</code>）。</li>
-<li><strong>负数索引</strong>：Python <code>a[-1]</code> 是最后一个元素；Kotlin <code>list[-1]</code> 会越界异常（没有特殊语义）。</li>
-</ul>
-<h3 id="3-4-Kotlin-vs-C-：都可重载，但容器默认行为不同"><a href="#3-4-Kotlin-vs-C-：都可重载，但容器默认行为不同" class="headerlink" title="3.4 Kotlin vs C++：都可重载，但容器默认行为不同"></a>3.4 Kotlin vs C++：都可重载，但容器默认行为不同</h3><p>C++ 也能重载 <code>operator[]</code>，但很多容器的 <code>operator[]</code> 语义可能是“缺 key 自动插入默认值”（如 <code>std::map</code>）。<br>Kotlin 的 Map <code>[]</code> <strong>不会插入</strong>，它是纯查询；要写入必须显式调用 <code>map[key] = value</code>。</p>
-<hr>
-<blockquote>
-<p>注意</p>
-</blockquote>
-<ol>
-<li><strong>List&#x2F;Array&#x2F;String 的 <code>[]</code> 越界就抛异常</strong>，不像 C 那样“可能悄悄错”。  </li>
-<li><strong>Kotlin 没有 Python 那种内建切片</strong>；<code>list[1..3]</code> 不是默认用法。  </li>
-<li><strong>Kotlin 的 <code>[]</code> 解析看静态类型</strong>：能不能用、用哪个 <code>get</code>，编译期就决定了。  </li>
-<li><strong>Kotlin Map 的 <code>[]</code> 不会像某些 C++ 容器那样访问即插入</strong>。</li>
-</ol>
-<hr>
-<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4) 总结"></a>4) 总结</h2><ul>
-<li>Kotlin 的 <code>[]</code> 是<strong>编译器把语法改写成 <code>operator get/set</code> 调用</strong>。  </li>
-<li><code>Map</code> 的 <code>[]</code> 是“查询”，<strong>缺失返回 null</strong>；<code>List/Array/String</code> 的 <code>[]</code> 是“索引”，<strong>越界抛异常</strong>。  </li>
-<li>虽然符号相同，但和 C（指针算术）、Java（无重载）、Python（动态 + 切片&#x2F;负索引）相比，<strong>契约差异很大</strong>，跨语言迁移时要特别留意。</li>
-</ul>
-<hr>
-<h3 id="附：自用速查"><a href="#附：自用速查" class="headerlink" title="附：自用速查"></a>附：自用速查</h3><table>
-<thead>
-<tr>
-<th>场景</th>
-<th>Kotlin 写法</th>
-<th>失败行为</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Map 查值</td>
-<td><code>map[key]</code></td>
-<td>key 不存在 → <code>null</code></td>
-</tr>
-<tr>
-<td>Map 强制必须存在</td>
-<td><code>map.getValue(key)</code></td>
-<td>不存在 → 抛异常</td>
-</tr>
-<tr>
-<td>List&#x2F;Array 索引</td>
-<td><code>list[i]</code> &#x2F; <code>arr[i]</code></td>
-<td>越界 → 抛异常</td>
-</tr>
-<tr>
-<td>安全索引</td>
-<td><code>list.getOrNull(i)</code></td>
-<td>越界 → <code>null</code></td>
-</tr>
-<tr>
-<td>Set 判断存在</td>
-<td><code>x in set</code></td>
-<td>返回 <code>true/false</code></td>
-</tr>
-</tbody></table>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/otae.jpg">
-      <meta itemprop="name" content="Eynnzerr">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Eynnzerr's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/09/03/old-sealed-class/" class="post-title-link" itemprop="url">奇妙的 Sealed</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-09-03 15:21:27 / 修改时间：11:13:28" itemprop="dateCreated datePublished" datetime="2025-09-03T15:21:27+08:00">2025-09-03</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><strong>该篇内容为原博客博文，原上传于2023年1月18日。</strong></p>
-<p><strong>Sealed Class</strong>和<strong>Sealed Interface</strong>是 kotlin 引入的全新特性。在初学 kotlin 时，我就一直没有掌握其用法，甚至到现在也不能在该用的时候立刻想到。</p>
-<p>本篇文章主要总结<strong>Sealed Class</strong>的基本概念和常见用法。</p>
-<h3 id="什么是-Sealed"><a href="#什么是-Sealed" class="headerlink" title="什么是 Sealed"></a>什么是 Sealed</h3><p>jetbrains 对 Sealed Class&#x2F;Interface 的介绍如下：</p>
-<blockquote>
-<p>Sealed classes and interfaces represent restricted class hierarchies that provide more control over inheritance. All direct subclasses of a sealed class are known at compile time. No other subclasses may appear outside a module within which the sealed class is defined. For example, third-party clients can’t extend your sealed class in their code. Thus, each instance of a sealed class has a type from a limited set that is known when this class is compiled.</p>
-<p>The same works for sealed interfaces and their implementations: once a module with a sealed interface is compiled, no new implementations can appear.</p>
-<p>In some sense, sealed classes are similar to enum classes: the set of values for an enum type is also restricted, but each enum constant exists only as a single instance, whereas a subclass of a sealed class can have multiple instances, each with its own state.</p>
-</blockquote>
-<p>从以上介绍可以大致总结出 Sealed Class&#x2F;Interface 有如下特性：</p>
-<ul>
-<li><p>表示受限的类层次结构，并可以对继承提供更多的控制</p>
-</li>
-<li><p>密封类的子类在编译期即被确定为一个有限的集合内，不可扩展</p>
-</li>
-<li><p>密封类的子类只能位于定义了该密封类的<strong>包</strong>中</p>
-</li>
-<li><p>密封类的子类可以有多个实例</p>
-</li>
-</ul>
-<p>介绍中还提到，sealed class 和 enum class 在某种意义上是类似的，实际上，sealed class 诞生的重要原因之一正是为了克服 enum class 在某些场合下的局限性，也即上述特性的第一点和第四点。我们知道，枚举类有两个特性，在某些场合下是优点，但在另外一些场合下却可能成为缺点：</p>
-<ul>
-<li><p>每个枚举类型只能有一个实例（称为枚举常量）</p>
-</li>
-<li><p>各枚举常量只能使用相同类型的属性</p>
-</li>
-</ul>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="keyword">class</span> <span class="title class_">Drink</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>) &#123;</span><br><span class="line">    Milk(<span class="number">1</span>),</span><br><span class="line">    Coffee(<span class="number">2</span>),</span><br><span class="line">    Water(<span class="number">3</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在如上我们创建的枚举类中，各子类（Milk，Coffee，Water）无论有多少对象，都只能有一个实例（即单例的枚举常量），且其属性均只能为枚举类中定义的 Int 类型。</p>
-<p>而密封类则取消了以上限制，允许密封类的子类具有多个实例，且各子类可以定义自己的属性。</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">class</span> <span class="title class_">Drink</span> &#123;</span><br><span class="line">    <span class="comment">// 这里直接在定义块内定义子类</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Milk</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>): Drink()</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Coffee</span>(<span class="keyword">val</span> id: <span class="built_in">Double</span>): Drink()</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Water</span>(<span class="keyword">val</span> id: String): Drink()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>如上，密封类允许各子类具有不同类型的属性，只需要在子类的主构造函数中声明即可。需要注意的是，密封类在继承上的写法与抽象类区别较大，反而更加类似于一般的抽象类。实际上，密封类正是抽象的，不能直接生成实例，且可以具有抽象成员。因此，密封类可以像上述写法一样定义继承自密封类的子类，也可以用<code>object</code>直接定义子类对象，也可以再用<code>sealed class</code>，即密封类继承密封类，实现更加细粒度的类层次结构。</p>
-<p>各子类允许有多个不同状态的实例：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> milk1 = Drink.Milk(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> milk2 = Drink.Milk(<span class="number">2</span>)</span><br><span class="line">println(milk1.id)</span><br><span class="line">println(milk2.id)</span><br></pre></td></tr></table></figure>
-
-<p>上述特性的第二点意义在于，密封类对运行时的扩展是封闭的。程序在编译时，即可通过继承关系确认密封类的全部子类，由此产生了密封类一个非常实用的用处，在写 when 语句时不需要添加 else 分支，因为全部可能的分支在编译时即可确定，没有其他情况：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">test</span><span class="params">(drink: <span class="type">Drink</span>)</span></span> = <span class="keyword">when</span> (drink) &#123;</span><br><span class="line">    <span class="keyword">is</span> Drink.Milk -&gt; println(<span class="string">&quot;milk&quot;</span>)</span><br><span class="line">    <span class="keyword">is</span> Drink.Coffee -&gt; println(<span class="string">&quot;coffee&quot;</span>)</span><br><span class="line">    <span class="keyword">is</span> Drink.Water -&gt; println(<span class="string">&quot;water&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>上述特性的第三点意义在于，限制了密封类的作用空间，并且随着 kotlin 版本的更迭越来越宽松：从只能在 sealed class 内，到 1.1 支持同一文件内，到 1.5 支持同一包下。</p>
-<h3 id="怎么用-Sealed"><a href="#怎么用-Sealed" class="headerlink" title="怎么用 Sealed"></a>怎么用 Sealed</h3><p>kotlin 初学者往往会把<code>sealed class</code>当做<code>enum class</code>用，但<code>enum class</code>具有很明显的适用场景，这么做是不合适的。比如，你仅需要一系列相同类型的单例，且不需要任何额外描述，也不需要特殊的函数，那么用枚举就足够了，比如在我的《设计模式之状态模式》中，各状态有统一的处理方法，用枚举来表示。</p>
-<p>在 Android 开发中， <code>sealed class</code>有如下一些使用场景：</p>
-<ul>
-<li><p>列表有不同类型的子项（文字、图片），用密封类表示列表的 item</p>
-</li>
-<li><p>封装网络请求中成功（含有任意类型的请求数据）和失败（含有失败信息，如异常）返回的数据</p>
-</li>
-<li><p>使用<code>object</code>达到与枚举类似的效果（虽然在 google 的官方示例都出现了这种用法，但还是不推荐。为什么不直接用枚举呢？）</p>
-</li>
-<li><p>其他一切不满足枚举的应用场景，但需要与枚举类似效果，可以考虑用密封类</p>
-</li>
-</ul>
-<h3 id="关于-Sealed-Interface"><a href="#关于-Sealed-Interface" class="headerlink" title="关于 Sealed Interface"></a>关于 Sealed Interface</h3><p>以上都在讨论<code>sealed class</code>，而<code>sealed interface</code>作为 kotlin1.5 中登场的新特性，也值得说道说道。</p>
-<p>密封接口进一步补足了密封类和枚举类的一些不足之处，如枚举类编译后继承自<code>Enum</code>，由于单继承不能再继承其他类，此时可以用密封接口，对枚举类做进一步划分。当然直接用嵌套密封类也未尝不可。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/02/old-scope-function/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/otae.jpg">
-      <meta itemprop="name" content="Eynnzerr">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Eynnzerr's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/09/02/old-scope-function/" class="post-title-link" itemprop="url">Scope Function 速记速查</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2025-09-02 10:06:25" itemprop="dateCreated datePublished" datetime="2025-09-02T10:06:25+08:00">2025-09-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-01-30 12:40:01" itemprop="dateModified" datetime="2026-01-30T12:40:01+08:00">2026-01-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>3.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>6 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><strong>该篇内容为原博客博文，原上传于2021年11月29日。</strong></p>
-<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>kotlin是一款十分灵活而又强大的语言。合理地运用kotlin的一些特性，可以极大地提高代码可读性和质量，提高效率。下面我们就来说一说kotlin中的<strong>scope function</strong>。</p>
-<h1 id="域函数"><a href="#域函数" class="headerlink" title="域函数"></a>域函数</h1><p>我们主要介绍<strong>let, also, with, run, apply</strong>这五种常用的域函数。</p>
-<h3 id="1-let"><a href="#1-let" class="headerlink" title="(1)let"></a>(1)let</h3><p>先上let函数的源码：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> T.<span class="title">let</span><span class="params">(block: (<span class="type">T</span>) -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block(<span class="keyword">this</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>从源码我们可以看出，首先，let是对调用者的扩展函数。其次，let函数接收一个lambda表达式block作为唯一参数，且将调用者本身作为参数传给了lambda。而在函数的内部，首先使用contract进行约束，向编译器表明这个lambda只会执行一次（EXACTLY_ONCE），接着就是调用lambda并返回其返回值。<br>进而，我们可以得出如下结论：</p>
-<ol>
-<li>由于let函数将调用者作为lambda的参数，因而在let闭包内，可以用<strong>it</strong>指代调用者；</li>
-<li>let函数是具有返回值的，且其返回值应为lambda表达式中的最后一行&#x2F;return语句。</li>
-</ol>
-<p>随之，我们可以得到let函数的作用：</p>
-<ol>
-<li>在明确某一对象实例在一定范围内需要使用时，可以对其调用let，再用it指代；</li>
-<li>（常用）对某一可能为空的对象进行统一判空的处理。</li>
-</ol>
-<p>这里对作用二作一些解释。对于一个可能为空的对象object，如果不使用let，每次调用其方法或属性时，都要加上?或者!!，以及类似if not null的判空逻辑。但如果使用let，代码就将简化为如下的形式：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span>?.let &#123;</span><br><span class="line">    it.doSomething()</span><br><span class="line">    it.id = <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>以上代码表示，只有当object不为空时，才会执行let中的逻辑，且由于判空交给了object后的?符来处理，let内部不再需要任何多余的判空。如此以来，判空就变得优雅了许多。</p>
-<h3 id="2-also"><a href="#2-also" class="headerlink" title="(2)also"></a>(2)also</h3><p>先上also函数的源码：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> T.<span class="title">also</span><span class="params">(block: (<span class="type">T</span>) -&gt; <span class="type">Unit</span>)</span></span>: T &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    block(<span class="keyword">this</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>从源码可见，also函数的实现思路与let类似，都是对调用者的扩展，都是将调用者作为参数传给lambda，都使用contract进行调用约束，都会在内部执行lambda。但有如下不同：lambda没有返回值，而从return语句看，also返回的是调用者本身。<br>进而，我们可以得出如下结论：</p>
-<ol>
-<li>also函数的应用场景与let相同；</li>
-<li>also函数返回值为调用者本身。</li>
-</ol>
-<h3 id="3-with"><a href="#3-with" class="headerlink" title="(3)with"></a>(3)with</h3><p>先上with函数的源码：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> <span class="title">with</span><span class="params">(receiver: <span class="type">T</span>, block: <span class="type">T</span>.() -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> receiver.block()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>虽然源码的整体风格和之前两者类似，但其使用方法却截然不同。首先，with是一个通用的扩展函数，其有两个参数：receiver，和一个lambda。注意这里lambda的参数是T.()，它表明将这个lambda函数作为同为类型T的receiver的一个扩展函数，从而能被receiver所调用。进而，我们可以得出如下结论：</p>
-<ol>
-<li>由于with内部是通过扩展函数使得receiver去调用lambda，因而可以在lambda的闭包内部直接访问receiver的public方法&#x2F;属性。（即没有it等间接指代值）</li>
-<li>with函数是具有返回值的。从源码的return语句可以看出，其返回的是lambda表达式的最后一行&#x2F;return语句。</li>
-</ol>
-<p>随之，我们可以得到with函数的作用：<br>在需要多次调用某一对象的方法或属性时，可以将该对象传给with，再在with内部处理相应逻辑。这样写可以避免多次重复地写该对象。<br>举个栗子：当我们想写一个alertDialog时，需要先创建builder，对builder进行一系列配置，再调用builder的create()方法返回一条alertDialog。有了with后，我们可以这样写：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">lateinit</span> <span class="keyword">var</span> alertDialog: AlertDialog</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> builder = AlertDialog.Builder(activity)</span><br><span class="line">alertDialog = with (builder) &#123;</span><br><span class="line">    <span class="keyword">val</span> alertView = layoutInflater.inflate(R.layout.dialog_confirm, <span class="literal">null</span>, <span class="literal">false</span>)</span><br><span class="line">    setView(alertView)</span><br><span class="line">    setNegativeButton(<span class="string">&quot;取消&quot;</span>) &#123; dialog, which -&gt;</span><br><span class="line">        Toast.makeText(activity, <span class="string">&quot;已取消&quot;</span>, Toast.LENGTH_SHORT).show()</span><br><span class="line">    &#125;</span><br><span class="line">    setPositiveButton(<span class="string">&quot;确定&quot;</span>) &#123; dialog, which -&gt;</span><br><span class="line">        run &#123;</span><br><span class="line">            bill?.let &#123; it1 -&gt; viewModel.deleteBill(it1) &#125;</span><br><span class="line">            activity?.onBackPressed()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    create()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>是不是简洁了许多？</p>
-<h3 id="4-run"><a href="#4-run" class="headerlink" title="(4)run"></a>(4)run</h3><p>还是先上源码：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;R&gt;</span> <span class="title">run</span><span class="params">(block: () -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> T.<span class="title">run</span><span class="params">(block: <span class="type">T</span>.() -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>run有点类似let和with的结合体，继承了两者各自的优点，因而使用场景十分广泛：首先，它像let一样是对调用者的扩展，因而可以<strong>统一判空处理</strong>；其次，它又像with一样，传入lambda的是T.()，表明它可以像with一样<strong>在闭包内直接访问方法&#x2F;属性</strong>。最后，它返回的是lambda的返回值。</p>
-<h3 id="5-apply"><a href="#5-apply" class="headerlink" title="(5)apply"></a>(5)apply</h3><p>上源码。。。</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> T.<span class="title">apply</span><span class="params">(block: <span class="type">T</span>.() -&gt; <span class="type">Unit</span>)</span></span>: T &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    block()</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>不难看出，apply和run类似于also和let的关系，使用场景类似，只是返回值有差异。<br>而由于apply返回的是调用者本身，因而它十分适合用来做变量的初始化。</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><table>
-<thead>
-<tr>
-<th align="center">函数名</th>
-<th align="center">特点</th>
-<th align="center">作用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="center">let</td>
-<td align="center">1.在指定域内定义变量it 2.返回最后一行</td>
-<td align="center">统一判空处理</td>
-</tr>
-<tr>
-<td align="center">also</td>
-<td align="center">1.在指定域内定义变量it 2.返回传入对象本身</td>
-<td align="center">统一判空处理</td>
-</tr>
-<tr>
-<td align="center">with</td>
-<td align="center">1.直接访问方法和属性 2.返回最后一行</td>
-<td align="center">多次调用时省去变量名</td>
-</tr>
-<tr>
-<td align="center">run</td>
-<td align="center">1.let和with的结合 2.返回最后一行</td>
-<td align="center">统一判空的同时省去it，省去变量名的同时判空</td>
-</tr>
-<tr>
-<td align="center">apply</td>
-<td align="center">1.同run 2.返回传入对象本身</td>
-<td align="center">同run，此外适用于初始化变量</td>
-</tr>
-</tbody></table>
-<p>作者纯kotlin小白，如有疏漏与错误，敬请大佬指正！</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -2133,20 +1979,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-count">26</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -2198,12 +2044,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">125k</span>
+    <span title="站点总字数">144k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:46</span>
+    <span title="站点阅读时长">4:21</span>
 </div>
   <div class="powered-by">
     <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动 -->

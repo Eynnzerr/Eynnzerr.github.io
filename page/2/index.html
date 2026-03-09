@@ -195,6 +195,535 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/08/index_in_kotlin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/09/08/index_in_kotlin/" class="post-title-link" itemprop="url">Kotlin 中的 '[]'</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-09-08 15:53:59" itemprop="dateCreated datePublished" datetime="2025-09-08T15:53:59+08:00">2025-09-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-06 19:12:05" itemprop="dateModified" datetime="2026-03-06T19:12:05+08:00">2026-03-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="Kotlin-的-到底是什么"><a href="#Kotlin-的-到底是什么" class="headerlink" title="Kotlin 的 [] 到底是什么"></a>Kotlin 的 <code>[]</code> 到底是什么</h2><p>刚写 Kotlin 时，我就很快爱上了 <code>map[&quot;key&quot;]</code>、<code>list[i]</code> 这种简洁的 <code>[]</code> 写法。它看起来就像在其他语言中早已熟悉的“下标访问”，但更准确的说法是：<strong><code>[]</code> 是编译器提供的运算符约定（operator convention）语法糖</strong>。它既能访问 List&#x2F;Array，也能用于 Map，甚至可以被自定义到任何类型上。</p>
+<hr>
+<h2 id="1-的原理：编译期改写为-get-set"><a href="#1-的原理：编译期改写为-get-set" class="headerlink" title="1) [] 的原理：编译期改写为 get/set"></a>1) <code>[]</code> 的原理：编译期改写为 <code>get/set</code></h2><p>Kotlin 的 <code>[]</code> 并不是某种“运行时特性”。编译器会把它<strong>静态地改写</strong>成函数调用：</p>
+<ul>
+<li>读取：<code>a[b]</code>  →  <code>a.get(b)</code></li>
+<li>写入：<code>a[b] = c</code>  →  <code>a.set(b, c)</code></li>
+</ul>
+<p>只要我们为类型（成员函数或扩展函数）提供了相应签名，并用 <code>operator</code> 修饰，就可以使用 <code>[]</code>。一个简单的自定义类实现例子如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Grid</span>&lt;<span class="type">T</span>&gt;(<span class="keyword">private</span> <span class="keyword">val</span> <span class="keyword">data</span>: Array&lt;Array&lt;T&gt;&gt;) &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">get</span><span class="params">(x: <span class="type">Int</span>, y: <span class="type">Int</span>)</span></span>: T = <span class="keyword">data</span>[x][y]</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">set</span><span class="params">(x: <span class="type">Int</span>, y: <span class="type">Int</span>, v: <span class="type">T</span>)</span></span> &#123; <span class="keyword">data</span>[x][y] = v &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">val</span> g = Grid(arrayOf(arrayOf(<span class="number">1</span>, <span class="number">2</span>), arrayOf(<span class="number">3</span>, <span class="number">4</span>)))</span><br><span class="line">	println(g[<span class="number">1</span>, <span class="number">0</span>]) <span class="comment">// 等价于 g.get(1, 0)</span></span><br><span class="line">	g[<span class="number">0</span>, <span class="number">1</span>] = <span class="number">9</span>      <span class="comment">// 等价于 g.set(0, 1, 9)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然而细心的小伙伴可能就已注意到了：当我们在 Kotlin 中使用 <code>mutableMapOf&lt;K, V&gt;()</code> 在底层创建<code>java.util.LinkedHashMap&lt;K, V&gt;</code>时， Java 类本身并没有定义<code>set</code>方法，我们却仍可以在 Kotlin 侧直接用索引语法。这是因为其借助了 Kotlin 另一个强大的功能：<strong>扩展方法</strong>。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@kotlin</span>.<span class="keyword">internal</span>.InlineOnly  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;@kotlin.internal.OnlyInputTypes K, V&gt;</span> Map<span class="type">&lt;out K, V&gt;</span>.<span class="title">get</span><span class="params">(key: <span class="type">K</span>)</span></span>: V? =  </span><br><span class="line">    <span class="meta">@Suppress(<span class="string">&quot;UNCHECKED_CAST&quot;</span>)</span> (<span class="keyword">this</span> <span class="keyword">as</span> Map&lt;K, V&gt;).<span class="keyword">get</span>(key)  </span><br><span class="line">  </span><br><span class="line"><span class="comment">/**  </span></span><br><span class="line"><span class="comment"> * Allows to use the index operator for storing values in a mutable map. */</span><span class="meta">@kotlin</span>.<span class="keyword">internal</span>.InlineOnly  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;K, V&gt;</span> MutableMap<span class="type">&lt;K, V&gt;</span>.<span class="title">set</span><span class="params">(key: <span class="type">K</span>, value: <span class="type">V</span>)</span></span>: <span class="built_in">Unit</span> &#123;  </span><br><span class="line">    put(key, value)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另外，在 Kotlin&#x2F;Java 互操作里，<strong>只要 Java 类上确实存在符合签名的 <code>get(...)</code> &#x2F; <code>set(...)</code> 实例方法，Kotlin 侧通常就可以直接用 <code>[]</code></strong>——不需要在 Java 里写什么 <code>operator</code>（Java 也没这个关键字）。Kotlin 编译器会把 <code>a[i]</code>&#x2F;<code>a[i]=v</code> 按“运算符约定”解析到这些方法上。</p>
+<blockquote>
+<p>关键点 </p>
+</blockquote>
+<ul>
+<li><strong>索引参数不必一定是 Int</strong>：Map 的 key 就是泛型 <code>K</code>。</li>
+<li><code>a[x, y]</code> 这种“多参数索引”是合法的，本质是 <code>get(x, y)</code>。</li>
+<li>这是<strong>编译期语法糖</strong>：是否能用 <code>[]</code>，由静态类型上有没有匹配的 <code>operator get/set</code> 决定。</li>
+</ul>
+<hr>
+<h2 id="2-Kotlin-标准集合里-的语义：Map-≠-List-Array"><a href="#2-Kotlin-标准集合里-的语义：Map-≠-List-Array" class="headerlink" title="2) Kotlin 标准集合里 [] 的语义：Map ≠ List&#x2F;Array"></a>2) Kotlin 标准集合里 <code>[]</code> 的语义：Map ≠ List&#x2F;Array</h2><p>虽然都用 <code>[]</code>，但 Map 与 List&#x2F;Array 的失败策略完全不同。这是 Kotlin 设计中很重要的语义区分，写码时也需要注意。</p>
+<h3 id="2-1-Map：查询语义（缺失返回-null）"><a href="#2-1-Map：查询语义（缺失返回-null）" class="headerlink" title="2.1 Map：查询语义（缺失返回 null）"></a>2.1 Map：查询语义（缺失返回 null）</h3><p>对 <code>Map&lt;K, V&gt;</code>：</p>
+<ul>
+<li><code>map[key]</code> 会调用 <code>get(key)</code></li>
+<li><strong>key 不存在 → 返回 <code>null</code></strong></li>
+<li>因此返回类型通常是 <strong><code>V?</code></strong></li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> m = mapOf(<span class="string">&quot;a&quot;</span> to <span class="number">1</span>)</span><br><span class="line">println(m[<span class="string">&quot;a&quot;</span>]) <span class="comment">// 1</span></span><br><span class="line">println(m[<span class="string">&quot;b&quot;</span>]) <span class="comment">// null</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：即使 key 存在，value 也可能是 <code>null</code>（当 <code>V</code> 允许为 null 时）。所以 <code>null</code> 可能表示两种情况：</p>
+<ol>
+<li>key 不存在  </li>
+<li>key 存在但 value 本来就是 null</li>
+</ol>
+<p>如果希望“缺 key 就直接失败（抛异常等）”，常见的处理方式是：</p>
+<ul>
+<li><code>map.getValue(key)</code>：缺失抛 <code>NoSuchElementException</code></li>
+<li><code>requireNotNull(map[key])</code></li>
+<li><code>map[key] ?: error(&quot;...&quot;)</code></li>
+</ul>
+<h3 id="2-2-List-Array-String：索引语义（越界抛异常）"><a href="#2-2-List-Array-String：索引语义（越界抛异常）" class="headerlink" title="2.2 List &#x2F; Array &#x2F; String：索引语义（越界抛异常）"></a>2.2 List &#x2F; Array &#x2F; String：索引语义（越界抛异常）</h3><p>对 <code>List</code>、<code>Array</code>、<code>String</code>：</p>
+<ul>
+<li><code>list[i]</code> &#x2F; <code>arr[i]</code> &#x2F; <code>s[i]</code> 是严格索引访问</li>
+<li><strong>越界会抛异常</strong>（如 <code>IndexOutOfBoundsException</code>、<code>StringIndexOutOfBoundsException</code>）</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> list = listOf(<span class="number">10</span>, <span class="number">20</span>)</span><br><span class="line">println(list[<span class="number">1</span>]) <span class="comment">// 20</span></span><br><span class="line">println(list[<span class="number">2</span>]) <span class="comment">// 抛异常</span></span><br></pre></td></tr></table></figure>
+
+<p>Kotlin也提供了更安全的替代版本：</p>
+<ul>
+<li><code>getOrNull(i)</code>：越界返回 <code>null</code></li>
+<li><code>getOrElse(i) &#123; default &#125;</code>：越界返回默认值</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">println(list.getOrNull(<span class="number">2</span>))         <span class="comment">// null</span></span><br><span class="line">println(list.getOrElse(<span class="number">2</span>) &#123; -<span class="number">1</span> &#125;)  <span class="comment">// -1</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-Set：通常没有"><a href="#2-3-Set：通常没有" class="headerlink" title="2.3 Set：通常没有 []"></a>2.3 Set：通常没有 <code>[]</code></h3><p><code>Set</code> 不支持“按位置”或“按 key”索引，因此没有 <code>set[i]</code> 这种形式。常用的是：</p>
+<ul>
+<li><code>x in set</code> &#x2F; <code>set.contains(x)</code> 判断元素是否存在</li>
+</ul>
+<hr>
+<h2 id="3-和-C-Java-Python-的-对比"><a href="#3-和-C-Java-Python-的-对比" class="headerlink" title="3) 和 C &#x2F; Java &#x2F; Python 的 [] 对比"></a>3) 和 C &#x2F; Java &#x2F; Python 的 <code>[]</code> 对比</h2><p><code>[]</code> 是一个长得很像、但在不同语言里“底层机制与语义”差别极大的符号。如果你像我一样日常需要经常在不同语言的项目间来回切换时，可能会搞混，或者直接认为 Kotlin的 <code>[]</code> 与其他语言完全是一种东西。然而他们虽为同一个符号，实际却有着不同的契约。</p>
+<h3 id="3-1-Kotlin-vs-Java：Java-没有通用的-重载"><a href="#3-1-Kotlin-vs-Java：Java-没有通用的-重载" class="headerlink" title="3.1 Kotlin vs Java：Java 没有通用的 [] 重载"></a>3.1 Kotlin vs Java：Java 没有通用的 <code>[]</code> 重载</h3><p>Java 的 <code>[]</code> 只用于数组访问（和数组类型语法），例如 <code>arr[i]</code>。<br>Java <strong>不能</strong>把 <code>obj[key]</code> 解释成方法调用（没有运算符重载），所以 Java 中 Map 访问只能写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">map.get(key)</span><br></pre></td></tr></table></figure>
+
+<p>而 Kotlin 的 <code>map[key]</code> 对 JVM 来说仍然只是一次 <code>get(key)</code> 方法调用，是 Kotlin 编译器提供的语法糖。</p>
+<h3 id="3-2-Kotlin-vs-C：C-的-是指针算术（无边界检查）"><a href="#3-2-Kotlin-vs-C：C-的-是指针算术（无边界检查）" class="headerlink" title="3.2 Kotlin vs C：C 的 [] 是指针算术（无边界检查）"></a>3.2 Kotlin vs C：C 的 <code>[]</code> 是指针算术（无边界检查）</h3><p>C 里 <code>a[i]</code> 等价于 <code>*(a + i)</code>：</p>
+<ul>
+<li>越界通常是<strong>未定义行为</strong>（可能崩溃，也可能悄悄读错）</li>
+<li>不存在“缺失返回 null”的统一约定</li>
+</ul>
+<p>而Kotlin 的 List&#x2F;Array 越界是<strong>受控失败（抛异常）</strong>，错误更可见、更可定位。</p>
+<h3 id="3-3-Kotlin-vs-Python：都“像方法”，但-Kotlin-是静态的、Python-更动态"><a href="#3-3-Kotlin-vs-Python：都“像方法”，但-Kotlin-是静态的、Python-更动态" class="headerlink" title="3.3 Kotlin vs Python：都“像方法”，但 Kotlin 是静态的、Python 更动态"></a>3.3 Kotlin vs Python：都“像方法”，但 Kotlin 是静态的、Python 更动态</h3><p>Python 的：</p>
+<ul>
+<li><code>obj[key]</code> → <code>obj.__getitem__(key)</code></li>
+<li><code>obj[key] = v</code> → <code>obj.__setitem__(key, v)</code></li>
+</ul>
+<p>这和 Kotlin 的“映射到方法”很相似，但差异非常关键：</p>
+<ul>
+<li><strong>动态 vs 静态</strong>：Python 在运行时决定调用谁；Kotlin 在编译期由静态类型解析 <code>get/set</code>。</li>
+<li><strong>切片语法</strong>：Python 有内建 <code>a[1:5]</code>（slice）。<br>Kotlin <strong>没有内建切片 <code>[]</code></strong>：<code>list[1..5]</code> 默认不表示切片（除非自己定义 <code>get(IntRange)</code>）。</li>
+<li><strong>负数索引</strong>：Python <code>a[-1]</code> 是最后一个元素；Kotlin <code>list[-1]</code> 会越界异常（没有特殊语义）。</li>
+</ul>
+<h3 id="3-4-Kotlin-vs-C-：都可重载，但容器默认行为不同"><a href="#3-4-Kotlin-vs-C-：都可重载，但容器默认行为不同" class="headerlink" title="3.4 Kotlin vs C++：都可重载，但容器默认行为不同"></a>3.4 Kotlin vs C++：都可重载，但容器默认行为不同</h3><p>C++ 也能重载 <code>operator[]</code>，但很多容器的 <code>operator[]</code> 语义可能是“缺 key 自动插入默认值”（如 <code>std::map</code>）。<br>Kotlin 的 Map <code>[]</code> <strong>不会插入</strong>，它是纯查询；要写入必须显式调用 <code>map[key] = value</code>。</p>
+<hr>
+<blockquote>
+<p>注意</p>
+</blockquote>
+<ol>
+<li><strong>List&#x2F;Array&#x2F;String 的 <code>[]</code> 越界就抛异常</strong>，不像 C 那样“可能悄悄错”。  </li>
+<li><strong>Kotlin 没有 Python 那种内建切片</strong>；<code>list[1..3]</code> 不是默认用法。  </li>
+<li><strong>Kotlin 的 <code>[]</code> 解析看静态类型</strong>：能不能用、用哪个 <code>get</code>，编译期就决定了。  </li>
+<li><strong>Kotlin Map 的 <code>[]</code> 不会像某些 C++ 容器那样访问即插入</strong>。</li>
+</ol>
+<hr>
+<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4) 总结"></a>4) 总结</h2><ul>
+<li>Kotlin 的 <code>[]</code> 是<strong>编译器把语法改写成 <code>operator get/set</code> 调用</strong>。  </li>
+<li><code>Map</code> 的 <code>[]</code> 是“查询”，<strong>缺失返回 null</strong>；<code>List/Array/String</code> 的 <code>[]</code> 是“索引”，<strong>越界抛异常</strong>。  </li>
+<li>虽然符号相同，但和 C（指针算术）、Java（无重载）、Python（动态 + 切片&#x2F;负索引）相比，<strong>契约差异很大</strong>，跨语言迁移时要特别留意。</li>
+</ul>
+<hr>
+<h3 id="附：自用速查"><a href="#附：自用速查" class="headerlink" title="附：自用速查"></a>附：自用速查</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>Kotlin 写法</th>
+<th>失败行为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Map 查值</td>
+<td><code>map[key]</code></td>
+<td>key 不存在 → <code>null</code></td>
+</tr>
+<tr>
+<td>Map 强制必须存在</td>
+<td><code>map.getValue(key)</code></td>
+<td>不存在 → 抛异常</td>
+</tr>
+<tr>
+<td>List&#x2F;Array 索引</td>
+<td><code>list[i]</code> &#x2F; <code>arr[i]</code></td>
+<td>越界 → 抛异常</td>
+</tr>
+<tr>
+<td>安全索引</td>
+<td><code>list.getOrNull(i)</code></td>
+<td>越界 → <code>null</code></td>
+</tr>
+<tr>
+<td>Set 判断存在</td>
+<td><code>x in set</code></td>
+<td>返回 <code>true/false</code></td>
+</tr>
+</tbody></table>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/09/03/old-sealed-class/" class="post-title-link" itemprop="url">奇妙的 Sealed</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-09-03 15:21:27 / 修改时间：11:13:28" itemprop="dateCreated datePublished" datetime="2025-09-03T15:21:27+08:00">2025-09-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>该篇内容为原博客博文，原上传于2023年1月18日。</strong></p>
+<p><strong>Sealed Class</strong>和<strong>Sealed Interface</strong>是 kotlin 引入的全新特性。在初学 kotlin 时，我就一直没有掌握其用法，甚至到现在也不能在该用的时候立刻想到。</p>
+<p>本篇文章主要总结<strong>Sealed Class</strong>的基本概念和常见用法。</p>
+<h3 id="什么是-Sealed"><a href="#什么是-Sealed" class="headerlink" title="什么是 Sealed"></a>什么是 Sealed</h3><p>jetbrains 对 Sealed Class&#x2F;Interface 的介绍如下：</p>
+<blockquote>
+<p>Sealed classes and interfaces represent restricted class hierarchies that provide more control over inheritance. All direct subclasses of a sealed class are known at compile time. No other subclasses may appear outside a module within which the sealed class is defined. For example, third-party clients can’t extend your sealed class in their code. Thus, each instance of a sealed class has a type from a limited set that is known when this class is compiled.</p>
+<p>The same works for sealed interfaces and their implementations: once a module with a sealed interface is compiled, no new implementations can appear.</p>
+<p>In some sense, sealed classes are similar to enum classes: the set of values for an enum type is also restricted, but each enum constant exists only as a single instance, whereas a subclass of a sealed class can have multiple instances, each with its own state.</p>
+</blockquote>
+<p>从以上介绍可以大致总结出 Sealed Class&#x2F;Interface 有如下特性：</p>
+<ul>
+<li><p>表示受限的类层次结构，并可以对继承提供更多的控制</p>
+</li>
+<li><p>密封类的子类在编译期即被确定为一个有限的集合内，不可扩展</p>
+</li>
+<li><p>密封类的子类只能位于定义了该密封类的<strong>包</strong>中</p>
+</li>
+<li><p>密封类的子类可以有多个实例</p>
+</li>
+</ul>
+<p>介绍中还提到，sealed class 和 enum class 在某种意义上是类似的，实际上，sealed class 诞生的重要原因之一正是为了克服 enum class 在某些场合下的局限性，也即上述特性的第一点和第四点。我们知道，枚举类有两个特性，在某些场合下是优点，但在另外一些场合下却可能成为缺点：</p>
+<ul>
+<li><p>每个枚举类型只能有一个实例（称为枚举常量）</p>
+</li>
+<li><p>各枚举常量只能使用相同类型的属性</p>
+</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="keyword">class</span> <span class="title class_">Drink</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>) &#123;</span><br><span class="line">    Milk(<span class="number">1</span>),</span><br><span class="line">    Coffee(<span class="number">2</span>),</span><br><span class="line">    Water(<span class="number">3</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在如上我们创建的枚举类中，各子类（Milk，Coffee，Water）无论有多少对象，都只能有一个实例（即单例的枚举常量），且其属性均只能为枚举类中定义的 Int 类型。</p>
+<p>而密封类则取消了以上限制，允许密封类的子类具有多个实例，且各子类可以定义自己的属性。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">class</span> <span class="title class_">Drink</span> &#123;</span><br><span class="line">    <span class="comment">// 这里直接在定义块内定义子类</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Milk</span>(<span class="keyword">val</span> id: <span class="built_in">Int</span>): Drink()</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Coffee</span>(<span class="keyword">val</span> id: <span class="built_in">Double</span>): Drink()</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Water</span>(<span class="keyword">val</span> id: String): Drink()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如上，密封类允许各子类具有不同类型的属性，只需要在子类的主构造函数中声明即可。需要注意的是，密封类在继承上的写法与抽象类区别较大，反而更加类似于一般的抽象类。实际上，密封类正是抽象的，不能直接生成实例，且可以具有抽象成员。因此，密封类可以像上述写法一样定义继承自密封类的子类，也可以用<code>object</code>直接定义子类对象，也可以再用<code>sealed class</code>，即密封类继承密封类，实现更加细粒度的类层次结构。</p>
+<p>各子类允许有多个不同状态的实例：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> milk1 = Drink.Milk(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> milk2 = Drink.Milk(<span class="number">2</span>)</span><br><span class="line">println(milk1.id)</span><br><span class="line">println(milk2.id)</span><br></pre></td></tr></table></figure>
+
+<p>上述特性的第二点意义在于，密封类对运行时的扩展是封闭的。程序在编译时，即可通过继承关系确认密封类的全部子类，由此产生了密封类一个非常实用的用处，在写 when 语句时不需要添加 else 分支，因为全部可能的分支在编译时即可确定，没有其他情况：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">test</span><span class="params">(drink: <span class="type">Drink</span>)</span></span> = <span class="keyword">when</span> (drink) &#123;</span><br><span class="line">    <span class="keyword">is</span> Drink.Milk -&gt; println(<span class="string">&quot;milk&quot;</span>)</span><br><span class="line">    <span class="keyword">is</span> Drink.Coffee -&gt; println(<span class="string">&quot;coffee&quot;</span>)</span><br><span class="line">    <span class="keyword">is</span> Drink.Water -&gt; println(<span class="string">&quot;water&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述特性的第三点意义在于，限制了密封类的作用空间，并且随着 kotlin 版本的更迭越来越宽松：从只能在 sealed class 内，到 1.1 支持同一文件内，到 1.5 支持同一包下。</p>
+<h3 id="怎么用-Sealed"><a href="#怎么用-Sealed" class="headerlink" title="怎么用 Sealed"></a>怎么用 Sealed</h3><p>kotlin 初学者往往会把<code>sealed class</code>当做<code>enum class</code>用，但<code>enum class</code>具有很明显的适用场景，这么做是不合适的。比如，你仅需要一系列相同类型的单例，且不需要任何额外描述，也不需要特殊的函数，那么用枚举就足够了，比如在我的《设计模式之状态模式》中，各状态有统一的处理方法，用枚举来表示。</p>
+<p>在 Android 开发中， <code>sealed class</code>有如下一些使用场景：</p>
+<ul>
+<li><p>列表有不同类型的子项（文字、图片），用密封类表示列表的 item</p>
+</li>
+<li><p>封装网络请求中成功（含有任意类型的请求数据）和失败（含有失败信息，如异常）返回的数据</p>
+</li>
+<li><p>使用<code>object</code>达到与枚举类似的效果（虽然在 google 的官方示例都出现了这种用法，但还是不推荐。为什么不直接用枚举呢？）</p>
+</li>
+<li><p>其他一切不满足枚举的应用场景，但需要与枚举类似效果，可以考虑用密封类</p>
+</li>
+</ul>
+<h3 id="关于-Sealed-Interface"><a href="#关于-Sealed-Interface" class="headerlink" title="关于 Sealed Interface"></a>关于 Sealed Interface</h3><p>以上都在讨论<code>sealed class</code>，而<code>sealed interface</code>作为 kotlin1.5 中登场的新特性，也值得说道说道。</p>
+<p>密封接口进一步补足了密封类和枚举类的一些不足之处，如枚举类编译后继承自<code>Enum</code>，由于单继承不能再继承其他类，此时可以用密封接口，对枚举类做进一步划分。当然直接用嵌套密封类也未尝不可。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/02/old-scope-function/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/09/02/old-scope-function/" class="post-title-link" itemprop="url">Scope Function 速记速查</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-09-02 10:06:25" itemprop="dateCreated datePublished" datetime="2025-09-02T10:06:25+08:00">2025-09-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-01-30 12:40:01" itemprop="dateModified" datetime="2026-01-30T12:40:01+08:00">2026-01-30</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>该篇内容为原博客博文，原上传于2021年11月29日。</strong></p>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>kotlin是一款十分灵活而又强大的语言。合理地运用kotlin的一些特性，可以极大地提高代码可读性和质量，提高效率。下面我们就来说一说kotlin中的<strong>scope function</strong>。</p>
+<h1 id="域函数"><a href="#域函数" class="headerlink" title="域函数"></a>域函数</h1><p>我们主要介绍<strong>let, also, with, run, apply</strong>这五种常用的域函数。</p>
+<h3 id="1-let"><a href="#1-let" class="headerlink" title="(1)let"></a>(1)let</h3><p>先上let函数的源码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> T.<span class="title">let</span><span class="params">(block: (<span class="type">T</span>) -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block(<span class="keyword">this</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从源码我们可以看出，首先，let是对调用者的扩展函数。其次，let函数接收一个lambda表达式block作为唯一参数，且将调用者本身作为参数传给了lambda。而在函数的内部，首先使用contract进行约束，向编译器表明这个lambda只会执行一次（EXACTLY_ONCE），接着就是调用lambda并返回其返回值。<br>进而，我们可以得出如下结论：</p>
+<ol>
+<li>由于let函数将调用者作为lambda的参数，因而在let闭包内，可以用<strong>it</strong>指代调用者；</li>
+<li>let函数是具有返回值的，且其返回值应为lambda表达式中的最后一行&#x2F;return语句。</li>
+</ol>
+<p>随之，我们可以得到let函数的作用：</p>
+<ol>
+<li>在明确某一对象实例在一定范围内需要使用时，可以对其调用let，再用it指代；</li>
+<li>（常用）对某一可能为空的对象进行统一判空的处理。</li>
+</ol>
+<p>这里对作用二作一些解释。对于一个可能为空的对象object，如果不使用let，每次调用其方法或属性时，都要加上?或者!!，以及类似if not null的判空逻辑。但如果使用let，代码就将简化为如下的形式：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span>?.let &#123;</span><br><span class="line">    it.doSomething()</span><br><span class="line">    it.id = <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上代码表示，只有当object不为空时，才会执行let中的逻辑，且由于判空交给了object后的?符来处理，let内部不再需要任何多余的判空。如此以来，判空就变得优雅了许多。</p>
+<h3 id="2-also"><a href="#2-also" class="headerlink" title="(2)also"></a>(2)also</h3><p>先上also函数的源码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> T.<span class="title">also</span><span class="params">(block: (<span class="type">T</span>) -&gt; <span class="type">Unit</span>)</span></span>: T &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    block(<span class="keyword">this</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从源码可见，also函数的实现思路与let类似，都是对调用者的扩展，都是将调用者作为参数传给lambda，都使用contract进行调用约束，都会在内部执行lambda。但有如下不同：lambda没有返回值，而从return语句看，also返回的是调用者本身。<br>进而，我们可以得出如下结论：</p>
+<ol>
+<li>also函数的应用场景与let相同；</li>
+<li>also函数返回值为调用者本身。</li>
+</ol>
+<h3 id="3-with"><a href="#3-with" class="headerlink" title="(3)with"></a>(3)with</h3><p>先上with函数的源码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> <span class="title">with</span><span class="params">(receiver: <span class="type">T</span>, block: <span class="type">T</span>.() -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> receiver.block()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>虽然源码的整体风格和之前两者类似，但其使用方法却截然不同。首先，with是一个通用的扩展函数，其有两个参数：receiver，和一个lambda。注意这里lambda的参数是T.()，它表明将这个lambda函数作为同为类型T的receiver的一个扩展函数，从而能被receiver所调用。进而，我们可以得出如下结论：</p>
+<ol>
+<li>由于with内部是通过扩展函数使得receiver去调用lambda，因而可以在lambda的闭包内部直接访问receiver的public方法&#x2F;属性。（即没有it等间接指代值）</li>
+<li>with函数是具有返回值的。从源码的return语句可以看出，其返回的是lambda表达式的最后一行&#x2F;return语句。</li>
+</ol>
+<p>随之，我们可以得到with函数的作用：<br>在需要多次调用某一对象的方法或属性时，可以将该对象传给with，再在with内部处理相应逻辑。这样写可以避免多次重复地写该对象。<br>举个栗子：当我们想写一个alertDialog时，需要先创建builder，对builder进行一系列配置，再调用builder的create()方法返回一条alertDialog。有了with后，我们可以这样写：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">lateinit</span> <span class="keyword">var</span> alertDialog: AlertDialog</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> builder = AlertDialog.Builder(activity)</span><br><span class="line">alertDialog = with (builder) &#123;</span><br><span class="line">    <span class="keyword">val</span> alertView = layoutInflater.inflate(R.layout.dialog_confirm, <span class="literal">null</span>, <span class="literal">false</span>)</span><br><span class="line">    setView(alertView)</span><br><span class="line">    setNegativeButton(<span class="string">&quot;取消&quot;</span>) &#123; dialog, which -&gt;</span><br><span class="line">        Toast.makeText(activity, <span class="string">&quot;已取消&quot;</span>, Toast.LENGTH_SHORT).show()</span><br><span class="line">    &#125;</span><br><span class="line">    setPositiveButton(<span class="string">&quot;确定&quot;</span>) &#123; dialog, which -&gt;</span><br><span class="line">        run &#123;</span><br><span class="line">            bill?.let &#123; it1 -&gt; viewModel.deleteBill(it1) &#125;</span><br><span class="line">            activity?.onBackPressed()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    create()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>是不是简洁了许多？</p>
+<h3 id="4-run"><a href="#4-run" class="headerlink" title="(4)run"></a>(4)run</h3><p>还是先上源码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;R&gt;</span> <span class="title">run</span><span class="params">(block: () -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> T.<span class="title">run</span><span class="params">(block: <span class="type">T</span>.() -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>run有点类似let和with的结合体，继承了两者各自的优点，因而使用场景十分广泛：首先，它像let一样是对调用者的扩展，因而可以<strong>统一判空处理</strong>；其次，它又像with一样，传入lambda的是T.()，表明它可以像with一样<strong>在闭包内直接访问方法&#x2F;属性</strong>。最后，它返回的是lambda的返回值。</p>
+<h3 id="5-apply"><a href="#5-apply" class="headerlink" title="(5)apply"></a>(5)apply</h3><p>上源码。。。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> T.<span class="title">apply</span><span class="params">(block: <span class="type">T</span>.() -&gt; <span class="type">Unit</span>)</span></span>: T &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    block()</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不难看出，apply和run类似于also和let的关系，使用场景类似，只是返回值有差异。<br>而由于apply返回的是调用者本身，因而它十分适合用来做变量的初始化。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><table>
+<thead>
+<tr>
+<th align="center">函数名</th>
+<th align="center">特点</th>
+<th align="center">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">let</td>
+<td align="center">1.在指定域内定义变量it 2.返回最后一行</td>
+<td align="center">统一判空处理</td>
+</tr>
+<tr>
+<td align="center">also</td>
+<td align="center">1.在指定域内定义变量it 2.返回传入对象本身</td>
+<td align="center">统一判空处理</td>
+</tr>
+<tr>
+<td align="center">with</td>
+<td align="center">1.直接访问方法和属性 2.返回最后一行</td>
+<td align="center">多次调用时省去变量名</td>
+</tr>
+<tr>
+<td align="center">run</td>
+<td align="center">1.let和with的结合 2.返回最后一行</td>
+<td align="center">统一判空的同时省去it，省去变量名的同时判空</td>
+</tr>
+<tr>
+<td align="center">apply</td>
+<td align="center">1.同run 2.返回传入对象本身</td>
+<td align="center">同run，此外适用于初始化变量</td>
+</tr>
+</tbody></table>
+<p>作者纯kotlin小白，如有疏漏与错误，敬请大佬指正！</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/09/01/old-data-lab/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1166,20 +1695,20 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-count">26</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1231,12 +1760,12 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">125k</span>
+    <span title="站点总字数">144k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:46</span>
+    <span title="站点阅读时长">4:21</span>
 </div>
   <div class="powered-by">
     <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动 -->

@@ -6,7 +6,7 @@
   <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
   
   <link href="http://blog.eynnzerr.top/"/>
-  <updated>2026-03-03T04:39:05.356Z</updated>
+  <updated>2026-03-09T09:30:14.107Z</updated>
   <id>http://blog.eynnzerr.top/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>SparseArray解析</title>
+    <link href="http://blog.eynnzerr.top/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/"/>
+    <id>http://blog.eynnzerr.top/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/</id>
+    <published>2026-03-04T09:20:52.000Z</published>
+    <updated>2026-03-09T09:30:14.107Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;此为旧博客补档，原文上传于2022年3月23日。&lt;/strong&gt;&lt;/p&gt;
+&lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;数据结构是每个程序员的必修课。无论是链表，</summary>
+      
+    
+    
+    
+    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    
+    
+    <category term="数据结构" scheme="http://blog.eynnzerr.top/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"/>
+    
+  </entry>
   
   <entry>
     <title>移植FFmpeg命令行</title>
@@ -121,6 +144,52 @@
   </entry>
   
   <entry>
+    <title>ResNet 学习笔记</title>
+    <link href="http://blog.eynnzerr.top/2026/02/18/ResNet%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+    <id>http://blog.eynnzerr.top/2026/02/18/ResNet%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</id>
+    <published>2026-02-18T09:16:48.000Z</published>
+    <updated>2026-03-09T09:24:39.064Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;此为旧博客补档，原文上传于2022年7月5日。&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h3&gt;&lt;p&gt;自从AlexNet以来，人们一直致力于探索更</summary>
+      
+    
+    
+    
+    <category term="Computer Vision" scheme="http://blog.eynnzerr.top/categories/Computer-Vision/"/>
+    
+    
+    <category term="ResNet" scheme="http://blog.eynnzerr.top/tags/ResNet/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Inception 学习笔记</title>
+    <link href="http://blog.eynnzerr.top/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+    <id>http://blog.eynnzerr.top/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</id>
+    <published>2026-02-15T09:13:59.000Z</published>
+    <updated>2026-03-09T09:24:12.782Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;此为旧博客补档，原文上传于2022年7月4日。&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h3&gt;&lt;p&gt;用英文写了前两篇笔记，主要是为了契合周报，但</summary>
+      
+    
+    
+    
+    <category term="Computer Vision" scheme="http://blog.eynnzerr.top/categories/Computer-Vision/"/>
+    
+    
+    <category term="GoogleNet" scheme="http://blog.eynnzerr.top/tags/GoogleNet/"/>
+    
+  </entry>
+  
+  <entry>
     <title>ThreadLocal 笔记</title>
     <link href="http://blog.eynnzerr.top/2026/02/11/threadLocal-md/"/>
     <id>http://blog.eynnzerr.top/2026/02/11/threadLocal-md/</id>
@@ -200,7 +269,7 @@
     <link href="http://blog.eynnzerr.top/2025/09/08/index_in_kotlin/"/>
     <id>http://blog.eynnzerr.top/2025/09/08/index_in_kotlin/</id>
     <published>2025-09-08T07:53:59.000Z</published>
-    <updated>2026-01-27T07:53:21.452Z</updated>
+    <updated>2026-03-06T11:12:05.073Z</updated>
     
     
       

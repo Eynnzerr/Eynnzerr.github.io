@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eynnzerr.top","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="此为旧博客补档，原文上传于2022年7月4日。 前言用英文写了前两篇笔记，主要是为了契合周报，但相对于读者可能不太友好，于是从这一篇开始还是用中文做笔记了。这次带来的是对GoogleNet V1的主要结构复现。 背景上一篇笔记中我们复现的经典网络是VGGNet,它是2014年ImageNet大赛的第二名，而当年的第一名正是GoogleNet。如果说VGG只是对AlexNet的结构作改进，那么Goo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Inception 学习笔记">
+<meta property="og:url" content="http://blog.eynnzerr.top/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Eynnzerr&#39;s Blog">
+<meta property="og:description" content="此为旧博客补档，原文上传于2022年7月4日。 前言用英文写了前两篇笔记，主要是为了契合周报，但相对于读者可能不太友好，于是从这一篇开始还是用中文做笔记了。这次带来的是对GoogleNet V1的主要结构复现。 背景上一篇笔记中我们复现的经典网络是VGGNet,它是2014年ImageNet大赛的第二名，而当年的第一名正是GoogleNet。如果说VGG只是对AlexNet的结构作改进，那么Goo">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2022/07/04/G6PuijTULCxpN39.png">
+<meta property="og:image" content="https://s2.loli.net/2022/07/04/suoGLmEKOCyVw7c.png">
+<meta property="og:image" content="https://s2.loli.net/2022/07/04/pqZOLAvFXQd1eKH.png">
+<meta property="og:image" content="https://s2.loli.net/2022/07/04/9k5G3gI2WZBJdqu.png">
+<meta property="article:published_time" content="2026-02-15T09:13:59.000Z">
+<meta property="article:modified_time" content="2026-03-09T09:24:12.782Z">
+<meta property="article:author" content="Eynnzerr">
+<meta property="article:tag" content="GoogleNet">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.loli.net/2022/07/04/G6PuijTULCxpN39.png">
+
+<link rel="canonical" href="http://blog.eynnzerr.top/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Inception 学习笔记 | Eynnzerr's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Eynnzerr's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Eynnzerr's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">2021-2025 重新出发</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/Eynnzerr" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Inception 学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-02-15 17:13:59" itemprop="dateCreated datePublished" datetime="2026-02-15T17:13:59+08:00">2026-02-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-09 17:24:12" itemprop="dateModified" datetime="2026-03-09T17:24:12+08:00">2026-03-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Computer-Vision/" itemprop="url" rel="index"><span itemprop="name">Computer Vision</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>13 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>此为旧博客补档，原文上传于2022年7月4日。</strong></p>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>用英文写了前两篇笔记，主要是为了契合周报，但相对于读者可能不太友好，于是从这一篇开始还是用中文做笔记了。这次带来的是对GoogleNet V1的主要结构复现。</p>
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>上一篇笔记中我们复现的经典网络是VGGNet,它是2014年ImageNet大赛的第二名，而当年的第一名正是GoogleNet。如果说VGG只是对AlexNet的结构作改进，那么GoogleNet则是针对当时DNN设计的痛点做出了许多创新，提出了行之有效的解决方案。<strong>随着网络长宽的不断增大和深度的不断加深，其准确度会相应不断提升，但同时参数也在急剧增多，过拟合发生的可能性也越来越大。</strong> 当时，一般的DNN的构建思路如下：堆叠卷积层，间以池化层，并通过LRN，Dropout等技巧防止过拟合。然而对于稍深的DNN，对硬件的要求依然很高，问题没有很好地解决。比如VGG相对于AlexNet，换用了更小的卷积核，参数数量固然减少了，但基数依然很大。即便放到现在，笔者笔记本搭载的 RTX2060 也只能保证训练 VGG11(batch_size为32) 而不显存溢出，并且针对一个具有以万为单位的中型数据集能保证一、两个小时完成训练。</p>
+<p>对此，GoogleNet主要提出了两点新的加快训练速度和减少参数数量的方案：</p>
+<ul>
+<li>利用 1x1卷积核(Network in Network)对数据降维，同时增加非线性，并做到减少参数和防止过拟合。</li>
+<li>提出Inception模块，可以理解为对相似尺度的特征提取的卷积核分组，将大的不利计算的稀疏矩阵转化为多个小的便于计算的密集矩阵，并且结合了1x1卷积核降维处理。Inception的灵感来自Hebbian principle，即如果两个神经元常常同时产生动作电位，这两个神经元之间的连接就会变强，反之则变弱。</li>
+</ul>
+<h3 id="网络结构"><a href="#网络结构" class="headerlink" title="网络结构"></a>网络结构</h3><p>GoogleNet中主要涉及到3个网络结构：Inception Module，和Auxiliary Classifier，以及最终的GoogleNet主干网络。</p>
+<h4 id="Inception-Module"><a href="#Inception-Module" class="headerlink" title="Inception Module"></a>Inception Module</h4><p>直观来看，Inception其实就是将多个卷积和池化的操作放在一起组装为一个小型网络模块，使得神经网络的设计模块化。下图是Inception模块的结构：</p>
+<p><img src="https://s2.loli.net/2022/07/04/G6PuijTULCxpN39.png" alt="Inception"></p>
+<p>从图中可见，Inception包含了一组不同卷积核大小的卷积核和一个必要的均值池化层。不同尺度的特征，往往需要不同大小的感受野来捕获。传统的网络结构中，在一层卷积层只能有一种大小卷积核，其能获得的特征不一定是最佳的，而可能需要别的大小的卷积核。Inception所做的正是将这一过程交给神经网络判断，网络通过调节参数，自主选择合适大小的卷积核。原始的Inception结构如图(a)所示，这样的结构仍会带来较多参数，不能直接用于网络。解决方案是加入先前所述的1x1卷积核，做到数据降维，减少参数数量，于是最终形成了图(b)所示的结构。<br>用Pytorch实现如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Inception</span>(nn.Module):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, ch_in, ch1x1, ch3x3_reduce, ch3x3, ch5x5_reduce, ch5x5, pool_proj</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.parallel1 = ReluConv(ch_in=ch_in, ch_out=ch1x1, kernel_size=<span class="number">1</span>, stride=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.parallel2 = nn.Sequential(</span><br><span class="line">            ReluConv(</span><br><span class="line">                ch_in=ch_in,</span><br><span class="line">                ch_out=ch3x3_reduce,</span><br><span class="line">                kernel_size=<span class="number">1</span>,</span><br><span class="line">                stride=<span class="number">1</span></span><br><span class="line">            ),</span><br><span class="line">            ReluConv(</span><br><span class="line">                ch_in=ch3x3_reduce,</span><br><span class="line">                ch_out=ch3x3,</span><br><span class="line">                kernel_size=<span class="number">3</span>,</span><br><span class="line">                stride=<span class="number">1</span>,</span><br><span class="line">                padding=<span class="number">1</span></span><br><span class="line">            )</span><br><span class="line">        )</span><br><span class="line">        <span class="variable language_">self</span>.parallel3 = nn.Sequential(</span><br><span class="line">            ReluConv(</span><br><span class="line">                ch_in=ch_in,</span><br><span class="line">                ch_out=ch5x5_reduce,</span><br><span class="line">                kernel_size=<span class="number">1</span>,</span><br><span class="line">                stride=<span class="number">1</span></span><br><span class="line">            ),</span><br><span class="line">            ReluConv(</span><br><span class="line">                ch_in=ch5x5_reduce,</span><br><span class="line">                ch_out=ch5x5,</span><br><span class="line">                kernel_size=<span class="number">5</span>,</span><br><span class="line">                stride=<span class="number">1</span>,</span><br><span class="line">                padding=<span class="number">2</span></span><br><span class="line">            )</span><br><span class="line">        )</span><br><span class="line">        <span class="variable language_">self</span>.parallel4 = nn.Sequential(</span><br><span class="line">            nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>),</span><br><span class="line">            ReluConv(</span><br><span class="line">                ch_in=ch_in,</span><br><span class="line">                ch_out=pool_proj,</span><br><span class="line">                kernel_size=<span class="number">1</span>,</span><br><span class="line">                stride=<span class="number">1</span></span><br><span class="line">            )</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="comment"># Do DepthConcat</span></span><br><span class="line">        parallel1 = <span class="variable language_">self</span>.parallel1(x)</span><br><span class="line">        parallel2 = <span class="variable language_">self</span>.parallel2(x)</span><br><span class="line">        parallel3 = <span class="variable language_">self</span>.parallel3(x)</span><br><span class="line">        parallel4 = <span class="variable language_">self</span>.parallel4(x)</span><br><span class="line">        <span class="keyword">return</span> torch.cat((parallel1, parallel2, parallel3, parallel4), <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Auxiliary-Classifier"><a href="#Auxiliary-Classifier" class="headerlink" title="Auxiliary Classifier"></a>Auxiliary Classifier</h4><p>Auxiliary Classifier，即辅助分类器，是为了增强梯度(防止出现梯度消失)，以及增加正则化而设计的一种子模块网络。它只在训练过程加入，其运算结果在乘以一个权重系数(0.3)后与最终输出结果一起作用于反向传播。它由一个均值池化层，一个1x1卷积+ReLU激活层，一个全连接层，一个Dropout层，和一个接了softmax的全连接层构成。</p>
+<p>用pytorch实现如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">AuxClassifier</span>(nn.Module):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, ch_in, num_classes=<span class="number">2</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.pool = nn.AvgPool2d(kernel_size=<span class="number">5</span>, stride=<span class="number">3</span>)</span><br><span class="line">        <span class="variable language_">self</span>.conv = ReluConv(ch_in=ch_in, ch_out=<span class="number">128</span>, kernel_size=<span class="number">1</span>, stride=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.fc1 = nn.Linear(in_features=<span class="number">2048</span>, out_features=<span class="number">1024</span>)  <span class="comment"># input is N x 128 x 4 x 4</span></span><br><span class="line">        <span class="variable language_">self</span>.fc2 = nn.Linear(in_features=<span class="number">1024</span>, out_features=num_classes)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = <span class="variable language_">self</span>.pool(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.conv(x)</span><br><span class="line">        x = torch.flatten(x, <span class="number">1</span>)  <span class="comment"># as input of fc layer</span></span><br><span class="line">        x = <span class="variable language_">self</span>.fc1(x)</span><br><span class="line">        x = F.relu(x)</span><br><span class="line">        x = F.dropout(x, <span class="number">0.7</span>, training=<span class="variable language_">self</span>.training)</span><br><span class="line">        x = <span class="variable language_">self</span>.fc2(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+
+<h4 id="GoogleNet"><a href="#GoogleNet" class="headerlink" title="GoogleNet"></a>GoogleNet</h4><p>GoogleNet的结构如下：</p>
+<p><img src="https://s2.loli.net/2022/07/04/suoGLmEKOCyVw7c.png" alt="Screenshot from 2022-07-04 20-41-50.png"></p>
+<p>可见，在较浅层，主要组成部分依然是传统的卷积+池化。随后便是Inception模块的不断堆叠，间以最大池化，最后是dropout+全连接层输出分类结果。需要注意的是这里的全连接层实际上是一个均值池化层，通过7x7的滤波器大小，将前一层输入的7x7大小的特征直接转化为1x1。论文提到这里用池化层代替卷积层，实现了0.6%的准确度提升。</p>
+<p>用pytorch实现如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">GoogleNet</span>(nn.Module):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_classes=<span class="number">2</span>, aux_enabled=<span class="literal">True</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 227 x 227 x 3</span></span><br><span class="line"><span class="string">        output: 56 x 56 x 64</span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.conv1 = ReluConv(ch_in=<span class="number">3</span>, ch_out=<span class="number">64</span>, kernel_size=<span class="number">7</span>, stride=<span class="number">2</span>, padding=<span class="number">3</span>)</span><br><span class="line">        <span class="variable language_">self</span>.pool1 = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, ceil_mode=<span class="literal">True</span>)</span><br><span class="line">        <span class="comment"># LRN?</span></span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 56 x 56 x 64</span></span><br><span class="line"><span class="string">        output: 28 x 28 x 192</span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.conv2 = ReluConv(ch_in=<span class="number">64</span>, ch_out=<span class="number">64</span>, kernel_size=<span class="number">1</span>, stride=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.conv3 = ReluConv(ch_in=<span class="number">64</span>, ch_out=<span class="number">192</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">self</span>.pool2 = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, ceil_mode=<span class="literal">True</span>)</span><br><span class="line">        <span class="comment"># LRN?</span></span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 28 x 28 x 192</span></span><br><span class="line"><span class="string">        output: 28 x 28 x 256  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception3a = Inception(</span><br><span class="line">            ch_in=<span class="number">192</span>,</span><br><span class="line">            ch1x1=<span class="number">64</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">96</span>,</span><br><span class="line">            ch3x3=<span class="number">128</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">16</span>,</span><br><span class="line">            ch5x5=<span class="number">32</span>,</span><br><span class="line">            pool_proj=<span class="number">32</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 28 x 28 x 256</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 480  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception3b = Inception(</span><br><span class="line">            ch_in=<span class="number">256</span>,</span><br><span class="line">            ch1x1=<span class="number">128</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">128</span>,</span><br><span class="line">            ch3x3=<span class="number">192</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">32</span>,</span><br><span class="line">            ch5x5=<span class="number">96</span>,</span><br><span class="line">            pool_proj=<span class="number">64</span></span><br><span class="line">        )</span><br><span class="line">        <span class="variable language_">self</span>.pool3 = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, ceil_mode=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 14 x 14 x 480</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 512  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception4a = Inception(</span><br><span class="line">            ch_in=<span class="number">480</span>,</span><br><span class="line">            ch1x1=<span class="number">192</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">96</span>,</span><br><span class="line">            ch3x3=<span class="number">208</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">16</span>,</span><br><span class="line">            ch5x5=<span class="number">48</span>,</span><br><span class="line">            pool_proj=<span class="number">64</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 14 x 14 x 512</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 512  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception4b = Inception(</span><br><span class="line">            ch_in=<span class="number">512</span>,</span><br><span class="line">            ch1x1=<span class="number">160</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">112</span>,</span><br><span class="line">            ch3x3=<span class="number">224</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">24</span>,</span><br><span class="line">            ch5x5=<span class="number">64</span>,</span><br><span class="line">            pool_proj=<span class="number">64</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 14 x 14 x 512</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 512  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception4c = Inception(</span><br><span class="line">            ch_in=<span class="number">512</span>,</span><br><span class="line">            ch1x1=<span class="number">128</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">128</span>,</span><br><span class="line">            ch3x3=<span class="number">256</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">24</span>,</span><br><span class="line">            ch5x5=<span class="number">64</span>,</span><br><span class="line">            pool_proj=<span class="number">64</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 14 x 14 x 512</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 528  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception4d = Inception(</span><br><span class="line">            ch_in=<span class="number">512</span>,</span><br><span class="line">            ch1x1=<span class="number">112</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">144</span>,</span><br><span class="line">            ch3x3=<span class="number">288</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">32</span>,</span><br><span class="line">            ch5x5=<span class="number">64</span>,</span><br><span class="line">            pool_proj=<span class="number">64</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 14 x 14 x 528</span></span><br><span class="line"><span class="string">        output: 14 x 14 x 832  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception4e = Inception(</span><br><span class="line">            ch_in=<span class="number">528</span>,</span><br><span class="line">            ch1x1=<span class="number">256</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">160</span>,</span><br><span class="line">            ch3x3=<span class="number">320</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">32</span>,</span><br><span class="line">            ch5x5=<span class="number">128</span>,</span><br><span class="line">            pool_proj=<span class="number">128</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">self</span>.pool4 = nn.MaxPool2d(kernel_size=<span class="number">3</span>, stride=<span class="number">2</span>, ceil_mode=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 7 x 7 x 832</span></span><br><span class="line"><span class="string">        output: 7 x 7 x 832  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception5a = Inception(</span><br><span class="line">            ch_in=<span class="number">832</span>,</span><br><span class="line">            ch1x1=<span class="number">256</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">160</span>,</span><br><span class="line">            ch3x3=<span class="number">320</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">32</span>,</span><br><span class="line">            ch5x5=<span class="number">128</span>,</span><br><span class="line">            pool_proj=<span class="number">128</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 7 x 7 x 832</span></span><br><span class="line"><span class="string">        output: 7 x 7 x 1024  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.inception5b = Inception(</span><br><span class="line">            ch_in=<span class="number">832</span>,</span><br><span class="line">            ch1x1=<span class="number">384</span>,</span><br><span class="line">            ch3x3_reduce=<span class="number">192</span>,</span><br><span class="line">            ch3x3=<span class="number">384</span>,</span><br><span class="line">            ch5x5_reduce=<span class="number">48</span>,</span><br><span class="line">            ch5x5=<span class="number">128</span>,</span><br><span class="line">            pool_proj=<span class="number">128</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 7 x 7 x 1024</span></span><br><span class="line"><span class="string">        output: 1 x 1 x 1024  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.pool5 = nn.AvgPool2d(kernel_size=<span class="number">7</span>, stride=<span class="number">1</span>, ceil_mode=<span class="literal">True</span>)</span><br><span class="line">        <span class="variable language_">self</span>.dropout = nn.Dropout(<span class="number">0.4</span>)</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        input: 1024</span></span><br><span class="line"><span class="string">        output: 2  </span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="variable language_">self</span>.fc = nn.Linear(in_features=<span class="number">1024</span>, out_features=num_classes)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> aux_enabled:</span><br><span class="line">            <span class="variable language_">self</span>.aux_enabled = <span class="literal">True</span></span><br><span class="line">            <span class="variable language_">self</span>.aux0 = AuxClassifier(ch_in=<span class="number">512</span>, num_classes=<span class="number">2</span>)</span><br><span class="line">            <span class="variable language_">self</span>.aux1 = AuxClassifier(ch_in=<span class="number">528</span>, num_classes=<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = <span class="variable language_">self</span>.conv1(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.pool1(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.conv2(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.conv3(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.pool2(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.inception3a(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.inception3b(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.pool3(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.inception4a(x)</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.training <span class="keyword">and</span> <span class="variable language_">self</span>.aux_enabled:</span><br><span class="line">            aux0 = <span class="variable language_">self</span>.aux0(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.inception4b(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.inception4c(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.inception4d(x)</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.training <span class="keyword">and</span> <span class="variable language_">self</span>.aux_enabled:</span><br><span class="line">            aux1 = <span class="variable language_">self</span>.aux1(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.inception4e(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.pool4(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.inception5a(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.inception5b(x)</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.pool5(x)</span><br><span class="line">        x = torch.flatten(x, <span class="number">1</span>)</span><br><span class="line">        x = <span class="variable language_">self</span>.dropout(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.fc(x)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.training <span class="keyword">and</span> <span class="variable language_">self</span>.aux_enabled:</span><br><span class="line">            <span class="keyword">return</span> x, aux0, aux1</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+
+<p>注意这里我们和之前一样，用较小的数据集代替ImageNet，并对网络中输出层做相应调整。</p>
+<h3 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h3><p>设置batch_size为32，经过20个epoch，得到训练结果如下：<br>loss图像：</p>
+<p><img src="https://s2.loli.net/2022/07/04/pqZOLAvFXQd1eKH.png" alt="loss.png"></p>
+<p>accuracy图像：</p>
+<p><img src="https://s2.loli.net/2022/07/04/9k5G3gI2WZBJdqu.png" alt="accuracy.png"></p>
+<p>这里依然出现了之前一样的问题：loss曲线剧烈抖动，同时accuracy每轮epoch开始有毛刺？新手上路，实在没弄清楚原因。虽然图像不甚完美，但可看到loss还是随训练总体上是降低的，而accuracy是升高的。并且在验证集中也能达到准确率目标。</p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>GoogleNet作为一种经典DNN，还有许多值得学习的设计思想，并且其本身也经过了多次迭代升级，这里仅仅是对初代GoogleNet(V1)进行了Pytorch的代码复现。</p>
+<p>下一个学习目标定为ResNet的论文阅读和pytorch复现。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Eynnzerr
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://blog.eynnzerr.top/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="Inception 学习笔记">http://blog.eynnzerr.top/2026/02/15/Inception学习笔记/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GoogleNet/" rel="tag"># GoogleNet</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/02/11/threadLocal-md/" rel="prev" title="ThreadLocal 笔记">
+      <i class="fa fa-chevron-left"></i> ThreadLocal 笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/02/18/ResNet%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="next" title="ResNet 学习笔记">
+      ResNet 学习笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">网络结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Inception-Module"><span class="nav-number">3.1.</span> <span class="nav-text">Inception Module</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Auxiliary-Classifier"><span class="nav-number">3.2.</span> <span class="nav-text">Auxiliary Classifier</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GoogleNet"><span class="nav-number">3.3.</span> <span class="nav-text">GoogleNet</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83"><span class="nav-number">4.</span> <span class="nav-text">训练</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">5.</span> <span class="nav-text">结论</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Eynnzerr"
+      src="/images/otae.jpg">
+  <p class="site-author-name" itemprop="name">Eynnzerr</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Eynnzerr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Eynnzerr" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:eynnzerr@gmail.com" title="E-Mail → mailto:eynnzerr@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://plus.google.com/eynnzerr" title="Google → https:&#x2F;&#x2F;plus.google.com&#x2F;eynnzerr" rel="noopener" target="_blank"><i class="fab fa-google fa-fw"></i>Google</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">皖ICP备2022012668号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Eynnzerr</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">144k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:21</span>
+</div>
+  <div class="powered-by">
+    <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动 -->
+  </div>
+
+<!-- 网站运行时间的设置 -->
+<span id="timeDate">载入天数...</span>
+<span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("01/07/2021 10:00:00"); //此处修改你的建站时间或者网站上线时间
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒.";
+    }
+setInterval("createtime()",250);
+</script>
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

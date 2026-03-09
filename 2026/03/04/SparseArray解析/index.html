@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eynnzerr.top","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="此为旧博客补档，原文上传于2022年3月23日。 前言数据结构是每个程序员的必修课。无论是链表，堆，队列，栈，还是树，图，无疑都是伟大的发明。而基于这些数据结构之上的集合(collections)，更是被广泛运用。在java开发中，我们经常使用诸如arrayList,hashmap这样的集合，对这些想必我们都已非常熟悉；然而，在android开发中，其实也有着一些特有的数据结构。使用这些数据结构，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SparseArray解析">
+<meta property="og:url" content="http://blog.eynnzerr.top/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Eynnzerr&#39;s Blog">
+<meta property="og:description" content="此为旧博客补档，原文上传于2022年3月23日。 前言数据结构是每个程序员的必修课。无论是链表，堆，队列，栈，还是树，图，无疑都是伟大的发明。而基于这些数据结构之上的集合(collections)，更是被广泛运用。在java开发中，我们经常使用诸如arrayList,hashmap这样的集合，对这些想必我们都已非常熟悉；然而，在android开发中，其实也有着一些特有的数据结构。使用这些数据结构，">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-04T09:20:52.000Z">
+<meta property="article:modified_time" content="2026-03-09T09:30:14.107Z">
+<meta property="article:author" content="Eynnzerr">
+<meta property="article:tag" content="数据结构">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://blog.eynnzerr.top/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SparseArray解析 | Eynnzerr's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Eynnzerr's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Eynnzerr's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">2021-2025 重新出发</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/Eynnzerr" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/otae.jpg">
+      <meta itemprop="name" content="Eynnzerr">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eynnzerr's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SparseArray解析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-04 17:20:52" itemprop="dateCreated datePublished" datetime="2026-03-04T17:20:52+08:00">2026-03-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-09 17:30:14" itemprop="dateModified" datetime="2026-03-09T17:30:14+08:00">2026-03-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>此为旧博客补档，原文上传于2022年3月23日。</strong></p>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>数据结构是每个程序员的必修课。无论是链表，堆，队列，栈，还是树，图，无疑都是伟大的发明。而基于这些数据结构之上的集合(collections)，更是被广泛运用。在java开发中，我们经常使用诸如arrayList,hashmap这样的集合，对这些想必我们都已非常熟悉；然而，在android开发中，其实也有着一些特有的数据结构。使用这些数据结构，有时也许会带来出乎意料的优化效果，今天，我们就来分析一波稀疏数组(sparse array)。稀疏数组是android特有的集合，其作用类似于map，但是通过两个数组分别存储key和value。都用来存储键值对，但是短小精悍（其源码带上注释也不过500行），且拥有一套非常独特的机制。</p>
+<h1 id="sparseArray字段"><a href="#sparseArray字段" class="headerlink" title="sparseArray字段"></a>sparseArray字段</h1><p>sparseArray有如下一些字段，我们一一进行分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Object</span> <span class="variable">DELETED</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line"><span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">mGarbage</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@UnsupportedAppUsage(maxTargetSdk = 28)</span> <span class="comment">// Use keyAt(int)</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">int</span>[] mKeys;</span><br><span class="line"><span class="meta">@UnsupportedAppUsage(maxTargetSdk = 28)</span> <span class="comment">// Use valueAt(int), setValueAt(int, E)</span></span><br><span class="line"><span class="keyword">private</span> Object[] mValues;</span><br><span class="line"><span class="meta">@UnsupportedAppUsage(maxTargetSdk = 28)</span> <span class="comment">// Use size()</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">int</span> mSize;</span><br></pre></td></tr></table></figure>
+
+<p>首先看mKeys数组，这是一个int类型数组，用来存储key，其值正是对应的value在mValues数组中的下标。可以看到sparsearray内部采用int类型表示key，而不像map,set一样可以自己通过泛型定义key的类型。这决定了sparsearray拥有一些独特的性质：(1)keys数组按照升序排序，通过二分查找定位key（而不是使用hash）；(2)避免了一些装箱、拆箱的过程，提高了效率。</p>
+<p>然后是mValues数组，从名字就可以看出这个数组存储value。sparsearray使用Object类型而不是泛型来存储value。</p>
+<p>接着是一个int类型变量mSize,代表mKeys和mValues<strong>有效</strong>的长度（也是二分查找过程的右基准）。<br>然后是DELETED。这是sparseArray的<strong>延迟删除</strong>机制的体现，其是一个object类型对象，用于在删除键值对时替换原来的旧值。然后是mGarbage，这是一个bool类型变量。当数组中存在被标记为删除（但没有真正删除）的元素（即DELETED）时，这个标记位会变为true，表示数组中存在无效的废弃值（就像垃圾一样），用以触发sparseArray的gc（注意这里是sparseArray自己的一个方法，而不是系统的gc）。<br>初步了解这些字段后，我们就可以看看sparsearray的方法，并洞悉其原理了。</p>
+<h1 id="contains-int-key"><a href="#contains-int-key" class="headerlink" title="contains(int key)"></a>contains(int key)</h1><p>这个方法用来查找某一key是否在数组中存在。其内部调用了另一方法indexOfKey：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">indexOfKey</span><span class="params">(<span class="type">int</span> key)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (mGarbage) &#123;</span><br><span class="line">        gc();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ContainerHelpers.binarySearch(mKeys, mSize, key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先检查mGarbage值，如果为true，说明数组中存在无效元素，应该先调用gc清除再查找。关于gc()方法下文再做分析。这里我们可以先看一看返回中的binarySearch方法，sparseArray中大量使用这个方法。其与JavaSE中的二分查找有什么不同：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ContainerHelpers</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// This is Arrays.binarySearch(), but doesn&#x27;t do any argument validation.</span></span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">binarySearch</span><span class="params">(<span class="type">int</span>[] array, <span class="type">int</span> size, <span class="type">int</span> value)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">lo</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">hi</span> <span class="operator">=</span> size - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (lo &lt;= hi) &#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> (lo + hi) &gt;&gt;&gt; <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">int</span> <span class="variable">midVal</span> <span class="operator">=</span> array[mid];</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (midVal &lt; value) &#123;</span><br><span class="line">                lo = mid + <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (midVal &gt; value) &#123;</span><br><span class="line">                hi = mid - <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> mid;  <span class="comment">// value found</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ~lo;  <span class="comment">// value not present</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">binarySearch</span><span class="params">(<span class="type">long</span>[] array, <span class="type">int</span> size, <span class="type">long</span> value)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">lo</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">hi</span> <span class="operator">=</span> size - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (lo &lt;= hi) &#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> (lo + hi) &gt;&gt;&gt; <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">long</span> <span class="variable">midVal</span> <span class="operator">=</span> array[mid];</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (midVal &lt; value) &#123;</span><br><span class="line">                lo = mid + <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (midVal &gt; value) &#123;</span><br><span class="line">                hi = mid - <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> mid;  <span class="comment">// value found</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ~lo;  <span class="comment">// value not present</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先这个方法写在ContainerHelpers这个工具类中，这个类只有这一个方法的两种重载。基本代码是正宗的二分查找写法，而重要区别在于最后当查找失败时返回的值：~lo。一般二分查找会返回-1这样没有意义的负值，表示元素不存在，但这里返回的却是最后一次查找时得到的low值取反。这是非常优秀的设计。这也是一个负值，但为什么标新立异，要返回这样的值呢？这是因为，sparseArray通过二分查找寻找key，而二分查找的前提是数组有序。当找不到一个key时，证明我们需要在mKeys数组中插入这个key，且其插入的位置应该满足升序。又因为，当二分查找失败时，最后应该有low &#x3D; high &#x3D; mid，而这个low正是理想的插入位置，在这个位置上插入新的key，数组整体依然保持有序。所以我们希望知道这个位置的值，以方便下次插入。但又需要提醒调用者查找是失败的（即需要负值这样的特殊值），所以最终就对low取反并返回。这样，我们既能知道二分查找失败，当前key不存在，又能知道应该插入的理想位置，一举两得。</p>
+<h1 id="delete-int-key"><a href="#delete-int-key" class="headerlink" title="delete(int key)"></a>delete(int key)</h1><p>我们接下来先讲sparseArray比较重要的删除操作。源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">delete</span><span class="params">(<span class="type">int</span> key)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> ContainerHelpers.binarySearch(mKeys, mSize, key);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (i &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mValues[i] != DELETED) &#123;</span><br><span class="line">            mValues[i] = DELETED;</span><br><span class="line">            mGarbage = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其思路十分清晰，也验证了我们之前所说：当要根据key删除一个value时，首先二分查找从mKeys中找到value的位置，如果i不为负，说明key确实存在，继续判断：如果当前元素不是DELETED(即为有效元素)，就需要把它删除：设为DELETED，并将mGarbage设为true。这便是<strong>延迟删除</strong>：并没有真实地删除这一元素，其key值依然存在且有效。只有当调用gc()时，才会真正删除这些元素。除delete外还有一个removeReturnOld方法，效果同delete，只是多了返回旧值的功能；delete还有一个别名方法remove。</p>
+<p>细心的读者应该已经注意到，我们反复提到了”延迟删除”这一机制。为什么sparseArray非要搞这么个机制？为什么不直接删掉元素呢？其实这正是为了减少数组迁移的次数，从而提高效率。我们通过接下来的put方法就能体会到这种设计的好处。</p>
+<h1 id="put-int-key-E-value"><a href="#put-int-key-E-value" class="headerlink" title="put(int key, E value)"></a>put(int key, E value)</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">put</span><span class="params">(<span class="type">int</span> key, E value)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> ContainerHelpers.binarySearch(mKeys, mSize, key);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (i &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        mValues[i] = value;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        i = ~i;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (i &lt; mSize &amp;&amp; mValues[i] == DELETED) &#123;</span><br><span class="line">            mKeys[i] = key;</span><br><span class="line">            mValues[i] = value;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mGarbage &amp;&amp; mSize &gt;= mKeys.length) &#123;</span><br><span class="line">            gc();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Search again because indices may have changed.</span></span><br><span class="line">            i = ~ContainerHelpers.binarySearch(mKeys, mSize, key);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        mKeys = GrowingArrayUtils.insert(mKeys, mSize, i, key);</span><br><span class="line">        mValues = GrowingArrayUtils.insert(mValues, mSize, i, value);</span><br><span class="line">        mSize++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>顺着源码，我们可以很容易地得出sparseArray插入键值对的思路：首先，还是从mKeys数组中二分查找当前key是否已经存在。如果已经有相同的key，则直接用当前新的value覆盖掉原来key对应的value。而如果没有当前key，就先对二分查找返回的i取反，即得到了当前key应该插入的位置。接下来就找到这个位置，看看其value是否为DELETED（延迟删除标记值），如果是，则证明当前值已经被废弃，可以直接覆盖，插入也就完成了；否则，就说明数组满了，无法插入。</p>
+<p>重点来了：通常情况下，当遇到数组已满而需要插入新值时，需要对数组进行扩容。ArrayList就采取这样的思路。但对于sparseArray来说，这时会触发其延迟删除机制，从而规避了大部分可能需要扩容的情况。下面我们来看gc()方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">private void gc() &#123;</span><br><span class="line">    // Log.e(&quot;SparseArray&quot;, &quot;gc start with &quot; + mSize);</span><br><span class="line"></span><br><span class="line">    int n = mSize;</span><br><span class="line">    int o = 0;</span><br><span class="line">    int[] keys = mKeys;</span><br><span class="line">    Object[] values = mValues;</span><br><span class="line"></span><br><span class="line">    for (int i = 0; i &lt; n; i++) &#123;</span><br><span class="line">        Object val = values[i];</span><br><span class="line"></span><br><span class="line">        if (val != DELETED) &#123;</span><br><span class="line">            if (i != o) &#123;</span><br><span class="line">                keys[o] = keys[i];</span><br><span class="line">                values[o] = val;</span><br><span class="line">                values[i] = null;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            o++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mGarbage = false;</span><br><span class="line">    mSize = o;</span><br><span class="line"></span><br><span class="line">    // Log.e(&quot;SparseArray&quot;, &quot;gc end with &quot; + mSize);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>gc()方法的实现思路很简单。首先，取数组旧的有效长度mSize（由于触发gc时数组内有DELETED元素，所以实际上新的有效长度应该减小）赋值给n，同时新建一个初值为0的int变量o。从下面的代码可以看出，这个o即代表新的有效长度。接下来对values数组进行遍历：如果当前值不为DELETED，且当前位置i !&#x3D; o，则说明<strong>在当前位置前存在DELETED元素</strong>，且其下标正是o。因此覆盖位置o处的keys和values，同时将当前位置的value置零。同时因为遇到了有效元素，o自加1。就这样迭代下去，最后values数组会被整理成前o个位置均为有效元素，后面则为null，所有的DELETED元素全部删除。也就是在此时，无效的keys和values才真正被清除。最后将象征有garbage的标志位置为false，同时更新有效长度mSize为o，一次gc就结束了。</p>
+<p>回到之前的put()方法，由于进行了gc，此时的数组中可能出现了能够插入的空位，因此再做一次二分查找，并尝试插入。最后，我们就来看看执行插入的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span>[] insert(<span class="type">int</span>[] array, <span class="type">int</span> currentSize, <span class="type">int</span> index, <span class="type">int</span> element) &#123;</span><br><span class="line">    <span class="keyword">assert</span> currentSize &lt;= array.length;</span><br><span class="line">    <span class="keyword">if</span> (currentSize + <span class="number">1</span> &lt;= array.length) &#123;</span><br><span class="line">        System.arraycopy(array, index, array, index + <span class="number">1</span>, currentSize - index);</span><br><span class="line">        array[index] = element;</span><br><span class="line">        <span class="keyword">return</span> array;</span><br><span class="line">    <span class="type">int</span>[] newArray = ArrayUtils.newUnpaddedIntArray(growSize(currentSize));</span><br><span class="line">    System.arraycopy(array, <span class="number">0</span>, newArray, <span class="number">0</span>, index);</span><br><span class="line">    newArray[index] = element;</span><br><span class="line">    System.arraycopy(array, index, newArray, index + <span class="number">1</span>, array.length - index);</span><br><span class="line">    <span class="keyword">return</span> newArray;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果currentSize + 1 &lt;&#x3D; array.length，说明数组仍有插入空间，无需扩容，则直接调用arraycopy将需要插入的地方index后所有元素往后平移一位，再将待插入元素赋给index位置。否则，实在没有办法，需要扩容了。<br>总结一下put()的流程：检查key是否已经存在–&gt;已经存在，直接覆盖值；不存在–&gt;待插入位置为DELETED，直接覆盖；为有效值–&gt;触发gc–&gt;gc后有空位，插入；仍然没有空位–&gt;扩容并插入。</p>
+<h1 id="get-int-key"><a href="#get-int-key" class="headerlink" title="get(int key)"></a>get(int key)</h1><p>最后简单地看一下get方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> E <span class="title function_">get</span><span class="params">(<span class="type">int</span> key)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> get(key, <span class="literal">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Gets the Object mapped from the specified key, or the specified Object</span></span><br><span class="line"><span class="comment"> * if no such mapping has been made.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line"><span class="keyword">public</span> E <span class="title function_">get</span><span class="params">(<span class="type">int</span> key, E valueIfKeyNotFound)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> ContainerHelpers.binarySearch(mKeys, mSize, key);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (i &lt; <span class="number">0</span> || mValues[i] == DELETED) &#123;</span><br><span class="line">        <span class="keyword">return</span> valueIfKeyNotFound;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (E) mValues[i];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>就是二分查找，没什么好说的。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>以上就是sparseArray基本的操作方法。同相同功能的hashmap相比，其采用简单的数组和int存储，成本更低，避免装箱，且在数据量较小时，随机访问的速度也很快。但是虽然采取了延迟删除，其插入操作仍可能需要复制数组，导致效率降低；当数据量增大到一定规模时，其他方法（如gc()）等需要遍历数组，也相当费时，弊端越来越明显。因此，我们可以权衡sparseArray和hashmap不同的使用情景，合理选择，提高效率。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Eynnzerr
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://blog.eynnzerr.top/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/" title="SparseArray解析">http://blog.eynnzerr.top/2026/03/04/SparseArray解析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag"># 数据结构</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/03/%E7%A7%BB%E6%A4%8DFFmpeg%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="prev" title="移植FFmpeg命令行">
+      <i class="fa fa-chevron-left"></i> 移植FFmpeg命令行
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sparseArray%E5%AD%97%E6%AE%B5"><span class="nav-number">2.</span> <span class="nav-text">sparseArray字段</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#contains-int-key"><span class="nav-number">3.</span> <span class="nav-text">contains(int key)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#delete-int-key"><span class="nav-number">4.</span> <span class="nav-text">delete(int key)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#put-int-key-E-value"><span class="nav-number">5.</span> <span class="nav-text">put(int key, E value)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#get-int-key"><span class="nav-number">6.</span> <span class="nav-text">get(int key)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Eynnzerr"
+      src="/images/otae.jpg">
+  <p class="site-author-name" itemprop="name">Eynnzerr</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Eynnzerr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Eynnzerr" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:eynnzerr@gmail.com" title="E-Mail → mailto:eynnzerr@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://plus.google.com/eynnzerr" title="Google → https:&#x2F;&#x2F;plus.google.com&#x2F;eynnzerr" rel="noopener" target="_blank"><i class="fab fa-google fa-fw"></i>Google</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">皖ICP备2022012668号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Eynnzerr</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">144k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:21</span>
+</div>
+  <div class="powered-by">
+    <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动 -->
+  </div>
+
+<!-- 网站运行时间的设置 -->
+<span id="timeDate">载入天数...</span>
+<span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("01/07/2021 10:00:00"); //此处修改你的建站时间或者网站上线时间
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒.";
+    }
+setInterval("createtime()",250);
+</script>
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
