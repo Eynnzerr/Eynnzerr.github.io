@@ -1928,4 +1928,76 @@ syscall.Mount(&quot;&quot;,&quot;/&quot;,&quot;&quot;, uintptr(quarantineMountFl
         <tag>GoogleNet</tag>
       </tags>
   </entry>
+  <entry>
+    <title>正确理解Kotlin属性</title>
+    <url>/2026/03/12/%E6%AD%A3%E7%A1%AE%E7%90%86%E8%A7%A3Kotlin%E5%B1%9E%E6%80%A7/</url>
+    <content><![CDATA[<p>请读者思考，如下两种写法有什么不同？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> a: String</span><br><span class="line">    <span class="keyword">get</span>() = <span class="string">&quot;Android&quot;</span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">val</span> b = <span class="string">&quot;Android&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>我们在文章末尾揭晓答案。</p>
+<h2 id="Kotlin-属性"><a href="#Kotlin-属性" class="headerlink" title="Kotlin 属性"></a>Kotlin 属性</h2><p>Kotlin 的属性是语言级概念，不等同于 Java 的字段。在 Kotlin 中我们写 <code>obj.x</code>，实际上是在调用访问器函数：</p>
+<ul>
+<li>读 <code>obj.x</code> 等价于调用 <code>obj.getX()</code></li>
+<li>写 <code>obj.x = v</code> 等价于调用 <code>obj.setX(v)</code>（仅 <code>var</code> ）</li>
+</ul>
+<p>所以说属性更像“访问器函数的语法糖”，字段只是可能存在的实现细节，并且这也是为什么我们在kotlin中不会为属性手写getXX()&#x2F;setXX()这样的样板方法，否则你会收到来自编译器的警告：Redundant getter&#x2F;setter，除非要自定义实现（下面提及）。</p>
+<h2 id="getter-和-setter-的本质"><a href="#getter-和-setter-的本质" class="headerlink" title="getter 和 setter 的本质"></a>getter 和 setter 的本质</h2><ul>
+<li><code>val</code> 只有 getter 函数。</li>
+<li><code>var</code> 有 getter 和 setter。</li>
+<li>getter&#x2F;setter 都是函数，参与多态，可被 override。</li>
+<li>getter的默认实现就是读field，setter的默认实现就是写field。</li>
+</ul>
+<p>默认情况下，如果写了初始化的值或使用默认访问器，编译器会生成相应访问器。</p>
+<h2 id="backing-field"><a href="#backing-field" class="headerlink" title="backing field"></a>backing field</h2><p>backing field 是“用于存储属性值的隐藏字段”。在 JVM 上它最终会变成 class 里的一个字段，反编译成 Java 通常表现为 <code>private</code> 。</p>
+<p>并不是每个属性都有 backing field，比如：</p>
+<ul>
+<li>有初始化值且不是纯<strong>计算属性</strong>，通常有 backing field。</li>
+<li>访问器里使用了 <code>field</code>，一定需要 backing field。</li>
+<li>纯 <code>get() = ...</code> 的计算属性通常没有 backing field。</li>
+</ul>
+<h3 id="field-的意义"><a href="#field-的意义" class="headerlink" title="field 的意义"></a><code>field</code> 的意义</h3><p><code>field</code> 只在该属性的 getter&#x2F;setter 内部可用，代表 backing field。如果在 getter&#x2F;setter 里想访问存储的属性值，应该用<code>field</code>；如果用属性名 <code>x</code> 会递归调用访问器，导致 stack overflow。</p>
+<h2 id="属性可以是纯函数"><a href="#属性可以是纯函数" class="headerlink" title="属性可以是纯函数"></a>属性可以是纯函数</h2><p>如果属性没有 backing field，它就只是一个 getter 方法，每次访问都会重新计算，没有存储。我们称这种属性为<strong>计算属性</strong>。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> now: <span class="built_in">Long</span></span><br><span class="line">    <span class="keyword">get</span>() = System.currentTimeMillis()</span><br></pre></td></tr></table></figure>
+
+<h2 id="覆写规则"><a href="#覆写规则" class="headerlink" title="覆写规则"></a>覆写规则</h2><p>属性可以 override，本质上就是在 override 访问器函数。</p>
+<ul>
+<li>父类要 <code>open</code> 才能被子类 override。</li>
+<li>接口属性默认可 override。</li>
+<li><code>val</code> 可以被 <code>var</code> override（子类提供更强能力：可读可写）。 </li>
+<li><code>var</code> 不能被 <code>val</code> override（子类少了 setter，破坏父类契约）。</li>
+</ul>
+<p>override 覆写的是访问器行为，不是“同一个字段”。子类可以有自己的存储，也可以是计算属性。</p>
+<h2 id="编译到-JVM-后的样子"><a href="#编译到-JVM-后的样子" class="headerlink" title="编译到 JVM 后的样子"></a>编译到 JVM 后的样子</h2><p>如果属性有 backing field，反编译到 Java 通常是</p>
+<ul>
+<li>一个 <code>private</code> 字段存值</li>
+<li>一个 <code>getX()</code> 方法</li>
+<li>如果是 <code>var</code> 再有一个 <code>setX(value)</code> 方法</li>
+</ul>
+<p>如果属性是计算属性，则通常只有 <code>getX()</code>，没有字段。</p>
+<p>属性委托的常见形态就是生成一个保存 delegate 的字段，例如 <code>x$delegate</code>，实际值存不存 <code>x</code> 字段要看委托实现。</p>
+<p>默认情况下，Java 侧仍通过 getter&#x2F;setter 访问，而不是直接字段访问。想让 Java 直接字段访问，需要显式要求（例如 <code>@JvmField</code>，或 <code>const val</code> 等）。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>看到一个属性，问自己3个问题即可快速判断其行为：</p>
+<ol>
+<li>读它会发生什么？看 getter。</li>
+<li>写它会发生什么？看 setter（如果是 <code>var</code>）。</li>
+<li>它存不存值？看是否需要 backing field（是否初始化，是否用了 <code>field</code>，是否是纯计算属性）。</li>
+</ol>
+<p>所以回到文章开头的问题，都是拿一条”Android”的字符串，这两种写法的区别是什么？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> a: String</span><br><span class="line">    <span class="keyword">get</span>() = <span class="string">&quot;Android&quot;</span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">val</span> b = <span class="string">&quot;Android&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="a-没有-backing-field"><a href="#a-没有-backing-field" class="headerlink" title="a 没有 backing field"></a>a 没有 backing field</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> a: String  </span><br><span class="line">    <span class="keyword">get</span>() = <span class="string">&quot;Android&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>既没有调<code>field</code>，也不是默认访问器，这是计算属性，每次调用直接返回<code>&quot;Android&quot;</code>的运算结果，从字符串常量池找”Android”的引用并返回。</p>
+<h3 id="b-有-backing-field"><a href="#b-有-backing-field" class="headerlink" title="b 有 backing field"></a>b 有 backing field</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> b: String = <span class="string">&quot;Android&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>会有字段来存这个属性值，哪怕它的值本身也是字符串常量，不过要注意<strong>字段里存的依旧是一个引用</strong>，这个引用也很可能指向字符串池里的 <code>&quot;Android&quot;</code> 对象，不是说字段里复制了一份字符串内容。</p>
+<p>所以 <code>b</code> 的情况是“有字段，字段指向常量字符串对象”，而 <code>a</code> 的情况是“没字段，getter 直接返回常量字符串对象引用”。</p>
+]]></content>
+      <categories>
+        <category>Kotlin</category>
+      </categories>
+      <tags>
+        <tag>Kotlin</tag>
+      </tags>
+  </entry>
 </search>
