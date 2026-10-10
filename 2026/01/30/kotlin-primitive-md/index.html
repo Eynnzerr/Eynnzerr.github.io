@@ -19,13 +19,13 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"blog.eynnzerr.top","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"blog.eynnzerr.cloud","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="本文从 Kotlin 的基本类型出发，深入探讨数值字面量的实现原理，并全面剖析 Kotlin 与 Java 中的装箱&#x2F;拆箱机制，力求做到知其然知其所以然。   一、Kotlin 基本类型概览Kotlin 作为一门现代 JVM 语言，对基本类型的处理既保留了 Java 的高效性，又增添了更优雅的语法设计。与 Java 区分原始类型和包装类的理念不同，Kotlin 中一切皆对象——没有原始">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Kotlin的基本类型与装箱机制简析">
-<meta property="og:url" content="http://blog.eynnzerr.top/2026/01/30/kotlin-primitive-md/index.html">
+<meta property="og:url" content="https://blog.eynnzerr.cloud/2026/01/30/kotlin-primitive-md/index.html">
 <meta property="og:site_name" content="Eynnzerr&#39;s Blog">
 <meta property="og:description" content="本文从 Kotlin 的基本类型出发，深入探讨数值字面量的实现原理，并全面剖析 Kotlin 与 Java 中的装箱&#x2F;拆箱机制，力求做到知其然知其所以然。   一、Kotlin 基本类型概览Kotlin 作为一门现代 JVM 语言，对基本类型的处理既保留了 Java 的高效性，又增添了更优雅的语法设计。与 Java 区分原始类型和包装类的理念不同，Kotlin 中一切皆对象——没有原始">
 <meta property="og:locale" content="zh_CN">
@@ -35,7 +35,7 @@
 <meta property="article:tag" content="Kotlin">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://blog.eynnzerr.top/2026/01/30/kotlin-primitive-md/">
+<link rel="canonical" href="https://blog.eynnzerr.cloud/2026/01/30/kotlin-primitive-md/">
 
 
 <script id="page-configurations">
@@ -200,7 +200,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/01/30/kotlin-primitive-md/">
+    <link itemprop="mainEntityOfPage" href="https://blog.eynnzerr.cloud/2026/01/30/kotlin-primitive-md/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/otae.jpg">
@@ -542,7 +542,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://blog.eynnzerr.top/2026/01/30/kotlin-primitive-md/" title="Kotlin的基本类型与装箱机制简析">http://blog.eynnzerr.top/2026/01/30/kotlin-primitive-md/</a>
+    <a href="https://blog.eynnzerr.cloud/2026/01/30/kotlin-primitive-md/" title="Kotlin的基本类型与装箱机制简析">https://blog.eynnzerr.cloud/2026/01/30/kotlin-primitive-md/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -693,7 +693,7 @@
         
 
         
-  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">皖ICP备2022012668号-1 </a>
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener noreferrer" target="_blank" style="display: inline-flex; align-items: center; gap: 6px;"><img src="/images/miit-logo.svg" alt="工信部" width="20" height="20" style="display: inline-block; margin: 0; border: 0;">皖ICP备2022012668号-2</a>
   </div>
 
 <div class="copyright">

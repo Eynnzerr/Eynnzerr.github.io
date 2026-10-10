@@ -19,13 +19,13 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"blog.eynnzerr.top","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"blog.eynnzerr.cloud","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="该篇内容为原博客博文，原上传于2021年9月11日。 前言提到Android中的消息机制，想必大家对其都不陌生。Android消息机制，一般指handler和其附加的mq及looper的运行机制与工作过程。handler常用于解决在子线程不能访问UI的问题，举一个常见的例子：我们在子线程中执行了耗时工作后，需要对UI进行更新，但又不能直接在子线程更新UI（这是因为控件在重绘前会调用checkThr">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Handler 消息处理机制解析">
-<meta property="og:url" content="http://blog.eynnzerr.top/2025/08/29/old-handler-src-analysis/index.html">
+<meta property="og:url" content="https://blog.eynnzerr.cloud/2025/08/29/old-handler-src-analysis/index.html">
 <meta property="og:site_name" content="Eynnzerr&#39;s Blog">
 <meta property="og:description" content="该篇内容为原博客博文，原上传于2021年9月11日。 前言提到Android中的消息机制，想必大家对其都不陌生。Android消息机制，一般指handler和其附加的mq及looper的运行机制与工作过程。handler常用于解决在子线程不能访问UI的问题，举一个常见的例子：我们在子线程中执行了耗时工作后，需要对UI进行更新，但又不能直接在子线程更新UI（这是因为控件在重绘前会调用checkThr">
 <meta property="og:locale" content="zh_CN">
@@ -36,7 +36,7 @@
 <meta property="article:tag" content="Handler">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://blog.eynnzerr.top/2025/08/29/old-handler-src-analysis/">
+<link rel="canonical" href="https://blog.eynnzerr.cloud/2025/08/29/old-handler-src-analysis/">
 
 
 <script id="page-configurations">
@@ -201,7 +201,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2025/08/29/old-handler-src-analysis/">
+    <link itemprop="mainEntityOfPage" href="https://blog.eynnzerr.cloud/2025/08/29/old-handler-src-analysis/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/otae.jpg">
@@ -364,7 +364,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://blog.eynnzerr.top/2025/08/29/old-handler-src-analysis/" title="Handler 消息处理机制解析">http://blog.eynnzerr.top/2025/08/29/old-handler-src-analysis/</a>
+    <a href="https://blog.eynnzerr.cloud/2025/08/29/old-handler-src-analysis/" title="Handler 消息处理机制解析">https://blog.eynnzerr.cloud/2025/08/29/old-handler-src-analysis/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -516,7 +516,7 @@
         
 
         
-  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">皖ICP备2022012668号-1 </a>
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener noreferrer" target="_blank" style="display: inline-flex; align-items: center; gap: 6px;"><img src="/images/miit-logo.svg" alt="工信部" width="20" height="20" style="display: inline-block; margin: 0; border: 0;">皖ICP备2022012668号-2</a>
   </div>
 
 <div class="copyright">

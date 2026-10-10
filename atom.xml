@@ -3,11 +3,11 @@
   <title>Eynnzerr&#39;s Blog</title>
   
   <subtitle>2021-2025 重新出发</subtitle>
-  <link href="http://blog.eynnzerr.top/atom.xml" rel="self"/>
+  <link href="https://blog.eynnzerr.cloud/atom.xml" rel="self"/>
   
-  <link href="http://blog.eynnzerr.top/"/>
+  <link href="https://blog.eynnzerr.cloud/"/>
   <updated>2026-03-12T03:46:18.684Z</updated>
-  <id>http://blog.eynnzerr.top/</id>
+  <id>https://blog.eynnzerr.cloud/</id>
   
   <author>
     <name>Eynnzerr</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>正确理解Kotlin属性</title>
-    <link href="http://blog.eynnzerr.top/2026/03/12/%E6%AD%A3%E7%A1%AE%E7%90%86%E8%A7%A3Kotlin%E5%B1%9E%E6%80%A7/"/>
-    <id>http://blog.eynnzerr.top/2026/03/12/%E6%AD%A3%E7%A1%AE%E7%90%86%E8%A7%A3Kotlin%E5%B1%9E%E6%80%A7/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/03/12/%E6%AD%A3%E7%A1%AE%E7%90%86%E8%A7%A3Kotlin%E5%B1%9E%E6%80%A7/"/>
+    <id>https://blog.eynnzerr.cloud/2026/03/12/%E6%AD%A3%E7%A1%AE%E7%90%86%E8%A7%A3Kotlin%E5%B1%9E%E6%80%A7/</id>
     <published>2026-03-12T03:45:59.000Z</published>
     <updated>2026-03-12T03:46:18.684Z</updated>
     
@@ -32,17 +32,17 @@
     
     
     
-    <category term="Kotlin" scheme="http://blog.eynnzerr.top/categories/Kotlin/"/>
+    <category term="Kotlin" scheme="https://blog.eynnzerr.cloud/categories/Kotlin/"/>
     
     
-    <category term="Kotlin" scheme="http://blog.eynnzerr.top/tags/Kotlin/"/>
+    <category term="Kotlin" scheme="https://blog.eynnzerr.cloud/tags/Kotlin/"/>
     
   </entry>
   
   <entry>
     <title>SparseArray解析</title>
-    <link href="http://blog.eynnzerr.top/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/"/>
-    <id>http://blog.eynnzerr.top/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/"/>
+    <id>https://blog.eynnzerr.cloud/2026/03/04/SparseArray%E8%A7%A3%E6%9E%90/</id>
     <published>2026-03-04T09:20:52.000Z</published>
     <updated>2026-03-09T09:30:14.107Z</updated>
     
@@ -55,17 +55,17 @@
     
     
     
-    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    <category term="Android" scheme="https://blog.eynnzerr.cloud/categories/Android/"/>
     
     
-    <category term="数据结构" scheme="http://blog.eynnzerr.top/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"/>
+    <category term="数据结构" scheme="https://blog.eynnzerr.cloud/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"/>
     
   </entry>
   
   <entry>
     <title>移植FFmpeg命令行</title>
-    <link href="http://blog.eynnzerr.top/2026/03/03/%E7%A7%BB%E6%A4%8DFFmpeg%E5%91%BD%E4%BB%A4%E8%A1%8C/"/>
-    <id>http://blog.eynnzerr.top/2026/03/03/%E7%A7%BB%E6%A4%8DFFmpeg%E5%91%BD%E4%BB%A4%E8%A1%8C/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/03/03/%E7%A7%BB%E6%A4%8DFFmpeg%E5%91%BD%E4%BB%A4%E8%A1%8C/"/>
+    <id>https://blog.eynnzerr.cloud/2026/03/03/%E7%A7%BB%E6%A4%8DFFmpeg%E5%91%BD%E4%BB%A4%E8%A1%8C/</id>
     <published>2026-03-03T04:33:50.000Z</published>
     <updated>2026-03-03T04:39:05.356Z</updated>
     
@@ -78,21 +78,21 @@
     
     
     
-    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    <category term="Android" scheme="https://blog.eynnzerr.cloud/categories/Android/"/>
     
     
-    <category term="NDK" scheme="http://blog.eynnzerr.top/tags/NDK/"/>
+    <category term="NDK" scheme="https://blog.eynnzerr.cloud/tags/NDK/"/>
     
-    <category term="FFmpeg" scheme="http://blog.eynnzerr.top/tags/FFmpeg/"/>
+    <category term="FFmpeg" scheme="https://blog.eynnzerr.cloud/tags/FFmpeg/"/>
     
-    <category term="音视频" scheme="http://blog.eynnzerr.top/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/"/>
+    <category term="音视频" scheme="https://blog.eynnzerr.cloud/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/"/>
     
   </entry>
   
   <entry>
     <title>集成ffmpeg</title>
-    <link href="http://blog.eynnzerr.top/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/"/>
-    <id>http://blog.eynnzerr.top/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/"/>
+    <id>https://blog.eynnzerr.cloud/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/</id>
     <published>2026-03-03T03:29:58.000Z</published>
     <updated>2026-03-03T04:33:08.106Z</updated>
     
@@ -105,21 +105,21 @@
     
     
     
-    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    <category term="Android" scheme="https://blog.eynnzerr.cloud/categories/Android/"/>
     
     
-    <category term="NDK" scheme="http://blog.eynnzerr.top/tags/NDK/"/>
+    <category term="NDK" scheme="https://blog.eynnzerr.cloud/tags/NDK/"/>
     
-    <category term="FFmpeg" scheme="http://blog.eynnzerr.top/tags/FFmpeg/"/>
+    <category term="FFmpeg" scheme="https://blog.eynnzerr.cloud/tags/FFmpeg/"/>
     
-    <category term="音视频" scheme="http://blog.eynnzerr.top/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/"/>
+    <category term="音视频" scheme="https://blog.eynnzerr.cloud/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/"/>
     
   </entry>
   
   <entry>
     <title>leakCanary 源码解析</title>
-    <link href="http://blog.eynnzerr.top/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/"/>
-    <id>http://blog.eynnzerr.top/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/"/>
+    <id>https://blog.eynnzerr.cloud/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/</id>
     <published>2026-03-01T14:18:15.000Z</published>
     <updated>2026-03-01T14:22:13.035Z</updated>
     
@@ -132,19 +132,19 @@
     
     
     
-    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    <category term="Android" scheme="https://blog.eynnzerr.cloud/categories/Android/"/>
     
     
-    <category term="LeakCanary" scheme="http://blog.eynnzerr.top/tags/LeakCanary/"/>
+    <category term="LeakCanary" scheme="https://blog.eynnzerr.cloud/tags/LeakCanary/"/>
     
-    <category term="JVM" scheme="http://blog.eynnzerr.top/tags/JVM/"/>
+    <category term="JVM" scheme="https://blog.eynnzerr.cloud/tags/JVM/"/>
     
   </entry>
   
   <entry>
     <title>对 MVI 与 MVVM 的思考.md</title>
-    <link href="http://blog.eynnzerr.top/2026/03/01/MVI%E4%B8%8EMVVM-md/"/>
-    <id>http://blog.eynnzerr.top/2026/03/01/MVI%E4%B8%8EMVVM-md/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/03/01/MVI%E4%B8%8EMVVM-md/"/>
+    <id>https://blog.eynnzerr.cloud/2026/03/01/MVI%E4%B8%8EMVVM-md/</id>
     <published>2026-02-28T17:03:32.000Z</published>
     <updated>2026-02-28T17:04:15.433Z</updated>
     
@@ -157,19 +157,19 @@
     
     
     
-    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    <category term="Android" scheme="https://blog.eynnzerr.cloud/categories/Android/"/>
     
     
-    <category term="MVI" scheme="http://blog.eynnzerr.top/tags/MVI/"/>
+    <category term="MVI" scheme="https://blog.eynnzerr.cloud/tags/MVI/"/>
     
-    <category term="MVVM" scheme="http://blog.eynnzerr.top/tags/MVVM/"/>
+    <category term="MVVM" scheme="https://blog.eynnzerr.cloud/tags/MVVM/"/>
     
   </entry>
   
   <entry>
     <title>ResNet 学习笔记</title>
-    <link href="http://blog.eynnzerr.top/2026/02/18/ResNet%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
-    <id>http://blog.eynnzerr.top/2026/02/18/ResNet%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/02/18/ResNet%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+    <id>https://blog.eynnzerr.cloud/2026/02/18/ResNet%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</id>
     <published>2026-02-18T09:16:48.000Z</published>
     <updated>2026-03-09T09:24:39.064Z</updated>
     
@@ -182,17 +182,17 @@
     
     
     
-    <category term="Computer Vision" scheme="http://blog.eynnzerr.top/categories/Computer-Vision/"/>
+    <category term="Computer Vision" scheme="https://blog.eynnzerr.cloud/categories/Computer-Vision/"/>
     
     
-    <category term="ResNet" scheme="http://blog.eynnzerr.top/tags/ResNet/"/>
+    <category term="ResNet" scheme="https://blog.eynnzerr.cloud/tags/ResNet/"/>
     
   </entry>
   
   <entry>
     <title>Inception 学习笔记</title>
-    <link href="http://blog.eynnzerr.top/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
-    <id>http://blog.eynnzerr.top/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+    <id>https://blog.eynnzerr.cloud/2026/02/15/Inception%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</id>
     <published>2026-02-15T09:13:59.000Z</published>
     <updated>2026-03-09T09:24:12.782Z</updated>
     
@@ -205,17 +205,17 @@
     
     
     
-    <category term="Computer Vision" scheme="http://blog.eynnzerr.top/categories/Computer-Vision/"/>
+    <category term="Computer Vision" scheme="https://blog.eynnzerr.cloud/categories/Computer-Vision/"/>
     
     
-    <category term="GoogleNet" scheme="http://blog.eynnzerr.top/tags/GoogleNet/"/>
+    <category term="GoogleNet" scheme="https://blog.eynnzerr.cloud/tags/GoogleNet/"/>
     
   </entry>
   
   <entry>
     <title>ThreadLocal 笔记</title>
-    <link href="http://blog.eynnzerr.top/2026/02/11/threadLocal-md/"/>
-    <id>http://blog.eynnzerr.top/2026/02/11/threadLocal-md/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/02/11/threadLocal-md/"/>
+    <id>https://blog.eynnzerr.cloud/2026/02/11/threadLocal-md/</id>
     <published>2026-02-11T12:45:37.000Z</published>
     <updated>2026-02-20T12:47:11.961Z</updated>
     
@@ -228,19 +228,19 @@
     
     
     
-    <category term="Java" scheme="http://blog.eynnzerr.top/categories/Java/"/>
+    <category term="Java" scheme="https://blog.eynnzerr.cloud/categories/Java/"/>
     
     
-    <category term="Java" scheme="http://blog.eynnzerr.top/tags/Java/"/>
+    <category term="Java" scheme="https://blog.eynnzerr.cloud/tags/Java/"/>
     
-    <category term="ThreadLocal" scheme="http://blog.eynnzerr.top/tags/ThreadLocal/"/>
+    <category term="ThreadLocal" scheme="https://blog.eynnzerr.cloud/tags/ThreadLocal/"/>
     
   </entry>
   
   <entry>
     <title>Kotlin的基本类型与装箱机制简析</title>
-    <link href="http://blog.eynnzerr.top/2026/01/30/kotlin-primitive-md/"/>
-    <id>http://blog.eynnzerr.top/2026/01/30/kotlin-primitive-md/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/01/30/kotlin-primitive-md/"/>
+    <id>https://blog.eynnzerr.cloud/2026/01/30/kotlin-primitive-md/</id>
     <published>2026-01-30T04:27:02.000Z</published>
     <updated>2026-01-30T04:39:31.117Z</updated>
     
@@ -256,17 +256,17 @@
     
     
     
-    <category term="Kotlin" scheme="http://blog.eynnzerr.top/categories/Kotlin/"/>
+    <category term="Kotlin" scheme="https://blog.eynnzerr.cloud/categories/Kotlin/"/>
     
     
-    <category term="Kotlin" scheme="http://blog.eynnzerr.top/tags/Kotlin/"/>
+    <category term="Kotlin" scheme="https://blog.eynnzerr.cloud/tags/Kotlin/"/>
     
   </entry>
   
   <entry>
     <title>Compose Multiplatform 包体积暴涨原因排查记录</title>
-    <link href="http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/"/>
-    <id>http://blog.eynnzerr.top/2026/01/29/package-size-incre-md/</id>
+    <link href="https://blog.eynnzerr.cloud/2026/01/29/package-size-incre-md/"/>
+    <id>https://blog.eynnzerr.cloud/2026/01/29/package-size-incre-md/</id>
     <published>2026-01-29T08:48:52.000Z</published>
     <updated>2026-01-30T04:29:26.782Z</updated>
     
@@ -278,19 +278,19 @@
     
     
     
-    <category term="Compose Multiplatform" scheme="http://blog.eynnzerr.top/categories/Compose-Multiplatform/"/>
+    <category term="Compose Multiplatform" scheme="https://blog.eynnzerr.cloud/categories/Compose-Multiplatform/"/>
     
     
-    <category term="Compose Multiplatform" scheme="http://blog.eynnzerr.top/tags/Compose-Multiplatform/"/>
+    <category term="Compose Multiplatform" scheme="https://blog.eynnzerr.cloud/tags/Compose-Multiplatform/"/>
     
-    <category term="Gradle" scheme="http://blog.eynnzerr.top/tags/Gradle/"/>
+    <category term="Gradle" scheme="https://blog.eynnzerr.cloud/tags/Gradle/"/>
     
   </entry>
   
   <entry>
     <title>Kotlin 中的 &#39;[]&#39;</title>
-    <link href="http://blog.eynnzerr.top/2025/09/08/index_in_kotlin/"/>
-    <id>http://blog.eynnzerr.top/2025/09/08/index_in_kotlin/</id>
+    <link href="https://blog.eynnzerr.cloud/2025/09/08/index_in_kotlin/"/>
+    <id>https://blog.eynnzerr.cloud/2025/09/08/index_in_kotlin/</id>
     <published>2025-09-08T07:53:59.000Z</published>
     <updated>2026-03-06T11:12:05.073Z</updated>
     
@@ -302,17 +302,17 @@
     
     
     
-    <category term="Kotlin" scheme="http://blog.eynnzerr.top/categories/Kotlin/"/>
+    <category term="Kotlin" scheme="https://blog.eynnzerr.cloud/categories/Kotlin/"/>
     
     
-    <category term="Kotlin" scheme="http://blog.eynnzerr.top/tags/Kotlin/"/>
+    <category term="Kotlin" scheme="https://blog.eynnzerr.cloud/tags/Kotlin/"/>
     
   </entry>
   
   <entry>
     <title>奇妙的 Sealed</title>
-    <link href="http://blog.eynnzerr.top/2025/09/03/old-sealed-class/"/>
-    <id>http://blog.eynnzerr.top/2025/09/03/old-sealed-class/</id>
+    <link href="https://blog.eynnzerr.cloud/2025/09/03/old-sealed-class/"/>
+    <id>https://blog.eynnzerr.cloud/2025/09/03/old-sealed-class/</id>
     <published>2025-09-03T07:21:27.000Z</published>
     <updated>2026-03-09T09:54:01.024Z</updated>
     
@@ -325,19 +325,19 @@
     
     
     
-    <category term="Kotlin" scheme="http://blog.eynnzerr.top/categories/Kotlin/"/>
+    <category term="Kotlin" scheme="https://blog.eynnzerr.cloud/categories/Kotlin/"/>
     
     
-    <category term="Kotlin" scheme="http://blog.eynnzerr.top/tags/Kotlin/"/>
+    <category term="Kotlin" scheme="https://blog.eynnzerr.cloud/tags/Kotlin/"/>
     
-    <category term="Sealed Class" scheme="http://blog.eynnzerr.top/tags/Sealed-Class/"/>
+    <category term="Sealed Class" scheme="https://blog.eynnzerr.cloud/tags/Sealed-Class/"/>
     
   </entry>
   
   <entry>
     <title>Scope Function 速记速查</title>
-    <link href="http://blog.eynnzerr.top/2025/09/02/old-scope-function/"/>
-    <id>http://blog.eynnzerr.top/2025/09/02/old-scope-function/</id>
+    <link href="https://blog.eynnzerr.cloud/2025/09/02/old-scope-function/"/>
+    <id>https://blog.eynnzerr.cloud/2025/09/02/old-scope-function/</id>
     <published>2025-09-02T02:06:25.000Z</published>
     <updated>2026-01-30T04:40:01.256Z</updated>
     
@@ -350,19 +350,19 @@
     
     
     
-    <category term="Kotlin" scheme="http://blog.eynnzerr.top/categories/Kotlin/"/>
+    <category term="Kotlin" scheme="https://blog.eynnzerr.cloud/categories/Kotlin/"/>
     
     
-    <category term="Kotlin" scheme="http://blog.eynnzerr.top/tags/Kotlin/"/>
+    <category term="Kotlin" scheme="https://blog.eynnzerr.cloud/tags/Kotlin/"/>
     
-    <category term="域函数" scheme="http://blog.eynnzerr.top/tags/%E5%9F%9F%E5%87%BD%E6%95%B0/"/>
+    <category term="域函数" scheme="https://blog.eynnzerr.cloud/tags/%E5%9F%9F%E5%87%BD%E6%95%B0/"/>
     
   </entry>
   
   <entry>
     <title>《CSAPP》—— Data Lab</title>
-    <link href="http://blog.eynnzerr.top/2025/09/01/old-data-lab/"/>
-    <id>http://blog.eynnzerr.top/2025/09/01/old-data-lab/</id>
+    <link href="https://blog.eynnzerr.cloud/2025/09/01/old-data-lab/"/>
+    <id>https://blog.eynnzerr.cloud/2025/09/01/old-data-lab/</id>
     <published>2025-09-01T02:53:37.000Z</published>
     <updated>2025-09-03T03:03:44.027Z</updated>
     
@@ -375,23 +375,23 @@
     
     
     
-    <category term="CSAPP" scheme="http://blog.eynnzerr.top/categories/CSAPP/"/>
+    <category term="CSAPP" scheme="https://blog.eynnzerr.cloud/categories/CSAPP/"/>
     
-    <category term="C/C++" scheme="http://blog.eynnzerr.top/categories/CSAPP/C-C/"/>
+    <category term="C/C++" scheme="https://blog.eynnzerr.cloud/categories/CSAPP/C-C/"/>
     
     
-    <category term="CSAPP" scheme="http://blog.eynnzerr.top/tags/CSAPP/"/>
+    <category term="CSAPP" scheme="https://blog.eynnzerr.cloud/tags/CSAPP/"/>
     
-    <category term="C" scheme="http://blog.eynnzerr.top/tags/C/"/>
+    <category term="C" scheme="https://blog.eynnzerr.cloud/tags/C/"/>
     
-    <category term="计算机基础" scheme="http://blog.eynnzerr.top/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"/>
+    <category term="计算机基础" scheme="https://blog.eynnzerr.cloud/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"/>
     
   </entry>
   
   <entry>
     <title>Handler 消息处理机制解析</title>
-    <link href="http://blog.eynnzerr.top/2025/08/29/old-handler-src-analysis/"/>
-    <id>http://blog.eynnzerr.top/2025/08/29/old-handler-src-analysis/</id>
+    <link href="https://blog.eynnzerr.cloud/2025/08/29/old-handler-src-analysis/"/>
+    <id>https://blog.eynnzerr.cloud/2025/08/29/old-handler-src-analysis/</id>
     <published>2025-08-29T12:44:42.000Z</published>
     <updated>2026-03-03T07:54:30.357Z</updated>
     
@@ -404,19 +404,19 @@
     
     
     
-    <category term="Android" scheme="http://blog.eynnzerr.top/categories/Android/"/>
+    <category term="Android" scheme="https://blog.eynnzerr.cloud/categories/Android/"/>
     
     
-    <category term="Android" scheme="http://blog.eynnzerr.top/tags/Android/"/>
+    <category term="Android" scheme="https://blog.eynnzerr.cloud/tags/Android/"/>
     
-    <category term="Handler" scheme="http://blog.eynnzerr.top/tags/Handler/"/>
+    <category term="Handler" scheme="https://blog.eynnzerr.cloud/tags/Handler/"/>
     
   </entry>
   
   <entry>
     <title>Docker基础原理探究</title>
-    <link href="http://blog.eynnzerr.top/2025/08/29/old-docker-principle/"/>
-    <id>http://blog.eynnzerr.top/2025/08/29/old-docker-principle/</id>
+    <link href="https://blog.eynnzerr.cloud/2025/08/29/old-docker-principle/"/>
+    <id>https://blog.eynnzerr.cloud/2025/08/29/old-docker-principle/</id>
     <published>2025-08-29T12:34:26.000Z</published>
     <updated>2025-08-29T12:44:00.442Z</updated>
     
@@ -429,23 +429,23 @@
     
     
     
-    <category term="Docker" scheme="http://blog.eynnzerr.top/categories/Docker/"/>
+    <category term="Docker" scheme="https://blog.eynnzerr.cloud/categories/Docker/"/>
     
     
-    <category term="Docker" scheme="http://blog.eynnzerr.top/tags/Docker/"/>
+    <category term="Docker" scheme="https://blog.eynnzerr.cloud/tags/Docker/"/>
     
-    <category term="Linux" scheme="http://blog.eynnzerr.top/tags/Linux/"/>
+    <category term="Linux" scheme="https://blog.eynnzerr.cloud/tags/Linux/"/>
     
-    <category term="namespace" scheme="http://blog.eynnzerr.top/tags/namespace/"/>
+    <category term="namespace" scheme="https://blog.eynnzerr.cloud/tags/namespace/"/>
     
-    <category term="Cgroups" scheme="http://blog.eynnzerr.top/tags/Cgroups/"/>
+    <category term="Cgroups" scheme="https://blog.eynnzerr.cloud/tags/Cgroups/"/>
     
   </entry>
   
   <entry>
     <title>Eynnzerr&#39;s Blog 复活</title>
-    <link href="http://blog.eynnzerr.top/2025/08/29/hello-world/"/>
-    <id>http://blog.eynnzerr.top/2025/08/29/hello-world/</id>
+    <link href="https://blog.eynnzerr.cloud/2025/08/29/hello-world/"/>
+    <id>https://blog.eynnzerr.cloud/2025/08/29/hello-world/</id>
     <published>2025-08-29T08:43:57.000Z</published>
     <updated>2025-08-29T12:51:27.637Z</updated>
     
@@ -458,7 +458,7 @@
     
     
     
-    <category term="其它" scheme="http://blog.eynnzerr.top/categories/%E5%85%B6%E5%AE%83/"/>
+    <category term="其它" scheme="https://blog.eynnzerr.cloud/categories/%E5%85%B6%E5%AE%83/"/>
     
     
   </entry>

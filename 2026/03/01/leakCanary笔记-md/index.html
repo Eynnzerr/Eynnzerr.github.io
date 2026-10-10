@@ -19,13 +19,13 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"blog.eynnzerr.top","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"blog.eynnzerr.cloud","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="该篇内容为原博客博文，原上传于2022年10月29日。 前置知识自动内存管理说到程序的内存管理，C&#x2F;C++开发人员具有绝对的权利。通过malloc()和new，他们可以极其奔放地分配内存，自由掌控对象的“所有权”。然而能力越大责任也越大，伴随着操控内存的快感之后而来的则是维护内存的无尽痛苦。编译器不能发现潜在的内存问题，必须由开发者提前避免。喜闻乐见的问题包括但不限于：  判断分配内存有">
 <meta property="og:type" content="article">
 <meta property="og:title" content="leakCanary 源码解析">
-<meta property="og:url" content="http://blog.eynnzerr.top/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/index.html">
+<meta property="og:url" content="https://blog.eynnzerr.cloud/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/index.html">
 <meta property="og:site_name" content="Eynnzerr&#39;s Blog">
 <meta property="og:description" content="该篇内容为原博客博文，原上传于2022年10月29日。 前置知识自动内存管理说到程序的内存管理，C&#x2F;C++开发人员具有绝对的权利。通过malloc()和new，他们可以极其奔放地分配内存，自由掌控对象的“所有权”。然而能力越大责任也越大，伴随着操控内存的快感之后而来的则是维护内存的无尽痛苦。编译器不能发现潜在的内存问题，必须由开发者提前避免。喜闻乐见的问题包括但不限于：  判断分配内存有">
 <meta property="og:locale" content="zh_CN">
@@ -43,7 +43,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://s1.ax1x.com/2022/10/29/x5EYlj.jpg">
 
-<link rel="canonical" href="http://blog.eynnzerr.top/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/">
+<link rel="canonical" href="https://blog.eynnzerr.cloud/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/">
 
 
 <script id="page-configurations">
@@ -208,7 +208,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/">
+    <link itemprop="mainEntityOfPage" href="https://blog.eynnzerr.cloud/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/otae.jpg">
@@ -447,7 +447,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://blog.eynnzerr.top/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/" title="leakCanary 源码解析">http://blog.eynnzerr.top/2026/03/01/leakCanary笔记-md/</a>
+    <a href="https://blog.eynnzerr.cloud/2026/03/01/leakCanary%E7%AC%94%E8%AE%B0-md/" title="leakCanary 源码解析">https://blog.eynnzerr.cloud/2026/03/01/leakCanary笔记-md/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -599,7 +599,7 @@
         
 
         
-  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">皖ICP备2022012668号-1 </a>
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener noreferrer" target="_blank" style="display: inline-flex; align-items: center; gap: 6px;"><img src="/images/miit-logo.svg" alt="工信部" width="20" height="20" style="display: inline-block; margin: 0; border: 0;">皖ICP备2022012668号-2</a>
   </div>
 
 <div class="copyright">

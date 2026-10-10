@@ -19,13 +19,13 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"blog.eynnzerr.top","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"blog.eynnzerr.cloud","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="该篇内容为原博客博文，原上传于2022年2月12日。可能已过时，仅作补档用途，谨慎参考！ 前言FFmpeg是一款开源音视频处理工具，简单易用，功能强大。将FFmpeg移植到Android平台上，可以使得我们在从事 Android 音视频开发时如虎添翼。上回我们已经在 ubuntu 上初步配置和安装了 FFmpeg，但这样还是远远不够的。接下来就探讨一下如何在 Android Studio 中集成F">
 <meta property="og:type" content="article">
 <meta property="og:title" content="集成ffmpeg">
-<meta property="og:url" content="http://blog.eynnzerr.top/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/index.html">
+<meta property="og:url" content="https://blog.eynnzerr.cloud/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/index.html">
 <meta property="og:site_name" content="Eynnzerr&#39;s Blog">
 <meta property="og:description" content="该篇内容为原博客博文，原上传于2022年2月12日。可能已过时，仅作补档用途，谨慎参考！ 前言FFmpeg是一款开源音视频处理工具，简单易用，功能强大。将FFmpeg移植到Android平台上，可以使得我们在从事 Android 音视频开发时如虎添翼。上回我们已经在 ubuntu 上初步配置和安装了 FFmpeg，但这样还是远远不够的。接下来就探讨一下如何在 Android Studio 中集成F">
 <meta property="og:locale" content="zh_CN">
@@ -37,7 +37,7 @@
 <meta property="article:tag" content="音视频">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://blog.eynnzerr.top/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/">
+<link rel="canonical" href="https://blog.eynnzerr.cloud/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/">
 
 
 <script id="page-configurations">
@@ -202,7 +202,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.eynnzerr.top/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/">
+    <link itemprop="mainEntityOfPage" href="https://blog.eynnzerr.cloud/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/otae.jpg">
@@ -346,7 +346,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://blog.eynnzerr.top/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/" title="集成ffmpeg">http://blog.eynnzerr.top/2026/03/03/集成ffmpeg-md/</a>
+    <a href="https://blog.eynnzerr.cloud/2026/03/03/%E9%9B%86%E6%88%90ffmpeg-md/" title="集成ffmpeg">https://blog.eynnzerr.cloud/2026/03/03/集成ffmpeg-md/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -499,7 +499,7 @@
         
 
         
-  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">皖ICP备2022012668号-1 </a>
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener noreferrer" target="_blank" style="display: inline-flex; align-items: center; gap: 6px;"><img src="/images/miit-logo.svg" alt="工信部" width="20" height="20" style="display: inline-block; margin: 0; border: 0;">皖ICP备2022012668号-2</a>
   </div>
 
 <div class="copyright">
