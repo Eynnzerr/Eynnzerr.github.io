@@ -1,0 +1,16 @@
+---
+/** A scalable single-colour E waveform mark. */
+interface Props {
+  /** Rendered square size in CSS pixels. */
+  size?: number;
+  /** Optional CSS class for the enclosing SVG. */
+  class?: string;
+}
+const { size = 32, class: className } = Astro.props;
+---
+<svg class={className} width={size} height={size} viewBox="0 0 128 128" fill="none" aria-hidden="true">
+  <g stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M101 28H57C37 28 23 43 23 64S37 100 57 100H101" />
+    <path d="M25 64H46C57 64 59 48 70 48S84 64 96 64H105" />
+  </g>
+</svg>

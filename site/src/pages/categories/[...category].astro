@@ -1,0 +1,17 @@
+---
+import type { InferGetStaticPropsType } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleList from '../../components/ArticleList.astro';
+import { getPosts, getCategories, taxonomySlug } from '../../lib/posts';
+
+/** Build category pages at every level of the original category tree. */
+export async function getStaticPaths() {
+  return getCategories(await getPosts()).map((group) => ({ params: { category: group.slug }, props: { group } }));
+}
+/** Current category node and its article membership. */
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { group } = Astro.props;
+---
+<BaseLayout title={`${group.path.join(' / ')} · 分类`} class="blog-page"><div class="filtered-shell"><a href="/categories/">← 所有分类</a><p>CATEGORY / {group.posts.length} NOTES</p><nav aria-label="分类层级">{group.path.slice(0, -1).map((name, index) => <a href={`/categories/${group.path.slice(0, index + 1).map(taxonomySlug).join('/')}/`}>{name} /</a>)}</nav><h1>{group.name}</h1><ArticleList posts={group.posts} /></div></BaseLayout>
+<style>.filtered-shell{max-width:1040px;padding:65px 30px 85px;margin:auto}.filtered-shell>a{color:var(--accent);text-decoration:none;font-size:11px}.filtered-shell>p{font:10px monospace;letter-spacing:.15em;color:var(--muted);margin:45px 0 18px}nav{display:flex;gap:10px;font-size:12px;margin-bottom:10px}nav a{color:var(--muted);text-decoration:none}h1{font-size:clamp(37px,5.5vw,64px);font-weight:550;letter-spacing:-.04em;color:var(--ink);margin:0 0 45px;overflow-wrap:anywhere}@media(max-width:600px){.filtered-shell{padding:42px 22px 60px}}
+</style>

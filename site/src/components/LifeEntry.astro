@@ -1,0 +1,56 @@
+---
+import LifeGallery from './LifeGallery.astro';
+import LifeVideo from './LifeVideo.astro';
+import { formatLifeDate, lifeLabels, type LifeEntry } from '../lib/life';
+/** One entry in the mixed-format life timeline. */
+interface Props {
+  /** Markdown content and its editorial metadata. */
+  entry: LifeEntry;
+  /** Stable visible sequence number within the unfiltered timeline. */
+  index: number;
+}
+const { entry, index } = Astro.props;
+const { Content } = entry;
+---
+
+<article class:list={['life-entry', `life-${entry.type}`]} data-life-entry data-kind={entry.type} id={entry.slug}>
+  <aside class="entry-rail">
+    <span class="entry-number">{String(index + 1).padStart(2, '0')}</span>
+    <span class="entry-kind">{lifeLabels[entry.type]}</span>
+    {entry.date ? <time datetime={entry.date}>{formatLifeDate(entry.date)}</time> : <span class="entry-undated">{entry.demo ? '排版示例' : '日期未标注'}</span>}
+    {entry.demo && entry.date && <span class="entry-undated">排版示例</span>}
+  </aside>
+
+  <div class="entry-content">
+    {entry.type === 'thought' && <div class="thought-sheet">
+      <span class="thought-quote" aria-hidden="true">“</span>
+      <div class="thought-content"><h2>{entry.title}</h2><div class="thought-text"><Content /></div><p class="entry-source">{entry.sourceLabel}</p></div>
+      <span class="thought-footer" aria-hidden="true">A NOTE TO KEEP.</span>
+    </div>}
+
+    {entry.type === 'photos' && <div class="photo-spread">
+      <LifeGallery images={entry.images!} id={entry.slug} />
+      <div class="photo-note"><p class="entry-kicker">OUTSIDE THE SCREEN</p><h2>{entry.title}</h2><p class="entry-summary">{entry.summary}</p><span class="photo-line" aria-hidden="true"></span><p class="entry-source">{entry.sourceLabel}</p><span class="photo-handnote" aria-hidden="true">Lights, sound<br />& one frame.</span></div>
+    </div>}
+
+    {entry.type === 'video' && <div class="video-spread">
+      <div><LifeVideo bvid={entry.bvid!} title={entry.title} poster={entry.poster!} duration={entry.duration} /><p class="video-caption">视频展示示例{entry.sourceUrl && <a href={entry.sourceUrl} target="_blank" rel="noreferrer">在 B 站观看 ↗</a>}</p></div>
+      <div class="video-note"><p class="entry-kicker">MOVING PICTURES</p><h2>{entry.title}</h2><p class="entry-summary">{entry.summary}</p><p class="entry-source">{entry.sourceLabel}</p></div>
+    </div>}
+
+    {entry.type === 'essay' && <a class="essay-spread" href={entry.url}>
+      <div class="essay-note"><p class="entry-kicker">A LITTLE LONGER</p><h2>{entry.title}</h2><p class="entry-summary">{entry.summary}</p><span class="essay-link">读这篇随笔 <span aria-hidden="true">↗</span></span></div>
+      <div class="essay-margin" aria-hidden="true"><span>READ<br />SLOWLY.</span><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M10 38 38 10M10 10h28v28" stroke="currentColor" stroke-width="1.5"/></svg></div>
+    </a>}
+  </div>
+</article>
+
+<style>
+  .life-entry{display:grid;grid-template-columns:106px minmax(0,1fr);gap:28px;padding:58px 0 64px;border-bottom:1px solid var(--line);scroll-margin-top:30px}.life-entry[hidden]{display:none}.entry-rail{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding-top:5px}.entry-number{font:400 28px/1 var(--font-display);letter-spacing:-.06em;color:var(--accent);margin-bottom:6px}.entry-kind{font-size:12px}.entry-rail time,.entry-undated{font:10px/1.6 var(--font-display);color:var(--muted)}.entry-undated{padding:3px 7px;border:1px solid var(--line);border-radius:3px;font-family:var(--font-body);font-size:9px}.entry-content{min-width:0}h2{font-size:clamp(23px,2.4vw,31px);font-weight:550;line-height:1.5;letter-spacing:-.04em;margin:0 0 18px}.entry-kicker{font:10px/1.5 var(--font-display);letter-spacing:.12em;color:var(--accent);margin-bottom:17px}.entry-summary{font-size:13px;line-height:1.95;color:var(--muted);max-width:470px}.entry-source{font-size:10px;color:var(--muted);margin-bottom:0;line-height:1.7}
+  .thought-sheet{position:relative;max-width:810px;padding:26px 50px 26px 74px;background:linear-gradient(100deg,var(--accent-soft),transparent 94%);border-left:2px solid var(--accent);min-height:240px;display:flex;align-items:center}.thought-quote{font:80px/1 Georgia,serif;position:absolute;left:22px;top:24px;color:var(--accent);opacity:.65}.thought-content h2{font-size:10px;font-weight:400;letter-spacing:.08em;color:var(--muted);margin-bottom:18px}.thought-text{font-size:clamp(23px,3.2vw,36px);font-weight:500;letter-spacing:-.035em;line-height:1.6;max-width:590px}.thought-text :global(p){margin:0 0 22px}.thought-footer{position:absolute;right:24px;bottom:18px;font:8px var(--font-display);letter-spacing:.13em;color:var(--muted);writing-mode:vertical-rl;opacity:.65}
+  .photo-spread{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.85fr);align-items:center;gap:clamp(30px,5vw,75px);padding:5px 20px 4px 0}.photo-note{padding:12px 0}.photo-note h2{font-size:clamp(26px,3vw,38px)}.photo-line{display:block;width:37px;height:1px;background:var(--line);margin:25px 0}.photo-handnote{display:block;margin-top:30px;font:italic 27px/1.3 Georgia,serif;letter-spacing:-.04em;color:var(--accent);opacity:.75;transform:rotate(-5deg)}
+  .video-spread{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,.75fr);align-items:center;gap:38px}.video-caption{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin:12px 2px 0;gap:20px}.video-caption a{color:var(--accent)}.video-note h2{font-size:26px}.video-note .entry-source{margin-top:25px}
+  .essay-spread{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:35px;padding:20px 20px 15px 0;align-items:center}.essay-note h2{font-size:clamp(27px,3vw,38px);transition:color .2s}.essay-spread:hover h2{color:var(--accent)}.essay-link{display:inline-flex;align-items:center;gap:40px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px;margin-top:10px}.essay-link span{font-size:18px;transition:transform .2s}.essay-spread:hover .essay-link span{transform:translate(3px,-3px)}.essay-margin{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:35px;border-left:1px solid var(--line);padding-left:30px;color:var(--accent)}.essay-margin span{font:400 27px/1.05 var(--font-display);letter-spacing:-.06em}.essay-margin svg{align-self:flex-end;margin-right:20px}
+  @media(max-width:900px){.life-entry{grid-template-columns:70px minmax(0,1fr);gap:20px}.photo-spread{gap:25px;padding-right:0}.video-spread{grid-template-columns:1fr;gap:22px}.video-note{max-width:520px}.video-note h2{font-size:25px;margin-bottom:10px}.video-note .entry-source{margin-top:12px}.essay-spread{grid-template-columns:minmax(0,1fr) 115px;gap:20px;padding-right:0}.essay-margin{padding-left:20px}.essay-margin span{font-size:23px}.essay-margin svg{width:35px;height:35px;margin-right:0}}
+  @media(max-width:600px){.life-entry{grid-template-columns:1fr;gap:24px;padding:35px 0 42px}.entry-rail{flex-direction:row;align-items:center;gap:12px;padding:0}.entry-number{font-size:21px;margin:0 2px 0 0}.entry-kind{font-size:11px}.entry-undated{font-size:8px}.entry-rail time{margin-left:auto}.thought-sheet{padding:26px 24px 24px 44px;min-height:220px}.thought-quote{font-size:58px;left:12px;top:24px}.thought-content h2{font-size:9px}.thought-text{font-size:27px}.thought-footer{right:12px;font-size:7px}.photo-spread{grid-template-columns:1fr;gap:24px;padding-top:2px}.photo-note{padding:0 6px}.photo-handnote{display:none}.photo-line{margin:17px 0}.photo-note h2{font-size:29px;margin-bottom:12px}.entry-kicker{font-size:9px;margin-bottom:12px}.entry-summary{font-size:12px}.essay-spread{grid-template-columns:1fr 62px;gap:18px;padding-top:5px}.essay-note h2{font-size:28px}.essay-margin{padding-left:14px;gap:25px}.essay-margin span{font-size:15px}.essay-margin svg{width:26px;height:26px}.essay-link{font-size:11px;gap:25px}}
+</style>

@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLifeEntries, formatLifeDate, type LifeEntry } from '../../lib/life';
+
+/** Generate independent reading pages only for long-form life essays. */
+export function getStaticPaths() {
+  return getLifeEntries().filter((entry) => entry.type === 'essay').map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
+}
+
+/** Full editorial content selected by the static route. */
+interface Props {
+  /** Markdown essay and its published metadata. */
+  entry: LifeEntry;
+}
+const { entry } = Astro.props;
+const { Content } = entry;
+---
+
+<BaseLayout title={entry.title} description={entry.summary} class="life-essay-page" article={{ publishedTime: entry.date, section: '生活随笔' }}>
+  <article class="life-reading">
+    <a class="life-back" href="/life/">← 回到生活</a>
+    <header class="life-article-heading">
+      <p class="eyebrow">LIFE / LONGER NOTES</p>
+      <h1>{entry.title}</h1>
+      <p class="life-article-summary">{entry.summary}</p>
+      <div class="life-article-meta">{entry.date && <time datetime={entry.date}>{formatLifeDate(entry.date)}</time>}<span>{entry.sourceLabel || '生活随笔'}</span></div>
+    </header>
+    <div class="life-prose"><Content /></div>
+    <footer class="life-article-end"><span aria-hidden="true">✳</span><p>这一页，到这里。</p><a href="/life/">继续看看其他片段 →</a></footer>
+  </article>
+</BaseLayout>
+
+<style>
+  .life-reading{width:min(760px,calc(100% - 80px));margin:auto;padding:55px 0 80px}.life-back{display:inline-block;font-size:12px;color:var(--muted);margin-bottom:52px}.life-back:hover{color:var(--accent)}.life-article-heading .eyebrow{font-size:10px;margin-bottom:20px}.life-article-heading h1{font-size:clamp(34px,4.4vw,56px);line-height:1.4;letter-spacing:-.05em;font-weight:550;margin-bottom:23px}.life-article-summary{font-size:14px;color:var(--muted);line-height:1.9;max-width:650px;margin-bottom:23px}.life-article-meta{display:flex;align-items:center;gap:15px;font-size:10px;color:var(--muted);padding-bottom:30px;border-bottom:1px solid var(--line)}.life-prose{font-size:15px;line-height:2;letter-spacing:.015em;overflow-wrap:break-word}.life-prose :global(p){margin:1.25em 0 1.75em}.life-prose :global(h2){font-size:27px;font-weight:550;line-height:1.5;margin:2.2em 0 .8em;letter-spacing:-.035em}.life-prose :global(h3){font-size:21px;font-weight:550;margin:1.8em 0 .8em}.life-prose :global(a){color:var(--accent);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line)}.life-prose :global(audio){display:block;width:100%;margin:28px 0 40px}.life-prose :global(table){width:100%;border-collapse:collapse;font-size:13px;margin:28px 0 36px}.life-prose :global(th),.life-prose :global(td){text-align:left;padding:12px 16px;border-bottom:1px solid var(--line)}.life-prose :global(th){background:var(--surface-alt);font-weight:500}.life-prose :global(blockquote){border-left:2px solid var(--accent);margin:30px 0;padding:4px 24px;color:var(--muted)}.life-prose :global(img){display:block;max-width:100%;height:auto;border-radius:6px;margin:30px auto}.life-prose :global(pre){overflow:auto;border:1px solid var(--line);padding:20px;border-radius:7px;font-size:12px;line-height:1.8}.life-prose :global(code){font-family:ui-monospace,monospace}.life-prose :global(ul),.life-prose :global(ol){padding-left:1.5em}.life-article-end{margin-top:65px;padding-top:35px;border-top:1px solid var(--line);text-align:center}.life-article-end>span{font-size:29px;color:var(--accent)}.life-article-end p{font-size:11px;color:var(--muted);margin:15px 0 23px}.life-article-end a{font-size:12px;border-bottom:1px solid var(--line);padding-bottom:7px}
+  @media(max-width:600px){.life-reading{width:calc(100% - 40px);padding:32px 0 55px}.life-back{font-size:11px;margin-bottom:36px}.life-article-heading h1{font-size:34px}.life-article-summary{font-size:12px}.life-article-meta{gap:10px;flex-wrap:wrap}.life-prose{font-size:14px}.life-prose :global(h2){font-size:24px}.life-prose :global(th),.life-prose :global(td){padding:10px 12px}.life-article-end{margin-top:48px}}
+</style>

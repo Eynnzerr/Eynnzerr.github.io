@@ -1,0 +1,107 @@
+---
+/** Self-contained four-key player for the site's original Melodic Bass recording. */
+interface Props {
+  /** URL of the original soundtrack; defaults to the site-local recording. */
+  audioSrc?: string;
+  /** Remove the card frame when the game is part of the homepage's shared stage. */
+  embedded?: boolean;
+}
+
+const { audioSrc = '/audio/eynnzerr-melodic-bass-v2.mp3', embedded = false } = Astro.props;
+---
+
+<section class:list={['rhythm-game', { 'rhythm-game-embedded': embedded }]} data-rhythm-game data-audio-src={audioSrc} aria-label="Eynnzerr 四键节奏游戏">
+  <div class="rg-heading">
+    <div>
+      <p class="rg-eyebrow"><span></span> PLAY A LITTLE</p>
+      <h3>接住这一拍<span>。</span></h3>
+    </div>
+    <div class="rg-record"><span aria-hidden="true">✳</span><div>ORIGINAL TRACK<small>150 BPM · 34 SEC</small></div></div>
+  </div>
+
+  <div class="rg-topline">
+    <div class="rg-modes" role="group" aria-label="谱面难度">
+      <button type="button" data-difficulty="easy" aria-pressed="true">轻松</button>
+      <button type="button" data-difficulty="challenge" aria-pressed="false">挑战</button>
+    </div>
+    <p class="rg-mode-help" data-mode-help>跟着旋律，慢慢进入状态</p>
+  </div>
+
+  <div class="rg-stage" data-game-stage>
+    <canvas data-game-canvas aria-hidden="true"></canvas>
+    <div class="rg-stage-hud">
+      <span data-game-phase>READY WHEN YOU ARE</span>
+      <span class="rg-hud-score" data-game-score>0000000</span>
+    </div>
+    <div class="rg-idle" data-game-idle>
+      <span class="rg-idle-symbol" aria-hidden="true">∿</span>
+      <p>让指尖，跟上旋律。</p>
+      <span>等音符落到光线上，按下对应的键</span>
+    </div>
+    <div class="rg-countdown" data-game-countdown hidden aria-live="polite"></div>
+    <div class="rg-feedback" data-game-feedback aria-hidden="true"><strong data-hit-grade></strong><span data-hit-detail></span></div>
+    <div class="rg-combo" data-combo-wrap hidden><strong data-game-combo>0</strong><span>COMBO</span></div>
+    <div class="rg-pause" data-game-pause hidden><strong>稍作停留</strong><span data-pause-reason>准备好了就继续</span></div>
+    <div class="rg-result" data-game-result hidden role="status" aria-live="polite">
+      <span class="rg-result-eyebrow">YOUR SESSION</span>
+      <div class="rg-result-title"><strong data-result-rank>A</strong><span data-result-title>这一拍，很合拍。</span></div>
+      <div class="rg-result-stats">
+        <div><strong data-result-score>0</strong><span>得分 / 1,000,000</span></div>
+        <div><strong data-result-accuracy>0%</strong><span>准确率</span></div>
+        <div><strong data-result-combo>0</strong><span>最高连击</span></div>
+      </div>
+      <p data-result-hits></p>
+    </div>
+    <div class="rg-pads" role="group" aria-label="四条触摸轨道">
+      {['D', 'F', 'J', 'K'].map((key, lane) => (
+        <button type="button" data-lane={lane} aria-label={`轨道 ${lane + 1}，按键 ${key}`}><span>{key}</span><i aria-hidden="true"></i></button>
+      ))}
+    </div>
+  </div>
+
+  <div class="rg-progress" role="progressbar" aria-label="曲目进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-game-progress><span data-progress-fill></span></div>
+  <div class="rg-controls">
+    <div class="rg-actions">
+      <button class="rg-play" type="button" data-game-play><span data-play-icon aria-hidden="true">▶</span><span data-play-label>开始一局</span></button>
+      <button class="rg-stop" type="button" data-game-stop disabled aria-label="结束本局，回到准备状态" title="结束本局"><span aria-hidden="true">■</span></button>
+    </div>
+    <div class="rg-volume"><span aria-hidden="true">♪</span><label class="rg-sr-only" for="rhythm-volume">音乐音量</label><input id="rhythm-volume" data-game-volume type="range" min="0" max="100" value="65" /><output data-volume-output>65%</output></div>
+    <span class="rg-time" data-game-time>00:00 / 00:34</span>
+  </div>
+
+  <p class="rg-status" data-game-status role="status" aria-live="polite">电脑按 D F J K，手机触摸四轨。声音在开始后播放。</p>
+  <details class="rg-timing">
+    <summary>节奏校准 <span>耳机听感有延迟？</span></summary>
+    <div><label for="rhythm-offset">音符偏移</label><input id="rhythm-offset" data-game-offset type="range" min="-150" max="150" step="5" value="0" /><output data-offset-output>0 ms</output><button type="button" data-offset-reset>归零</button></div>
+    <p>已自动补偿音频输出延迟。正值让音符稍晚抵达，负值稍早；建议用有线耳机或扬声器。</p>
+  </details>
+  <div class="rg-credit"><span>EYNNZERR / MELODIC BASS 02</span><a href="/audio/SOURCES.md" target="_blank" rel="noopener">音乐与采样 ↗</a></div>
+</section>
+
+<script>
+  import { initializeRhythmGames } from '../scripts/rhythm-game';
+  initializeRhythmGames();
+  document.addEventListener('astro:page-load', initializeRhythmGames);
+</script>
+
+<style>
+  .rhythm-game{--rg-cyan:#80dfe9;--rg-coral:#f4aa93;--rg-ink:#102535;position:relative;width:100%;min-width:0;box-sizing:border-box;padding:25px;border:1px solid rgba(136,200,214,.18);border-radius:26px;background:linear-gradient(145deg,rgba(17,40,55,.97),rgba(8,22,34,.98));box-shadow:0 26px 65px rgba(2,12,24,.2),inset 0 1px 0 rgba(235,254,255,.06);color:#eaf4f3;font-family:inherit;overflow:hidden}
+  .rhythm-game *{box-sizing:border-box}.rhythm-game button,.rhythm-game input{font:inherit}.rhythm-game button{cursor:pointer}.rhythm-game button:disabled{cursor:default;opacity:.4}.rhythm-game button:focus-visible,.rhythm-game a:focus-visible,.rhythm-game summary:focus-visible{outline:2px solid var(--rg-cyan);outline-offset:4px}.rhythm-game [hidden]{display:none!important}
+  .rg-heading{display:flex;align-items:center;justify-content:space-between;gap:14px}.rg-eyebrow{display:flex;align-items:center;gap:8px;margin:0 0 9px;color:#a7bcc6;font-size:9px;letter-spacing:2.6px;font-weight:600}.rg-eyebrow span{width:5px;height:5px;border-radius:50%;background:var(--rg-cyan);box-shadow:0 0 12px #80dfe966}.rg-heading h3{font-size:clamp(22px,2.8vw,29px);font-weight:650;letter-spacing:-1px;line-height:1.3;margin:0}.rg-heading h3>span{color:var(--rg-coral)}
+  .rg-record{display:flex;align-items:center;gap:10px;color:#9bb8c4;font-size:8px;letter-spacing:1.1px;line-height:1.8}.rg-record>span{font-size:40px;font-weight:200;line-height:1;color:var(--rg-cyan)}.rg-record small{display:block;font-size:9px;letter-spacing:1.2px;color:#d1e1e6}
+  .rg-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 12px}.rg-modes{display:flex;padding:3px;gap:3px;border:1px solid #a3c1ce1b;border-radius:9px;background:#03121d55}.rg-modes button{border:0;border-radius:6px;padding:6px 17px;background:transparent;color:#a9bec8;font-size:11px;transition:background .2s,color .2s}.rg-modes button[aria-pressed=true]{background:#a9e6eb21;color:#c7f7f8}.rg-mode-help{font-size:10px;color:#9bb5c0;margin:0}
+  .rg-stage{position:relative;height:340px;overflow:hidden;isolation:isolate;border:1px solid #a3d6e319;border-radius:16px 16px 4px 4px;background:radial-gradient(ellipse at 50% 78%,#24485b6e 0%,transparent 62%),linear-gradient(180deg,#0a1925,#0d2131)}.rg-stage:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;border-radius:inherit;box-shadow:inset 0 1px 0 #bce7eb0a,inset 0 -20px 36px #05111a50}.rg-stage canvas{position:absolute;width:100%;height:100%;inset:0;display:block}.rg-stage-hud{position:absolute;inset:16px 16px auto;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:8px;letter-spacing:1.6px;color:#a2bac7;z-index:3}.rg-hud-score{font-variant-numeric:tabular-nums;font-size:13px;letter-spacing:2px;color:#ebf8f7}
+  .rg-idle{position:absolute;inset:42px 10px 90px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:3;pointer-events:none;background:radial-gradient(ellipse,#0b1c2bd9,transparent 75%)}.rg-idle-symbol{font-family:Georgia,serif;line-height:.8;font-size:82px;color:var(--rg-cyan);transform:rotate(-12deg);text-shadow:0 0 30px #80dfe943}.rg-idle p{font-size:19px;font-weight:500;letter-spacing:1px;margin:19px 0 10px}.rg-idle>span:last-child{color:#a7bfcb;font-size:10px;letter-spacing:.5px}.rg-countdown{position:absolute;inset:65px 0 82px;display:flex;align-items:center;justify-content:center;font-size:84px;line-height:1;font-weight:300;letter-spacing:-5px;color:#d7ffff;text-shadow:0 0 32px #80dfe950;pointer-events:none;z-index:4}
+  .rg-feedback{position:absolute;left:0;right:0;bottom:109px;text-align:center;pointer-events:none;opacity:0;z-index:4;transition:opacity .15s}.rg-feedback strong{display:block;color:var(--rg-cyan);font-size:14px;letter-spacing:3px;font-weight:600}.rg-feedback span{display:block;margin-top:4px;color:#b8ccd5;font-size:9px;letter-spacing:.4px}.rg-feedback[data-grade=good] strong,.rg-feedback[data-grade=miss] strong{color:var(--rg-coral)}.rg-feedback[data-grade=great] strong{color:#ccecdf}.rg-combo{position:absolute;left:0;right:0;top:66px;text-align:center;z-index:3;pointer-events:none}.rg-combo strong{display:block;color:#d9f5f1;font-size:37px;line-height:1.1;font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:-1px}.rg-combo span{font-size:7px;letter-spacing:3px;color:#95b7c6}
+  .rg-pads{position:absolute;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;width:86%;max-width:464px;left:50%;bottom:13px;transform:translateX(-50%);z-index:5}.rg-pads button{position:relative;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;border:1px solid #87d9e637;background:linear-gradient(180deg,#3b7e952b,#14324842);border-radius:8px 8px 12px 12px;height:44px;color:#bee9ec;font-size:14px;transition:background .07s,border-color .07s,transform .07s}.rg-pads button:nth-child(n+3){border-color:#f4aa9336;color:#f8c4b4;background:linear-gradient(180deg,#8c63502a,#3c2e342b)}.rg-pads button i{position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--rg-cyan);box-shadow:0 0 8px #80dfe940;opacity:.7}.rg-pads button:nth-child(n+3) i{background:var(--rg-coral)}.rg-pads button.is-pressed{transform:translateY(2px);border-color:var(--rg-cyan);background:#70c7d64d;box-shadow:0 0 22px #80dfe921}.rg-pads button:nth-child(n+3).is-pressed{border-color:var(--rg-coral);background:#c688714c}
+  .rg-pause{position:absolute;inset:47px 0 81px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:13px;background:#0b1c2bdc;backdrop-filter:blur(6px);z-index:6}.rg-pause strong{font-size:23px;font-weight:400;letter-spacing:3px}.rg-pause span{font-size:11px;color:#a9c3cf;text-align:center;padding:0 15px}.rg-result{position:absolute;inset:40px 10px 75px;padding:17px 10px 10px;border:1px solid #8cd3dc28;border-radius:12px;background:linear-gradient(150deg,#193b4cf5,#102536f8);backdrop-filter:blur(12px);z-index:6;text-align:center}.rg-result-eyebrow{font-size:8px;letter-spacing:3px;color:#a6c9d1}.rg-result-title{display:flex;align-items:center;justify-content:center;gap:14px;margin:10px 0 13px}.rg-result-title strong{font-family:Georgia,serif;font-size:53px;font-weight:400;font-style:italic;color:var(--rg-cyan);line-height:1}.rg-result-title>span{font-size:14px;letter-spacing:.3px}.rg-result-stats{display:grid;grid-template-columns:1.45fr 1fr 1fr;gap:6px}.rg-result-stats>div+div{border-left:1px solid #a9d6dc25}.rg-result-stats strong{display:block;font-size:19px;font-weight:500;font-variant-numeric:tabular-nums}.rg-result-stats span{display:block;margin-top:5px;font-size:9px;color:#a8c0cc}.rg-result>p{font-size:8px;color:#a8c0cc;margin:16px 0 0;letter-spacing:.3px}
+  .rg-progress{height:2px;background:#223c4b;margin:0 1px;overflow:hidden}.rg-progress>span{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--rg-cyan),var(--rg-coral));transform:scaleX(0);transform-origin:left}
+  .rg-controls{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-top:17px}.rg-actions{display:flex;gap:7px;flex:none}.rg-play{display:flex;align-items:center;justify-content:center;gap:8px;min-width:110px;border:1px solid #b3f6ee22;padding:10px 14px;border-radius:9px;background:#afe9e5;color:#112c39;font-size:11px;font-weight:650;transition:background .2s,transform .2s}.rg-play:hover{background:#cefff6;transform:translateY(-1px)}.rg-play>span:first-child{font-size:9px}.rg-stop{width:34px;padding:0;border:1px solid #a7d2dd2b;border-radius:9px;background:#ffffff07;color:#b8d0da;font-size:10px}.rg-stop:not(:disabled):hover{background:#ffffff16}.rg-volume{display:flex;gap:7px;align-items:center;min-width:0;margin-left:auto}.rg-volume>span{font-size:20px;color:#a7c3d0}.rg-volume input{width:65px;min-width:30px;accent-color:#a8e4e1;height:3px;cursor:pointer}.rg-volume output{font-size:9px;width:25px;color:#a5bfcb;font-variant-numeric:tabular-nums}.rg-time{font-size:9px;font-variant-numeric:tabular-nums;color:#b3c6cf;white-space:nowrap}.rg-status{margin:13px 0 0;font-size:10px;color:#9eb8c5;line-height:1.7;min-height:17px}
+  .rg-timing{margin-top:10px;font-size:10px;color:#adbfcb}.rg-timing summary{cursor:pointer;list-style:none;width:fit-content;line-height:1.7}.rg-timing summary::-webkit-details-marker{display:none}.rg-timing summary:before{content:"+";font-size:12px;color:var(--rg-cyan);margin-right:6px}.rg-timing[open] summary:before{content:"−"}.rg-timing summary>span{color:#7e9aa9;margin-left:8px;font-size:9px}.rg-timing>div{display:flex;align-items:center;gap:10px;margin-top:12px}.rg-timing input{flex:1;min-width:30px;max-width:180px;accent-color:var(--rg-cyan);height:3px}.rg-timing output{min-width:43px;text-align:right;font-variant-numeric:tabular-nums}.rg-timing button{border:1px solid #a7d2dd2b;border-radius:4px;padding:3px 7px;background:transparent;color:#c7d9e0;font-size:9px}.rg-timing>p{font-size:9px;line-height:1.8;color:#8eabba;margin:10px 0 0}.rg-credit{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:19px;padding-top:15px;border-top:1px solid #a1c5d315;font-size:8px;letter-spacing:1.1px;color:#809dad}.rg-credit a{color:#a5c1cc;text-decoration:none;letter-spacing:.2px}.rg-credit a:hover{color:var(--rg-cyan)}.rg-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  @media(min-width:700px){.rg-stage{height:366px}}
+  @media(max-width:480px){.rhythm-game{padding:18px;border-radius:21px}.rg-record{font-size:7px;gap:6px}.rg-record>span{font-size:31px}.rg-record small{font-size:8px;letter-spacing:.7px}.rg-mode-help{font-size:9px}.rg-stage{height:326px}.rg-heading h3{font-size:24px}.rg-controls{gap:8px}.rg-play{min-width:102px;padding:10px 10px}.rg-volume input{width:48px}.rg-volume output{display:none}.rg-time{font-size:8px}.rg-stage-hud{font-size:7px;letter-spacing:1px}.rg-result-title{margin:8px 0 11px}.rg-result-title>span{font-size:12px}.rg-result-stats strong{font-size:17px}.rg-result>p{font-size:7px;margin-top:13px}.rg-pads{width:90%;gap:6px}.rg-status{font-size:9px}.rg-timing summary>span{font-size:8px}}
+  @media(prefers-reduced-motion:reduce){.rhythm-game *{transition:none!important}.rg-play:hover{transform:none}}
+  .rhythm-game-embedded{padding:0;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible}.rhythm-game-embedded .rg-heading,.rhythm-game-embedded .rg-credit{display:none}.rhythm-game-embedded .rg-topline{margin:0 0 14px}.rhythm-game-embedded .rg-stage{height:clamp(320px,calc(100svh - 370px),430px);border:0;border-radius:0;background:radial-gradient(ellipse at 50% 90%,#31524745,transparent 68%)}.rhythm-game-embedded .rg-stage:after{box-shadow:none}.rhythm-game-embedded .rg-stage-hud{inset:12px 10px auto}.rhythm-game-embedded .rg-pads{max-width:640px}.rhythm-game-embedded .rg-controls{margin-top:12px}.rhythm-game-embedded .rg-status{margin-top:8px}.rhythm-game-embedded .rg-timing{margin-top:8px}.rhythm-game-embedded .rg-progress{background:#a6d7be17}.rhythm-game-embedded .rg-idle{background:radial-gradient(ellipse,#101e24db,transparent 75%)}.rhythm-game-embedded .rg-pause{background:#101e24dc}.rhythm-game-embedded .rg-result{max-width:570px;margin-inline:auto;background:linear-gradient(150deg,#19362ef5,#10252cf8);border-color:#9ad6bf26}.rhythm-game-embedded .rg-modes{background:#12272266;border-color:#a8d6b921}.rhythm-game-embedded .rg-modes button[aria-pressed=true]{background:#b9e3c41a;color:#d6f1de}.rhythm-game-embedded .rg-play{background:#c8e7d5;color:#112c24}.rhythm-game-embedded .rg-play:hover{background:#e1f6e5}
+  @media(max-width:600px){.rhythm-game-embedded .rg-stage{height:clamp(320px,calc(100svh - 390px),400px)}.rhythm-game-embedded .rg-mode-help{max-width:145px;text-align:right;font-size:9px}.rhythm-game-embedded .rg-modes button{padding-inline:13px}.rhythm-game-embedded .rg-controls{gap:7px}.rhythm-game-embedded .rg-play{min-width:98px}.rhythm-game-embedded .rg-status{max-width:100%;line-height:1.8}}
+  @media(max-width:360px){.rhythm-game-embedded .rg-controls{flex-wrap:wrap}.rhythm-game-embedded .rg-volume{max-width:70px}.rhythm-game-embedded .rg-time{margin-left:auto}.rhythm-game-embedded .rg-volume input{width:35px}.rhythm-game-embedded .rg-mode-help{font-size:8px;max-width:118px}.rhythm-game-embedded .rg-modes button{padding-inline:10px}}
+</style>

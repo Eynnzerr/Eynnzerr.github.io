@@ -1,0 +1,68 @@
+---
+/** A discussion attached to an immutable article identifier. */
+interface Props {
+  /** Permanent article key, independent of title changes. */
+  identifier: string;
+  /** Human-readable title of the discussion section. */
+  title: string;
+}
+const { identifier, title } = Astro.props;
+const repoId = import.meta.env.PUBLIC_GISCUS_REPO_ID;
+const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
+---
+<section class="discussion" aria-label={`${title}的评论`}>
+  <div class="discussion-heading"><h2>一起聊聊</h2><span>DISCUSSION / GITHUB</span></div>
+  {repoId && categoryId ? (
+    <div class="giscus" data-repo-id={repoId} data-category-id={categoryId} data-term={identifier}></div>
+  ) : (
+    <div class="discussion-preview"><span class="discussion-symbol" aria-hidden="true">↳</span><div><p>有新的思路，或想补充的细节？</p><p class="muted">评论区将在正式上线时开放，通过 GitHub 账号参与讨论。</p></div><a href="mailto:eynnzerr@gmail.com">先写封邮件 ↗</a></div>
+  )}
+</section>
+<script>
+  /** Load comments with the site's chosen palette and follow subsequent theme changes. */
+  function initializeComments(): void {
+    const container = document.querySelector<HTMLElement>('.giscus');
+    if (!container) return;
+
+    /** Read the explicit site preference instead of the operating system's palette. */
+    function theme(): string {
+      return document.documentElement.dataset.theme === 'dark' ? 'dark_dimmed' : 'light';
+    }
+
+    /** Update an existing iframe through Giscus's documented configuration channel. */
+    function synchronizeTheme(): void {
+      container!.querySelector<HTMLIFrameElement>('iframe')?.contentWindow?.postMessage(
+        { giscus: { setConfig: { theme: theme() } } }, 'https://giscus.app',
+      );
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://giscus.app/client.js';
+    script.async = true;
+    script.crossOrigin = 'anonymous';
+    Object.assign(script.dataset, {
+      repo: 'Eynnzerr/Eynnzerr.github.io', repoId: container.dataset.repoId,
+      category: 'Announcements', categoryId: container.dataset.categoryId,
+      mapping: 'specific', term: container.dataset.term, strict: '1',
+      reactionsEnabled: '1', emitMetadata: '0', inputPosition: 'top',
+      theme: theme(), lang: 'zh-CN', loading: 'lazy',
+    });
+    const frameObserver = new MutationObserver(() => {
+      const frame = container.querySelector('iframe');
+      if (!frame) return;
+      frame.addEventListener('load', synchronizeTheme);
+      frameObserver.disconnect();
+    });
+    frameObserver.observe(container, { childList: true, subtree: true });
+    const themeObserver = new MutationObserver(() => {
+      script.dataset.theme = theme();
+      synchronizeTheme();
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    container.append(script);
+  }
+  initializeComments();
+</script>
+<style>
+  .discussion{margin-top:64px;border-top:1px solid var(--line);padding-top:30px}.discussion-heading{display:flex;align-items:center;justify-content:space-between;gap:20px}.discussion-heading h2{font-size:25px}.discussion-heading span{font:10px var(--font-display);letter-spacing:.12em;color:var(--muted)}.discussion-preview{padding:25px;border:1px solid var(--line);border-radius:14px;display:flex;gap:18px;align-items:center}.discussion-preview p{margin:0;font-size:14px}.discussion-preview .muted{font-size:12px;color:var(--muted);margin-top:7px}.discussion-symbol{font-size:34px;color:var(--accent)}.discussion-preview a{margin-left:auto;white-space:nowrap;font-size:12px;color:var(--accent)}@media(max-width:600px){.discussion-preview{flex-wrap:wrap}.discussion-preview a{margin-left:44px}.discussion-heading span{font-size:8px}}
+</style>

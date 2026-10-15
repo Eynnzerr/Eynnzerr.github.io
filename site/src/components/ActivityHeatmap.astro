@@ -1,0 +1,284 @@
+---
+import github from '../data/activity/github.json';
+import codex from '../data/activity/codex.json';
+
+/** Select the activity source displayed by this independently styled calendar. */
+interface Props {
+  /** Official GitHub contributions or daily local Codex token usage. */
+  kind: 'github' | 'codex';
+}
+
+/** Public daily aggregates; cached input is a subset of input tokens. */
+interface ActivityDay {
+  /** Calendar date, YYYY-MM-DD, in the source's reporting timezone. */
+  date: string;
+  /** GitHub contributions or input plus output tokens. */
+  count: number;
+  /** Total input tokens, including cached input. */
+  input?: number;
+  /** Total output tokens, including reasoning output. */
+  output?: number;
+  /** Cached subset of input tokens. */
+  cachedInput?: number;
+  /** Reasoning subset of output tokens. */
+  reasoningOutput?: number;
+}
+
+/** Snapshot metadata shared by available and temporarily unavailable sources. */
+interface ActivitySnapshot {
+  /** Collection status; stale data keeps its original collection time. */
+  status: string;
+  /** ISO timestamp of the last successful collection. */
+  updatedAt: string | null;
+  /** Earliest and latest dates covered by this source. */
+  coverage: { start: string; end: string } | null;
+  /** Public source label. */
+  source?: string;
+  /** Public profile URL, when this source has one. */
+  sourceUrl?: string | null;
+  /** Short explanation when collection is unavailable. */
+  message?: string;
+  /** Daily counts; zero-count days inside the covered interval may be omitted. */
+  days: ActivityDay[];
+}
+
+const { kind } = Astro.props;
+const data = (kind === 'github' ? github : codex) as ActivitySnapshot;
+const title = kind === 'github' ? 'GitHub' : 'Codex';
+const unit = kind === 'github' ? '次贡献' : 'tokens';
+const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
+const dayMilliseconds = 86_400_000;
+const end = Date.parse(`${today}T00:00:00Z`);
+const start = end - 364 * dayMilliseconds;
+const startDate = new Date(start).toISOString().slice(0, 10);
+const offset = new Date(start).getUTCDay();
+const columns = Math.ceil((365 + offset) / 7);
+const dayMap = new Map(data.days.map((day) => [day.date, day]));
+const range = data.days.filter((day) => day.date >= startDate && day.date <= today);
+const active = range.filter((day) => day.count > 0);
+const positive = active.map((day) => day.count).sort((a, b) => a - b);
+const thresholds = [0.25, 0.5, 0.75].map((fraction) => positive[Math.floor((positive.length - 1) * fraction)] || 1);
+const total = range.reduce((sum, day) => sum + day.count, 0);
+const peak = Math.max(0, ...range.map((day) => day.count));
+const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
+const number = new Intl.NumberFormat('zh-CN');
+const years = [...new Set(data.days.map((day) => day.date.slice(0, 4)))].sort().reverse();
+const months: { text: string; column: number }[] = [];
+
+/** Format a day for both keyboard users and the visible activity detail. */
+function describeDay(date: string, day: ActivityDay | undefined, known: boolean) {
+  if (!known) return `${date} · ${kind === 'codex' ? '无本机记录' : '暂无贡献数据'}`;
+  const count = number.format(day?.count || 0);
+  if (kind === 'github') return `${date} · ${count} 次贡献`;
+  return `${date} · ${count} tokens · 输入 ${number.format(day?.input || 0)}（缓存 ${number.format(day?.cachedInput || 0)}）· 输出 ${number.format(day?.output || 0)}`;
+}
+
+const cells = Array.from({ length: 365 }, (_, index) => {
+  const date = new Date(start + index * dayMilliseconds).toISOString().slice(0, 10);
+  const day = dayMap.get(date);
+  const known = !!data.coverage && date >= data.coverage.start && date <= data.coverage.end;
+  const count = day?.count || 0;
+  const column = Math.floor((index + offset) / 7) + 1;
+  if (index === 0 || date.endsWith('-01')) {
+    if (!months.length || column - months.at(-1)!.column > 2) months.push({ text: `${Number(date.slice(5, 7))}月`, column });
+  }
+  return { date, label: describeDay(date, day, known), level: known ? (count ? 1 + thresholds.filter((value) => count > value).length : 0) : 'unknown', column, row: (index + offset) % 7 + 1 };
+});
+const latestDate = active.at(-1)?.date || range.at(-1)?.date || today;
+const initialDetail = cells.find((cell) => cell.date === latestDate)?.label || '移动到日期格查看每日活动。';
+const payload = JSON.stringify({ kind, today, coverage: data.coverage, days: data.days }).replace(/</g, '\\u003c');
+const syncTime = data.updatedAt ? new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(data.updatedAt)) : null;
+---
+
+<section class="activity-card" data-activity-card={kind} aria-label={`${title} 活动热图`}>
+  <div class="activity-topline">
+    <div>
+      <p class="activity-eyebrow"><span class="activity-beacon"></span>{kind === 'github' ? 'BUILDING IN PUBLIC' : 'THINKING WITH AI'}</p>
+      <h3>{title}<span>{kind === 'github' ? 'Contributions' : 'Token activity'}</span></h3>
+    </div>
+    {data.days.length > 0 && <label class="activity-period">
+      <span class="activity-sr-only">{title} 热图年份</span>
+      <select data-activity-year aria-label={`${title} 热图年份`}>
+        <option value="rolling">最近 365 天</option>
+        {years.map((year) => <option value={year}>{year}</option>)}
+      </select>
+    </label>}
+  </div>
+
+  {data.days.length > 0 ? <>
+    <div class="activity-metrics">
+      <div class="activity-primary"><strong data-activity-total>{compact.format(total)}</strong><span>{unit}</span></div>
+      <div><strong data-activity-active>{active.length}</strong><span>活跃天数</span></div>
+      <div><strong data-activity-peak>{compact.format(peak)}</strong><span>单日最高</span></div>
+    </div>
+    <div class="activity-scroll" tabindex="0" aria-label="活动日历，可横向滚动">
+      <div class="activity-calendar" style={`--activity-columns:${columns}`}>
+        <div class="activity-months" data-activity-months aria-hidden="true">{months.map((month) => <span style={`grid-column:${month.column}`}>{month.text}</span>)}</div>
+        <div class="activity-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+        <div class="activity-grid" data-activity-grid role="group" aria-label={`${title} 每日活动，方向键选择日期`}>
+          {cells.map((cell) => <button type="button" class="activity-day" data-date={cell.date} data-level={cell.level} data-detail={cell.label} aria-label={cell.label} title={cell.label} tabindex={cell.date === latestDate ? 0 : -1} style={`grid-column:${cell.column};grid-row:${cell.row}`}></button>)}
+        </div>
+      </div>
+    </div>
+    <div class="activity-calendar-meta">
+      <span data-activity-range>{startDate} — {today}</span>
+      <div class="activity-legend" aria-label="颜色从浅到深代表活动量增加"><span>少</span>{[0, 1, 2, 3, 4].map((level) => <i data-level={level}></i>)}<span>多</span></div>
+    </div>
+    <p class="activity-detail" data-activity-detail aria-live="polite">{initialDetail}</p>
+    <div class="activity-footer">
+      <p>{data.sourceUrl ? <a href={data.sourceUrl} target="_blank" rel="noreferrer">{data.source} <span aria-hidden="true">↗</span></a> : data.source}<span> · 更新于 {syncTime}（北京时间）</span></p>
+      {kind === 'codex' && <p>本机记录覆盖 {data.coverage?.start} — {data.coverage?.end}。按北京时间归日；缓存包含在输入中。</p>}
+      {data.status === 'stale' && <p class="activity-notice">{data.message} 当前展示上次同步的数据。</p>}
+    </div>
+    <script type="application/json" data-activity-payload set:html={payload}></script>
+  </> : <p class="activity-unavailable">{data.message || '活动数据尚未同步。'}</p>}
+</section>
+
+<script>
+  /** Enhance each calendar with year selection and accessible date inspection. */
+  function initializeActivityCalendars() {
+    document.querySelectorAll<HTMLElement>('[data-activity-card]').forEach((card) => {
+      if (card.dataset.initialized) return;
+      const payload = card.querySelector('[data-activity-payload]');
+      if (!payload?.textContent) return;
+      card.dataset.initialized = 'true';
+      const data = JSON.parse(payload.textContent);
+      const dayMap = new Map<string, { count: number; input?: number; output?: number; cachedInput?: number }>(data.days.map((day: { date: string }) => [day.date, day]));
+      const grid = card.querySelector<HTMLElement>('[data-activity-grid]')!;
+      const detail = card.querySelector<HTMLElement>('[data-activity-detail]')!;
+      const number = new Intl.NumberFormat('zh-CN');
+      const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
+
+      /** Present exact counts for a focused, hovered, or touched day. */
+      function inspectDay(button: HTMLButtonElement) {
+        detail.textContent = button.dataset.detail || '';
+        grid.querySelectorAll<HTMLButtonElement>('button').forEach((day) => { day.tabIndex = day === button ? 0 : -1; });
+      }
+
+      grid.addEventListener('pointerover', (event) => {
+        const button = (event.target as Element).closest<HTMLButtonElement>('button');
+        if (button) inspectDay(button);
+      });
+      grid.addEventListener('focusin', (event) => {
+        const button = event.target as HTMLButtonElement;
+        if (button.tagName === 'BUTTON') inspectDay(button);
+      });
+      grid.addEventListener('click', (event) => {
+        const button = (event.target as Element).closest<HTMLButtonElement>('button');
+        if (button) inspectDay(button);
+      });
+      grid.addEventListener('keydown', (event) => {
+        const buttons = [...grid.querySelectorAll<HTMLButtonElement>('button')];
+        const index = buttons.indexOf(event.target as HTMLButtonElement);
+        if (index < 0) return;
+        const offsets: Record<string, number> = { ArrowLeft: -7, ArrowRight: 7, ArrowUp: -1, ArrowDown: 1, Home: -index, End: buttons.length - index - 1 };
+        if (!(event.key in offsets)) return;
+        event.preventDefault();
+        buttons[Math.min(buttons.length - 1, Math.max(0, index + offsets[event.key]))].focus();
+      });
+
+      card.querySelector<HTMLSelectElement>('[data-activity-year]')?.addEventListener('change', (event) => {
+        const year = (event.target as HTMLSelectElement).value;
+        const endDate = year === 'rolling' || year === data.today.slice(0, 4) ? data.today : `${year}-12-31`;
+        const end = Date.parse(`${endDate}T00:00:00Z`);
+        const start = year === 'rolling' ? end - 364 * 86_400_000 : Date.parse(`${year}-01-01T00:00:00Z`);
+        const startDate = new Date(start).toISOString().slice(0, 10);
+        const length = Math.round((end - start) / 86_400_000) + 1;
+        const offset = new Date(start).getUTCDay();
+        const selected = data.days.filter((day: { date: string }) => day.date >= startDate && day.date <= endDate);
+        const positives = selected.map((day: { count: number }) => day.count).filter((count: number) => count > 0).sort((a: number, b: number) => a - b);
+        const thresholds = [0.25, 0.5, 0.75].map((fraction) => positives[Math.floor((positives.length - 1) * fraction)] || 1);
+        const fragment = document.createDocumentFragment();
+        const monthFragment = document.createDocumentFragment();
+        let previousMonthColumn = -10;
+        let latestActive: HTMLButtonElement | undefined;
+
+        for (let index = 0; index < length; index += 1) {
+          const date = new Date(start + index * 86_400_000).toISOString().slice(0, 10);
+          const day = dayMap.get(date);
+          const known = data.coverage && date >= data.coverage.start && date <= data.coverage.end;
+          const count = day?.count || 0;
+          const column = Math.floor((index + offset) / 7) + 1;
+          const button = document.createElement('button');
+          button.className = 'activity-day';
+          button.type = 'button';
+          button.tabIndex = -1;
+          button.dataset.date = date;
+          button.dataset.level = known ? String(count ? 1 + thresholds.filter((threshold) => count > threshold).length : 0) : 'unknown';
+          let label = `${date} · ${number.format(count)} ${data.kind === 'github' ? '次贡献' : 'tokens'}`;
+          if (!known) label = `${date} · ${data.kind === 'codex' ? '无本机记录' : '暂无贡献数据'}`;
+          else if (data.kind === 'codex') label += ` · 输入 ${number.format(day?.input || 0)}（缓存 ${number.format(day?.cachedInput || 0)}）· 输出 ${number.format(day?.output || 0)}`;
+          button.dataset.detail = label;
+          button.title = label;
+          button.setAttribute('aria-label', label);
+          button.style.gridColumn = String(column);
+          button.style.gridRow = String((index + offset) % 7 + 1);
+          fragment.append(button);
+          if (count || !latestActive) latestActive = button;
+          if ((index === 0 || date.endsWith('-01')) && column - previousMonthColumn > 2) {
+            const month = document.createElement('span');
+            month.textContent = `${Number(date.slice(5, 7))}月`;
+            month.style.gridColumn = String(column);
+            monthFragment.append(month);
+            previousMonthColumn = column;
+          }
+        }
+        grid.replaceChildren(fragment);
+        card.querySelector('[data-activity-months]')!.replaceChildren(monthFragment);
+        (card.querySelector('.activity-calendar') as HTMLElement).style.setProperty('--activity-columns', String(Math.ceil((length + offset) / 7)));
+        card.querySelector('[data-activity-total]')!.textContent = compact.format(selected.reduce((sum: number, day: { count: number }) => sum + day.count, 0));
+        card.querySelector('[data-activity-active]')!.textContent = String(positives.length);
+        card.querySelector('[data-activity-peak]')!.textContent = compact.format(Math.max(0, ...positives));
+        card.querySelector('[data-activity-range]')!.textContent = `${startDate} — ${endDate}`;
+        if (latestActive) inspectDay(latestActive);
+      });
+    });
+  }
+  initializeActivityCalendars();
+  document.addEventListener('astro:page-load', initializeActivityCalendars);
+</script>
+
+<style>
+  .activity-card { --activity-ink:#eaf8fb; --activity-muted:#9ab1bd; --activity-cyan:#71e6e0; color:var(--activity-ink); padding:clamp(22px,3.5vw,38px); border:1px solid #25454e; border-radius:22px; background:linear-gradient(120deg,#10252f 0%,#0a1824 65%,#102630 100%); overflow:hidden; }
+  .activity-topline { display:flex; justify-content:space-between; align-items:center; gap:16px; }
+  .activity-eyebrow { display:flex; align-items:center; gap:8px; color:var(--activity-cyan); font:500 10px/1.5 ui-monospace,monospace; letter-spacing:.13em; margin:0 0 8px; }
+  .activity-beacon { width:5px; height:5px; border-radius:50%; background:var(--activity-cyan); box-shadow:0 0 12px #71e6e066; }
+  h3 { margin:0; font-size:24px; line-height:1.2; font-weight:650; letter-spacing:-.035em; }
+  h3 span { margin-left:12px; color:var(--activity-muted); font:400 12px/1.5 ui-monospace,monospace; letter-spacing:0; }
+  select { appearance:auto; padding:8px 10px; border:1px solid #345660; border-radius:9px; color:#daedf1; background:#122b36; font:inherit; font-size:12px; cursor:pointer; color-scheme:dark; }
+  select:focus-visible { outline:2px solid var(--activity-cyan); outline-offset:3px; }
+  .activity-metrics { display:flex; align-items:baseline; gap:clamp(24px,5vw,65px); margin:28px 0 26px; }
+  .activity-metrics > div { display:flex; align-items:baseline; gap:7px; }
+  .activity-metrics strong { font:500 21px/1 ui-monospace,monospace; letter-spacing:-.055em; }
+  .activity-metrics .activity-primary strong { font-size:clamp(32px,4vw,42px); color:#b4f5ee; }
+  .activity-metrics span { color:var(--activity-muted); font-size:11px; }
+  .activity-scroll { overflow-x:auto; padding:3px 2px 6px; scrollbar-width:thin; scrollbar-color:#335863 transparent; }
+  .activity-scroll:focus-visible { outline:1px solid #71e6e0; outline-offset:3px; border-radius:4px; }
+  .activity-calendar { display:grid; grid-template-columns:18px 1fr; gap:8px; min-width:620px; }
+  .activity-months { grid-column:2; display:grid; grid-template-columns:repeat(var(--activity-columns),minmax(0,1fr)); gap:4px; height:16px; color:var(--activity-muted); font:10px/1.4 ui-monospace,monospace; white-space:nowrap; }
+  .activity-weekdays { grid-column:1; display:grid; grid-template-rows:repeat(7,12px); gap:4px; color:var(--activity-muted); font-size:9px; line-height:12px; }
+  .activity-weekdays span:nth-child(odd) { visibility:hidden; }
+  .activity-grid { grid-column:2; display:grid; grid-template-columns:repeat(var(--activity-columns),minmax(0,1fr)); grid-template-rows:repeat(7,12px); gap:4px; }
+  .activity-grid :global(.activity-day) { display:block; width:100%; min-width:0; padding:0; margin:0; border:1px solid #28414b; border-radius:2px; background:#192f3b; cursor:pointer; transition:filter .12s ease,transform .12s ease; }
+  .activity-grid :global(.activity-day:hover),.activity-grid :global(.activity-day:focus-visible) { outline:2px solid #e6fffc; outline-offset:2px; filter:brightness(1.2); transform:scale(1.1); position:relative; z-index:1; }
+  .activity-grid :global([data-level="unknown"]) { background:transparent; border-color:#253842; border-style:dashed; opacity:.65; }
+  .activity-grid :global([data-level="1"]),.activity-legend [data-level="1"] { background:#245660; border-color:#306971; }
+  .activity-grid :global([data-level="2"]),.activity-legend [data-level="2"] { background:#2c8c94; border-color:#389da4; }
+  .activity-grid :global([data-level="3"]),.activity-legend [data-level="3"] { background:#48c3c3; border-color:#57d2cf; }
+  .activity-grid :global([data-level="4"]),.activity-legend [data-level="4"] { background:#a5f2e6; border-color:#c0fff2; }
+  .activity-calendar-meta { display:flex; justify-content:space-between; gap:14px; margin-top:10px; color:var(--activity-muted); font:10px/1.5 ui-monospace,monospace; }
+  .activity-legend { display:flex; align-items:center; gap:4px; }
+  .activity-legend span:first-child { margin-right:3px; }
+  .activity-legend span:last-child { margin-left:3px; }
+  .activity-legend i { width:9px; height:9px; border-radius:2px; background:#192f3b; border:1px solid #28414b; }
+  .activity-detail { display:flex; align-items:center; min-height:38px; margin:20px 0 0; color:#d5ebe9; font:11px/1.8 ui-monospace,monospace; overflow-wrap:anywhere; }
+  .activity-footer { padding-top:14px; margin-top:5px; border-top:1px solid #243b47; }
+  .activity-footer p { color:var(--activity-muted); font-size:10px; line-height:1.8; margin:3px 0; }
+  .activity-footer a { color:#abd5d9; text-decoration:none; }
+  .activity-footer a:hover { color:#c5fff3; }
+  .activity-footer .activity-notice { color:#eccf90; }
+  .activity-unavailable { margin:30px 0 10px; color:var(--activity-muted); font-size:14px; }
+  .activity-sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  @media(max-width:600px) { h3 span { display:block; margin:5px 0 0; } .activity-metrics { gap:22px; flex-wrap:wrap; } .activity-metrics > div { flex-direction:column; gap:7px; } .activity-metrics strong { font-size:19px; } .activity-calendar-meta { font-size:9px; } .activity-detail { min-height:65px; } }
+  @media(prefers-reduced-motion:reduce) { .activity-grid :global(.activity-day) { transition:none; } }
+</style>

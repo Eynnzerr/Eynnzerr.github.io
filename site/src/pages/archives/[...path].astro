@@ -1,0 +1,33 @@
+---
+import type { InferGetStaticPropsType } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, formatDate, formatCount, PAGE_SIZE, type BlogPost } from '../../lib/posts';
+
+/** Build all-article, year, and month archives, including their original pagination. */
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  const years = [...new Set(posts.map((post) => formatDate(post.date).slice(0, 4)))];
+  const months = [...new Set(posts.map((post) => formatDate(post.date).slice(0, 7)))];
+  const groups = [
+    { prefix: '', label: '全部记录', posts },
+    ...years.map((year) => ({ prefix: year, label: `${year} 年`, posts: posts.filter((post) => formatDate(post.date).startsWith(year)) })),
+    ...months.map((month) => ({ prefix: month.replace('-', '/'), label: `${month.slice(0, 4)} 年 ${Number(month.slice(5))} 月`, posts: posts.filter((post) => formatDate(post.date).startsWith(month)) })),
+  ];
+  return groups.flatMap((group) => {
+    const count = Math.ceil(group.posts.length / PAGE_SIZE);
+    return Array.from({ length: count }, (_, index) => ({
+      params: { path: index === 0 ? group.prefix || undefined : `${group.prefix ? group.prefix + '/' : ''}page/${index + 1}` },
+      props: { posts: group.posts.slice(index * PAGE_SIZE, (index + 1) * PAGE_SIZE), label: group.label, prefix: group.prefix, page: index + 1, count, total: group.posts.length, years },
+    }));
+  });
+}
+/** Current archive filter, pagination state, and article records. */
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { posts, label, prefix, page, count, total, years } = Astro.props;
+const groups = new Map<string, BlogPost[]>();
+for (const post of posts) { const month = formatDate(post.date).slice(0, 7); if (!groups.has(month)) groups.set(month, []); groups.get(month)!.push(post); }
+const base = `/archives/${prefix ? prefix + '/' : ''}`;
+---
+<BaseLayout title={`${label} · 归档`} class="blog-page"><div class="archive-shell"><a class="back" href="/blog/">← 返回博客</a><p class="eyebrow">SMALL STEPS, OVER TIME</p><h1>把时间，<br /><span>留下来。</span></h1><div class="archive-filter"><nav aria-label="按年份浏览"><a href="/archives/" aria-current={!prefix ? 'page' : undefined}>全部</a>{years.map((year) => <a href={`/archives/${year}/`} aria-current={prefix === year ? 'page' : undefined}>{year}</a>)}</nav><span>{label} · {total} 篇</span></div>{[...groups].map(([month, entries]) => <section class="month-group"><h2><a href={`/archives/${month.replace('-', '/')}/`}>{month.slice(0, 4)}<span>{month.slice(5)}</span></a></h2><div>{entries.map((post) => <article><time datetime={post.date.toISOString()}>{formatDate(post.date).slice(5)}</time><a href={post.url}>{post.title}</a><span class="word-count">{formatCount(post.wordCount)} 字</span></article>)}</div></section>)}{count > 1 && <nav class="pagination" aria-label="归档分页">{page > 1 ? <a href={page === 2 ? base : `${base}page/${page - 1}/`}>← 上一页</a> : <span />}<span>{page} / {count}</span>{page < count ? <a href={`${base}page/${page + 1}/`}>下一页 →</a> : <span />}</nav>}</div></BaseLayout>
+<style>.archive-shell{max-width:1040px;padding:65px 30px 85px;margin:auto;color:var(--ink)}.back{font-size:11px;color:var(--accent);text-decoration:none}.eyebrow{font:10px monospace;letter-spacing:.16em;color:var(--muted);margin:45px 0 20px}h1{font-size:clamp(42px,6vw,67px);font-weight:550;letter-spacing:-.05em;line-height:1.2;margin:0 0 45px}h1 span{color:var(--muted)}.archive-filter{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:0 0 20px;margin-bottom:35px;font-size:11px;color:var(--muted)}.archive-filter nav{display:flex;gap:25px}.archive-filter a{text-decoration:none;color:var(--muted)}.archive-filter a[aria-current]{color:var(--accent);font-weight:700}.month-group{display:grid;grid-template-columns:115px 1fr;gap:25px;margin:0 0 32px}h2{margin:12px 0;font-size:11px;font-family:var(--font-mono,monospace);font-weight:400}h2 a{text-decoration:none;color:var(--muted);display:flex;flex-direction:column;gap:10px}h2 span{font-size:40px;font-weight:300;color:var(--muted)}.month-group article{display:grid;grid-template-columns:45px 1fr 55px;gap:18px;align-items:baseline;padding:19px 0;border-bottom:1px solid var(--line)}.month-group time{font:10px monospace;color:var(--muted)}.month-group article>a{font-size:16px;font-weight:500;line-height:1.8;color:var(--ink);text-decoration:none}.month-group article>a:hover{color:#088c62}.word-count{font-size:10px;color:var(--muted);text-align:right}.pagination{display:flex;justify-content:space-between;font:12px monospace;padding:25px 0;color:var(--muted)}.pagination a{text-decoration:none;color:var(--accent)}@media(max-width:640px){.archive-shell{padding:42px 22px 60px}.month-group{grid-template-columns:55px 1fr;gap:15px}.month-group article{grid-template-columns:1fr;gap:5px}.month-group article>a{font-size:14px}.word-count{display:none}.month-group h2 span{font-size:30px}.archive-filter nav{gap:18px}.archive-filter>span{font-size:10px}}
+</style>

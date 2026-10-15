@@ -1,0 +1,17 @@
+---
+import type { InferGetStaticPropsType } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleList from '../../components/ArticleList.astro';
+import { getPosts, getTags } from '../../lib/posts';
+
+/** Preserve all existing tag URLs and their complete article membership. */
+export async function getStaticPaths() {
+  return getTags(await getPosts()).map((group) => ({ params: { tag: group.slug }, props: { group } }));
+}
+/** Articles belonging to the current tag. */
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { group } = Astro.props;
+---
+<BaseLayout title={`${group.name} · 标签`} class="blog-page"><div class="filtered-shell"><a href="/tags/">← 所有标签</a><p>TOPIC / {group.posts.length} NOTES</p><h1><span>#</span>{group.name}</h1><ArticleList posts={group.posts} /></div></BaseLayout>
+<style>.filtered-shell{max-width:1040px;padding:65px 30px 85px;margin:auto}.filtered-shell>a{color:var(--accent);text-decoration:none;font-size:11px}.filtered-shell>p{font:10px monospace;letter-spacing:.15em;color:var(--muted);margin:45px 0 18px}h1{font-size:clamp(37px,5.5vw,64px);font-weight:550;letter-spacing:-.04em;color:var(--ink);margin:0 0 45px;overflow-wrap:anywhere}h1 span{color:var(--muted);margin-right:10px}@media(max-width:600px){.filtered-shell{padding:42px 22px 60px}}
+</style>

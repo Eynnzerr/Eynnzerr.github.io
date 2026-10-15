@@ -1,0 +1,26 @@
+---
+import type { InferGetStaticPropsType } from 'astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleBody from '../components/ArticleBody.astro';
+import ArticleList from '../components/ArticleList.astro';
+import { getPosts, PAGE_SIZE } from '../lib/posts';
+
+/** Preserve every original article address and the old home-list pagination. */
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return [
+    ...posts.map((post, index) => ({ params: { slug: post.url.slice(1, -1) }, props: { post, previous: posts[index + 1], next: posts[index - 1], page: 0, pagePosts: [] } })),
+    ...Array.from({ length: Math.max(0, Math.ceil(posts.length / PAGE_SIZE) - 1) }, (_, index) => {
+      const page = index + 2;
+      return { params: { slug: `page/${page}` }, props: { post: undefined, previous: undefined, next: undefined, page, pagePosts: posts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) } };
+    }),
+  ];
+}
+/** Static article or legacy list-page data. */
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { post, previous, next, page, pagePosts } = Astro.props;
+---
+<BaseLayout title={post ? `${post.title}` : `博客 · 第 ${page} 页`} description={post?.description} class="blog-page" article={post ? { publishedTime: post.date.toISOString(), modifiedTime: post.updated.toISOString(), section: post.categories.at(-1), tags: post.tags } : undefined}>
+  {post ? <ArticleBody post={post} previous={previous} next={next} /> : <div class="legacy-page"><a href="/blog/">← 返回博客</a><p>FROM THE ARCHIVE / 0{page}</p><h1>更早的记录。</h1><ArticleList posts={pagePosts} /></div>}
+</BaseLayout>
+<style>.legacy-page{max-width:1040px;margin:auto;padding:65px 30px 80px}.legacy-page>a{font-size:12px;color:var(--accent);text-decoration:none}.legacy-page>p{font:10px monospace;letter-spacing:.15em;color:var(--muted);margin:45px 0 18px}.legacy-page h1{font-size:clamp(38px,5vw,60px);font-weight:550;letter-spacing:-.05em;color:var(--ink);margin:0 0 45px}</style>

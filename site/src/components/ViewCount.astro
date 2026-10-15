@@ -1,0 +1,20 @@
+---
+/** Busuanzi counters, read only after the public hostname is active. */
+interface Props {
+  /** Which public counter group to render. */
+  scope: 'page' | 'site';
+}
+const { scope } = Astro.props;
+---
+<span class="view-count">
+  {scope === 'page' ? <span id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">—</span> 次阅读</span> : <span><span id="busuanzi_container_site_pv"><span id="busuanzi_value_site_pv">—</span> 次访问</span> · <span id="busuanzi_container_site_uv"><span id="busuanzi_value_site_uv">—</span> 位访客</span></span>}
+</span>
+<script>
+  if (location.hostname === 'blog.eynnzerr.cloud' && !document.querySelector('script[data-views]')) {
+    const script = document.createElement('script');
+    script.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    script.async = true;
+    script.dataset.views = 'true';
+    document.body.append(script);
+  }
+</script>

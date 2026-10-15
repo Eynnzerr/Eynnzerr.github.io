@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="128" height="128" viewBox="0 0 128 128"
+     role="img" aria-labelledby="eynnzerr-mark-title eynnzerr-mark-description">
+  <title id="eynnzerr-mark-title">Eynnzerr — 节奏字母标</title>
+  <desc id="eynnzerr-mark-description">一个圆润、向右敞开的字母 E。中间的横画升起再落下，形成轻盈的声波；略向右伸出的末端表现节奏的延续。</desc>
+
+  <!-- The shared 12-unit stroke keeps the letter and its wave one visual voice. -->
+  <!-- Inherit currentColor when embedded inline; the canvas remains transparent. -->
+  <g fill="none" stroke="currentColor" stroke-width="12"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 101 28 H 57 C 37 28 23 43 23 64 C 23 85 37 100 57 100 H 101"/>
+    <path d="M 25 64 H 46 C 57 64 59 48 70 48 C 81 48 84 64 96 64 H 105"/>
+  </g>
+</svg>

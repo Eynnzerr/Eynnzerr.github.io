@@ -1,0 +1,101 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleList from '../../components/ArticleList.astro';
+import { getPosts, getTags, formatCount, PAGE_SIZE } from '../../lib/posts';
+const posts = await getPosts();
+const tags = getTags(posts);
+const totalWords = posts.reduce((sum, post) => sum + post.wordCount, 0);
+---
+
+<BaseLayout title="博客" description="关于 Kotlin、客户端、跨平台，以及那些值得记下来的问题。" class="blog-page">
+  <div class="blog-shell">
+    <header class="blog-heading">
+      <div><p class="eyebrow">NOTES ON MAKING THINGS</p><h1>边做，<br /><span>边想，边记。</span></h1><p class="intro">代码里的来龙去脉，实践后的再想一遍。</p></div>
+      <div class="collection-stats"><strong>{String(posts.length).padStart(2, '0')}</strong><span>篇记录 · {formatCount(totalWords)} 字</span><a href="/atom.xml">订阅 RSS ↗</a></div>
+    </header>
+
+    <div class="blog-toolbar">
+      <nav aria-label="博客浏览方式"><a href="/blog/" aria-current="page">所有文章</a><a href="/categories/">分类</a><a href="/tags/">标签</a><a href="/archives/">归档</a></nav>
+      <label class="search-field"><span aria-hidden="true">⌕</span><input type="search" id="blog-search" placeholder="搜索标题、正文或标签" aria-label="搜索文章全文" autocomplete="off" /><kbd>/</kbd></label>
+    </div>
+    <div class="popular-tags"><span>从这里开始</span>{tags.slice(0, 7).map((tag) => <a href={`/tags/${tag.slug}/`}>{tag.name}<small>{tag.posts.length}</small></a>)}</div>
+    <section id="default-posts" aria-label="最新文章">
+      <ArticleList posts={posts.slice(0, PAGE_SIZE)} />
+      {posts.length > PAGE_SIZE && <nav class="pagination" aria-label="文章分页"><span>01 / {String(Math.ceil(posts.length / PAGE_SIZE)).padStart(2, '0')}</span><a href="/blog/page/2/">更早的文章 <span aria-hidden="true">→</span></a></nav>}
+    </section>
+    <section id="search-results" hidden aria-label="搜索结果"><p id="search-status" role="status"></p><div id="search-list"></div></section>
+    <p class="count-note">文字统计包含正文与代码，略去标记及空白；阅读时长按约 550 字 / 分钟估算。</p>
+  </div>
+</BaseLayout>
+
+<script>
+  /** A compact entry in the generated, public full-text search index. */
+  interface SearchPost {
+    /** Article heading displayed in the results. */
+    title: string;
+    /** Fixed public article path. */
+    url: string;
+    /** Default excerpt for title-only matches. */
+    description: string;
+    /** Complete searchable article text, including code. */
+    text: string;
+    /** Local publication date. */
+    date: string;
+    /** Independent labels included in matching. */
+    tags: string[];
+    /** Parent-to-child categories included in matching. */
+    categories: string[];
+    /** Estimated reading duration. */
+    readingMinutes: number;
+  }
+  const input = document.querySelector<HTMLInputElement>('#blog-search')!;
+  const original = document.querySelector<HTMLElement>('#default-posts')!;
+  const results = document.querySelector<HTMLElement>('#search-results')!;
+  const status = document.querySelector<HTMLElement>('#search-status')!;
+  const list = document.querySelector<HTMLElement>('#search-list')!;
+  let index: Promise<SearchPost[]> | undefined;
+
+  /** Search every article locally, including content on later list pages. */
+  async function search() {
+    const query = input.value.trim().toLocaleLowerCase();
+    original.hidden = Boolean(query); results.hidden = !query;
+    if (!query) return;
+    status.textContent = '正在搜索…';
+    index ??= fetch('/search.json').then((response) => { if (!response.ok) throw new Error('Search index unavailable'); return response.json(); });
+    try {
+      const allPosts = await index;
+      if (input.value.trim().toLocaleLowerCase() !== query) return;
+      const terms = query.split(/\s+/);
+      const matches = allPosts.filter((post) => terms.every((term) => `${post.title} ${post.text} ${post.tags.join(' ')} ${post.categories.join(' ')}`.toLocaleLowerCase().includes(term)));
+      list.replaceChildren();
+      status.textContent = `“${input.value.trim()}” · ${matches.length} 篇文章`;
+      for (const post of matches) {
+        const article = document.createElement('article'); article.className = 'search-result';
+        const meta = document.createElement('p'); meta.className = 'search-meta'; meta.textContent = `${post.date} · ${post.readingMinutes} 分钟`;
+        const title = document.createElement('h2'); const link = document.createElement('a'); link.href = post.url; link.textContent = post.title; title.append(link);
+        const excerpt = document.createElement('p');
+        const at = post.text.toLocaleLowerCase().indexOf(terms[0]);
+        excerpt.textContent = at >= 0 ? `${at > 35 ? '…' : ''}${post.text.slice(Math.max(0, at - 35), at + 150)}…` : post.description;
+        article.append(meta, title, excerpt); list.append(article);
+      }
+      if (!matches.length) status.textContent += '，试试更短的关键词。';
+    } catch { status.textContent = '搜索索引暂时没有加载成功，请刷新后重试。'; index = undefined; }
+  }
+  input.addEventListener('input', search);
+  document.addEventListener('keydown', (event) => { if (event.key === '/' && !['INPUT', 'TEXTAREA'].includes((event.target as HTMLElement).tagName)) { event.preventDefault(); input.focus(); } });
+  input.value = new URLSearchParams(location.search).get('q') || '';
+  if (input.value) search();
+</script>
+
+<style>
+  .blog-shell{max-width:1120px;margin:auto;padding:82px 40px 90px;color:var(--ink)}
+  .blog-heading{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:60px}
+  .eyebrow{font-family:var(--font-mono,monospace);font-size:10px;letter-spacing:.2em;color:var(--muted);margin:0 0 25px}
+  h1{font-size:clamp(44px,6vw,76px);font-weight:550;line-height:1.17;letter-spacing:-.055em;margin:0}h1 span{color:var(--muted)}
+  .intro{font-size:14px;line-height:1.8;color:var(--muted);margin:24px 0 0}.collection-stats{display:flex;flex-direction:column;align-items:end;gap:10px;padding-bottom:5px}.collection-stats strong{font-family:var(--font-mono,monospace);font-size:70px;font-weight:300;line-height:1;color:var(--muted)}.collection-stats span{font-size:12px;color:var(--muted)}.collection-stats a{font-size:11px;color:var(--accent);margin-top:8px;text-decoration:none}
+  .blog-toolbar{display:flex;justify-content:space-between;gap:25px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:20px}.blog-toolbar nav{display:flex;gap:26px}.blog-toolbar nav a{font-size:13px;text-decoration:none;color:var(--muted)}.blog-toolbar nav a[aria-current]{color:var(--accent);font-weight:650}.search-field{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:7px;padding:9px 12px;background:var(--surface-alt);min-width:250px}.search-field>span{font-size:24px;line-height:1}.search-field input{font:inherit;font-size:12px;width:100%;background:transparent;border:0;outline:none;color:var(--ink)}.search-field:focus-within{outline:2px solid #4e9b89;outline-offset:2px}.search-field kbd{border:1px solid var(--line);color:var(--muted);font:11px monospace;padding:0 4px;border-radius:3px}
+  .popular-tags{display:flex;flex-wrap:wrap;align-items:center;gap:8px 13px;padding:20px 0 26px;font-size:10px}.popular-tags>span{color:var(--muted);margin-right:6px}.popular-tags a{display:flex;gap:7px;color:var(--muted);text-decoration:none;background:var(--surface-alt);padding:5px 8px;border-radius:4px}.popular-tags a:hover{background:#d7e5d7}.popular-tags small{opacity:.6;font-size:9px}.pagination{display:flex;justify-content:space-between;align-items:center;padding:28px 0;font-size:12px}.pagination>span{font-family:var(--font-mono,monospace);color:var(--muted)}.pagination a{display:flex;gap:30px;color:var(--accent);text-decoration:none}.count-note{font-size:10px;line-height:1.8;color:var(--muted);margin-top:24px}#search-status{font-size:12px;color:var(--muted);padding:15px 0}
+  #search-list :global(.search-result){padding:25px 0;border-bottom:1px solid var(--line)}#search-list :global(.search-meta){font-size:10px;color:var(--muted)}#search-list :global(h2){font-size:24px;line-height:1.5;margin:8px 0}#search-list :global(h2 a){color:var(--ink);text-decoration:none}#search-list :global(article>p:last-child){font-size:13px;line-height:1.9;color:var(--muted)}
+  @media(max-width:700px){.blog-shell{padding:52px 22px 60px}.blog-heading{flex-direction:column;align-items:stretch;gap:28px;margin-bottom:38px}h1 span{white-space:nowrap}.collection-stats{flex-direction:row;align-items:center;gap:12px;padding:0}.collection-stats strong{font-size:38px}.collection-stats span{font-size:11px;white-space:nowrap}.collection-stats a{margin:0 0 0 auto;white-space:nowrap}.intro{font-size:12px}.blog-toolbar{flex-direction:column;align-items:stretch;gap:20px}.blog-toolbar nav{justify-content:space-between;gap:14px}.search-field{width:100%;box-sizing:border-box}.popular-tags{gap:8px}.popular-tags>span{display:none}}
+  @media(max-width:700px){.search-field input{font-size:16px}}
+</style>

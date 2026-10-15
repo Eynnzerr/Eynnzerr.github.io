@@ -1,0 +1,79 @@
+---
+import type { LifePhoto } from '../lib/life';
+/** A photo group with a native, keyboard-accessible lightbox. */
+interface Props {
+  /** Actual images and their accessible descriptions. */
+  images: LifePhoto[];
+  /** Unique entry identifier used for the dialog label. */
+  id: string;
+}
+const { images, id } = Astro.props;
+---
+
+<div class="life-gallery" data-life-gallery data-photos={JSON.stringify(images)}>
+  <div class="gallery-images" data-count={images.length}>
+    {images.map((photo, index) => <button class="gallery-image" type="button" data-photo-index={index} aria-label={`放大照片：${photo.alt}`} aria-haspopup="dialog" aria-controls={`gallery-${id}`}>
+      <img src={photo.src} alt={photo.alt} loading="lazy" width="800" height="800" />
+      <span class="gallery-expand" aria-hidden="true">↗</span>
+    </button>)}
+  </div>
+  <div class="gallery-caption"><span>{String(images.length).padStart(2, '0')} FRAME{images.length > 1 ? 'S' : ''}</span><span>点击照片，放大看看 ↗</span></div>
+  <dialog class="life-lightbox" id={`gallery-${id}`} data-life-lightbox aria-label="照片浏览">
+    <div class="lightbox-top"><span data-photo-count>01 / {String(images.length).padStart(2, '0')}</span><form method="dialog"><button type="submit" class="lightbox-close" aria-label="关闭照片">关闭 <span aria-hidden="true">×</span></button></form></div>
+    <div class="lightbox-image"><img data-photo-full src={images[0]?.src} alt={images[0]?.alt} loading="lazy" /></div>
+    <div class="lightbox-bottom"><p data-photo-caption>{images[0]?.caption || images[0]?.alt}</p><div class="gallery-navigation" hidden={images.length < 2}><button type="button" data-photo-prev aria-label="上一张照片">←</button><button type="button" data-photo-next aria-label="下一张照片">→</button></div></div>
+  </dialog>
+</div>
+
+<script>
+  /** Wire independent photo groups without loading a lightbox dependency. */
+  function initializeLifeGalleries() {
+    document.querySelectorAll<HTMLElement>('[data-life-gallery]').forEach((gallery) => {
+      if (gallery.dataset.initialized) return;
+      gallery.dataset.initialized = 'true';
+      const photos: { src: string; alt: string; caption?: string }[] = JSON.parse(gallery.dataset.photos || '[]');
+      const dialog = gallery.querySelector<HTMLDialogElement>('dialog')!;
+      const image = dialog.querySelector<HTMLImageElement>('[data-photo-full]')!;
+      let current = 0;
+      let opener: HTMLButtonElement | undefined;
+
+      /** Show one actual photo and update its caption and position indicator. */
+      function showPhoto(index: number) {
+        current = (index + photos.length) % photos.length;
+        const photo = photos[current];
+        image.src = photo.src;
+        image.alt = photo.alt;
+        dialog.querySelector('[data-photo-caption]')!.textContent = photo.caption || photo.alt;
+        dialog.querySelector('[data-photo-count]')!.textContent = `${String(current + 1).padStart(2, '0')} / ${String(photos.length).padStart(2, '0')}`;
+      }
+
+      gallery.querySelectorAll<HTMLButtonElement>('[data-photo-index]').forEach((button) => {
+        button.addEventListener('click', () => {
+          opener = button;
+          showPhoto(Number(button.dataset.photoIndex));
+          dialog.showModal();
+        });
+      });
+      dialog.querySelector('[data-photo-prev]')?.addEventListener('click', () => showPhoto(current - 1));
+      dialog.querySelector('[data-photo-next]')?.addEventListener('click', () => showPhoto(current + 1));
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+          event.preventDefault();
+          showPhoto(current + (event.key === 'ArrowLeft' ? -1 : 1));
+        }
+      });
+      dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+      dialog.addEventListener('close', () => opener?.focus());
+    });
+  }
+  initializeLifeGalleries();
+  document.addEventListener('astro:page-load', initializeLifeGalleries);
+</script>
+
+<style>
+  .life-gallery{padding:12px 12px 14px;background:var(--surface);border:1px solid var(--line);box-shadow:0 9px 25px #183d3909;transform:rotate(-1.2deg);transition:transform .25s ease}
+  .life-gallery:hover{transform:rotate(0)}.gallery-images{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.gallery-images[data-count="1"]{grid-template-columns:1fr}.gallery-image{position:relative;display:block;width:100%;padding:0;border:0;background:var(--surface-alt);overflow:hidden;aspect-ratio:1}.gallery-image img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .5s ease}.gallery-image:hover img{transform:scale(1.025)}.gallery-expand{position:absolute;bottom:12px;right:12px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#ffffffdb;color:#1c3838;font-size:18px;transition:transform .2s}.gallery-image:hover .gallery-expand{transform:rotate(45deg)}.gallery-caption{display:flex;justify-content:space-between;gap:10px;font:10px/1.4 var(--font-display);letter-spacing:.05em;padding:15px 4px 1px;color:var(--muted)}.gallery-caption span:last-child{font:10px var(--font-body);letter-spacing:0}
+  .life-lightbox{width:min(1000px,calc(100vw - 36px));max-height:calc(100svh - 36px);padding:18px 24px 20px;border:1px solid #ffffff22;border-radius:12px;background:#14252b;color:#e7f3f1;overflow:auto}.life-lightbox:not([open]){display:none}.life-lightbox::backdrop{background:#07141bdd;backdrop-filter:blur(9px)}.lightbox-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;font:11px var(--font-display);letter-spacing:.08em;color:#b3c6c6}.lightbox-top form{margin:0}.lightbox-close{display:flex;align-items:center;gap:14px;padding:4px 0 4px 16px;border:0;background:none;color:inherit;font-size:12px}.lightbox-close span{font-size:26px;font-weight:300}.lightbox-image{display:flex;justify-content:center;align-items:center}.lightbox-image img{display:block;max-height:70svh;width:auto;max-width:100%;object-fit:contain}.lightbox-bottom{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:18px}.lightbox-bottom p{font-size:12px;color:#b3c6c6;margin:0;line-height:1.7}.gallery-navigation{display:flex;gap:10px}.gallery-navigation[hidden]{display:none}.gallery-navigation button{width:36px;height:36px;display:grid;place-items:center;border:1px solid #ffffff33;border-radius:50%;background:none;color:#e7f3f1}.gallery-navigation button:hover{background:#ffffff11}:global(body:has(dialog[data-life-lightbox][open])){overflow:hidden}
+  @media(max-width:600px){.life-gallery{padding:8px 8px 12px;transform:rotate(-.6deg)}.gallery-caption{font-size:9px}.gallery-caption span:last-child{font-size:9px}.life-lightbox{padding:12px 14px 16px}.lightbox-image img{max-height:65svh}}
+  @media(prefers-reduced-motion:reduce){.life-gallery,.gallery-image img,.gallery-expand{transition:none}}
+</style>

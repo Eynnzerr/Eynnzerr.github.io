@@ -1,0 +1,83 @@
+---
+import { render } from 'astro:content';
+import 'katex/dist/katex.min.css';
+import Giscus from './Giscus.astro';
+import ViewCount from './ViewCount.astro';
+import { formatCount, formatDate, taxonomySlug, type BlogPost } from '../lib/posts';
+
+/** A complete long-form article, including navigation and its stable discussion key. */
+interface Props {
+  /** Current article and its immutable URL. */
+  post: BlogPost;
+  /** Older article, following the original chronological navigation. */
+  previous?: BlogPost;
+  /** Newer article, following the original chronological navigation. */
+  next?: BlogPost;
+}
+const { post, previous, next } = Astro.props;
+const { Content, headings } = await render(post.entry);
+const showUpdated = formatDate(post.date) !== formatDate(post.updated);
+---
+
+<div class="reading-shell">
+  <header class="article-header">
+    <a class="back-link" href="/blog/">← 所有文章</a>
+    <nav class="category-path" aria-label="文章分类">{post.categories.map((category, index) => <><span aria-hidden="true">/</span><a href={`/categories/${post.categories.slice(0, index + 1).map(taxonomySlug).join('/')}/`}>{category}</a></>)}</nav>
+    <h1>{post.title}</h1>
+    <div class="article-meta"><span class="author"><span aria-hidden="true">E.</span>Eynnzerr</span><time datetime={post.date.toISOString()}>{formatDate(post.date)}</time><span>{formatCount(post.wordCount)} 字</span><span>约 {post.readingMinutes} 分钟</span><ViewCount scope="page" /></div>
+    {showUpdated && <p class="updated">最近更新于 <time datetime={post.updated.toISOString()}>{formatDate(post.updated)}</time></p>}
+  </header>
+
+  <div class="reading-grid">
+    {headings.length > 0 && <details class="mobile-toc"><summary>本篇目录 <span>{headings.length} 个小节</span></summary><nav aria-label="移动端文章目录">{headings.map((heading) => <a href={`#${heading.slug}`} style={`padding-left:${Math.max(0, heading.depth - 2) * 12}px`}>{heading.text}</a>)}</nav></details>}
+    <article class="prose"><Content /></article>
+    {headings.length > 0 && <aside class="toc"><div class="toc-inner"><p>ON THIS PAGE <span>本篇目录</span></p><nav aria-label="文章目录">{headings.map((heading) => <a href={`#${heading.slug}`} class:list={[`depth-${heading.depth}`]}>{heading.text}</a>)}</nav><a class="back-top" href="#main-content">↑ 回到顶部</a></div></aside>}
+  </div>
+
+  <footer class="article-footer">
+    <div class="end-mark"><span></span><b aria-hidden="true">✳</b><span></span></div>
+    <div class="article-tags">{post.tags.map((tag) => <a href={`/tags/${taxonomySlug(tag)}/`}>#{tag}</a>)}</div>
+    <nav class="adjacent-posts" aria-label="相邻文章">
+      {previous ? <a href={previous.url}><span>← 上一篇</span><strong>{previous.title}</strong></a> : <div />}
+      {next && <a href={next.url}><span>下一篇 →</span><strong>{next.title}</strong></a>}
+    </nav>
+    <Giscus identifier={post.url} title={post.title} />
+  </footer>
+</div>
+
+<script>
+  const tocLinks = [...document.querySelectorAll<HTMLAnchorElement>('.toc nav a')];
+  const headings = [...document.querySelectorAll<HTMLElement>('.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6')];
+  /** Keep the visible section highlighted without shifting the reading position. */
+  function updateActiveHeading() {
+    let active = headings[0]?.id;
+    for (const heading of headings) { if (heading.getBoundingClientRect().top <= 170) active = heading.id; }
+    tocLinks.forEach((link) => {
+      if (decodeURIComponent(link.hash.slice(1)) === active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  }
+  let queued = false;
+  document.addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(() => { updateActiveHeading(); queued = false; }); } }, { passive: true });
+  updateActiveHeading();
+</script>
+
+<style>
+  .reading-shell{max-width:1200px;padding:66px 40px 80px;margin:auto;color:var(--ink)}
+  .article-header{max-width:900px;margin-bottom:48px}.back-link{font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:.03em}.back-link:hover{color:#047d70}.category-path{display:flex;flex-wrap:wrap;gap:10px;font:10px var(--font-mono,monospace);color:var(--muted);margin:34px 0 14px}.category-path a{color:var(--accent);text-decoration:none}.category-path>span:first-child{display:none}
+  h1{font-size:clamp(32px,4.2vw,57px);font-weight:570;letter-spacing:-.045em;line-height:1.3;margin:0 0 27px;text-wrap:balance}.article-meta{display:flex;align-items:center;flex-wrap:wrap;gap:12px 21px;font-size:11px;color:var(--muted)}.author{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}.author>span{font-family:serif;font-size:17px;display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:var(--surface-alt);color:var(--accent)}.updated{font-size:10px;color:var(--muted);margin:13px 0 0}
+  .reading-grid{display:grid;grid-template-columns:minmax(0,790px) 210px;gap:65px;border-top:1px solid var(--line);padding-top:40px}.prose{min-width:0;font-size:15px;line-height:1.95;letter-spacing:.015em;overflow-wrap:break-word;color:var(--ink)}
+  .toc{min-width:0}.toc-inner{position:sticky;top:105px}.toc p{display:flex;flex-direction:column;gap:5px;font:10px var(--font-mono,monospace);letter-spacing:.1em;color:var(--accent);margin:0 0 20px}.toc p span{font-family:inherit;font-size:10px;color:var(--muted);letter-spacing:0}.toc nav{display:flex;flex-direction:column;max-height:66vh;overflow:auto;overscroll-behavior:contain;padding-left:12px;border-left:1px solid var(--line);scrollbar-width:thin}.toc nav a{font-size:11px;line-height:1.7;color:var(--muted);text-decoration:none;display:block;padding:5px 0}.toc nav a:hover,.toc nav a[aria-current]{color:#087d67}.toc nav a[aria-current]{font-weight:650}.toc .depth-3{padding-left:10px}.toc .depth-4,.toc .depth-5,.toc .depth-6{padding-left:20px;font-size:10px}.back-top{display:inline-block;margin-top:25px;font-size:10px;color:var(--muted);text-decoration:none}
+  .prose :global(h1),.prose :global(h2),.prose :global(h3),.prose :global(h4),.prose :global(h5),.prose :global(h6){color:var(--ink);line-height:1.5;letter-spacing:-.03em;scroll-margin-top:110px;font-weight:620;margin:2em 0 .8em}.prose :global(h1){font-size:32px}.prose :global(h2){font-size:27px;padding-bottom:10px;border-bottom:1px solid var(--line)}.prose :global(h3){font-size:22px}.prose :global(h4){font-size:18px}.prose :global(p){margin:1em 0 1.5em}.prose :global(> :first-child){margin-top:0}.prose :global(strong){font-weight:650;color:var(--ink)}.prose :global(a){color:var(--accent);text-decoration-color:var(--accent);text-underline-offset:3px}.prose :global(a:hover){color:#04a68f;text-decoration-color:currentColor}
+  .prose :global(ul),.prose :global(ol){padding-left:1.55em;margin:1em 0 1.6em}.prose :global(li){padding-left:.2em;margin:.45em 0}.prose :global(li::marker){color:#679f80}.prose :global(blockquote){margin:25px 0;padding:2px 20px;border-left:3px solid var(--line);color:var(--muted);background:var(--surface-alt);border-radius:0 7px 7px 0}.prose :global(blockquote p){margin:12px 0}.prose :global(hr){border:0;border-top:1px solid var(--line);margin:42px 0}
+  .prose :global(code){font-family:var(--font-mono,'SFMono-Regular',Consolas,monospace);font-size:.85em;background:var(--surface-alt);padding:2px 5px;border-radius:4px;color:var(--ink);overflow-wrap:anywhere}.prose :global(pre){border:1px solid var(--line);padding:23px 24px;border-radius:10px;overflow-x:auto;line-height:1.8;margin:24px 0 30px;max-width:100%;font-size:12px;box-shadow:0 4px 20px #183d3904}.prose :global(pre code){padding:0;background:none;color:inherit;font-size:inherit;overflow-wrap:normal}.prose :global(table){display:block;overflow-x:auto;width:max-content;max-width:100%;border-collapse:collapse;font-size:13px;margin:25px 0 30px}.prose :global(th),.prose :global(td){padding:11px 14px;border:1px solid var(--line);min-width:90px;vertical-align:top}.prose :global(th){background:var(--surface-alt);text-align:left;color:var(--ink)}.prose :global(tr:nth-child(even)){background:#f0f3e7}
+  .prose :global(img){display:block;max-width:100%;height:auto;margin:26px auto;border-radius:8px}.prose :global(.katex-display){overflow-x:auto;overflow-y:hidden;padding:14px 4px;margin:1.5em 0}.prose :global(.katex){font-size:1.13em}.prose :global(input[type=checkbox]){accent-color:#2e9074}
+  .article-footer{max-width:790px}.end-mark{display:flex;align-items:center;gap:18px;color:var(--muted);margin:60px 0 30px}.end-mark span{height:1px;background:var(--surface-alt);flex:1}.end-mark b{font-size:20px;font-weight:400}.article-tags{display:flex;flex-wrap:wrap;gap:10px}.article-tags a{background:var(--surface-alt);border:1px solid var(--line);padding:5px 10px;font-size:11px;text-decoration:none;color:var(--muted);border-radius:4px}.adjacent-posts{display:grid;grid-template-columns:1fr 1fr;gap:35px;margin:35px 0 65px;padding-top:28px;border-top:1px solid var(--line)}.adjacent-posts a{display:flex;flex-direction:column;gap:10px;text-decoration:none;color:var(--ink)}.adjacent-posts a:last-child{text-align:right}.adjacent-posts span{font-size:10px;letter-spacing:.02em;color:var(--muted)}.adjacent-posts strong{font-size:15px;line-height:1.8;font-weight:520}.discussion-heading h2{font-size:30px;letter-spacing:-.04em;margin:0;color:var(--ink);font-weight:550}.discussion-heading p{font-size:12px;color:var(--muted);margin:12px 0 30px}
+  @media(min-width:1500px){.reading-shell{max-width:1250px}.reading-grid{grid-template-columns:minmax(0,830px) 230px;gap:75px}.article-footer{max-width:830px}}
+  @media(max-width:1000px){.reading-grid{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}.article-footer{max-width:none}.reading-shell{max-width:850px}}
+  @media(max-width:600px){.reading-shell{padding:35px 21px 55px}.article-header{margin-bottom:30px}.category-path{margin-top:26px}.article-meta{gap:10px 14px;font-size:10px}.reading-grid{padding-top:25px}.prose{font-size:14px;line-height:1.95}.prose :global(h2){font-size:23px}.prose :global(h3){font-size:20px}.prose :global(pre){padding:18px 16px;font-size:11px;margin-left:-5px;margin-right:-5px;max-width:calc(100% + 10px)}.prose :global(table){font-size:12px}.prose :global(th),.prose :global(td){padding:9px 10px}.adjacent-posts{gap:23px}.adjacent-posts strong{font-size:13px}.end-mark{margin-top:40px}}
+  .prose{font-size:16px}
+  .mobile-toc{display:none}
+  @media(max-width:600px){.prose{font-size:15px}}
+  @media(max-width:1000px){.mobile-toc{display:block;border:1px solid var(--line);border-radius:8px;margin:0 0 28px;padding:14px 17px;background:var(--surface)}.mobile-toc summary{font-size:12px;color:var(--accent);cursor:pointer}.mobile-toc summary span{color:var(--muted);font-size:10px;margin-left:12px}.mobile-toc nav{display:flex;flex-direction:column;gap:8px;margin-top:16px;max-height:300px;overflow:auto}.mobile-toc a{font-size:12px;color:var(--muted);text-decoration:none}}
+</style>

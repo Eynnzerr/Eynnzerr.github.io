@@ -1,0 +1,22 @@
+<div class="resonance" aria-hidden="true">
+  <div class="resonance-aura"></div>
+  <canvas id="resonance-canvas"></canvas>
+  <span class="orbit-label orbit-label-bottom">A LITTLE CHAOS.<br />A LOT OF FEELING.</span>
+  <span class="orbit-cross">+</span>
+</div>
+<script>
+  import { startResonance } from '../scripts/resonance';
+  const canvas = document.querySelector<HTMLCanvasElement>('#resonance-canvas');
+  if (canvas) startResonance(canvas);
+</script>
+<style>
+  .resonance{position:absolute;width:68%;height:100%;right:-9%;top:0;pointer-events:none;overflow:hidden;transition:width 1150ms cubic-bezier(.22,.7,.18,1),right 1150ms cubic-bezier(.22,.7,.18,1),top 1150ms cubic-bezier(.22,.7,.18,1),height 1150ms cubic-bezier(.22,.7,.18,1)}.resonance canvas{width:100%;height:100%;position:relative;z-index:2}.resonance-aura{position:absolute;width:57%;aspect-ratio:1;left:22%;top:18%;background:var(--hero-aura);filter:blur(25px);border-radius:50%;transition:transform 1150ms cubic-bezier(.22,.7,.18,1),opacity 1150ms}.orbit-label{position:absolute;z-index:3;font:10px/1.6 var(--font-display);letter-spacing:.16em;color:var(--hero-muted);transition:opacity 450ms 450ms,transform 650ms 300ms,color 600ms}.orbit-label-bottom{bottom:15%;right:18%;color:var(--hero-faint)}.orbit-cross{position:absolute;right:24%;top:20%;font-size:24px;font-weight:200;color:var(--hero-ink);transition:opacity 400ms 450ms,transform 650ms 300ms,color 600ms}
+  @media(max-width:800px){.resonance{width:100%;height:600px;right:-24%;top:20px;opacity:var(--sculpture-opacity-tablet)}.orbit-label-bottom{bottom:17%;right:34%}}
+  @media(max-width:600px){.resonance{width:620px;right:-295px;top:35px;height:610px;opacity:var(--sculpture-opacity-mobile)}.orbit-label-bottom,.orbit-cross{display:none}}
+  :global(.hero[data-mode="entering"]) .resonance,:global(.hero[data-mode="game"]) .resonance{width:100%;height:100%;right:0;top:0}
+  :global(.hero[data-mode="entering"]) .resonance-aura,:global(.hero[data-mode="game"]) .resonance-aura{transform:translateX(1%) scaleX(.25) scaleY(1.4);opacity:.3}
+  :global(.hero[data-mode="entering"]) .orbit-label,:global(.hero[data-mode="game"]) .orbit-label,:global(.hero[data-mode="entering"]) .orbit-cross,:global(.hero[data-mode="game"]) .orbit-cross{opacity:0;transform:translateY(-18px) rotate(-8deg);transition-delay:0ms}
+  :global(.hero[data-mode="entering"]) .orbit-label-bottom,:global(.hero[data-mode="game"]) .orbit-label-bottom{transform:translateY(18px)}
+  :global(.hero[data-mode="game"]) .resonance{visibility:hidden}
+  @media(prefers-reduced-motion:reduce){.resonance,.resonance-aura,.orbit-label,.orbit-cross{transition:none}}
+</style>
