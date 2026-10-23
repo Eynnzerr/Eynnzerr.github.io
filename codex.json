@@ -2,20 +2,20 @@
   "version": 1,
   "kind": "codex",
   "status": "available",
-  "updatedAt": "2026-10-19T00:47:24.822Z",
+  "updatedAt": "2026-10-23T00:47:22.655Z",
   "source": "本机 Codex 会话记录",
   "sourceUrl": null,
   "timezone": "Asia/Shanghai",
   "coverage": {
     "start": "2026-09-22",
-    "end": "2026-10-19"
+    "end": "2026-10-23"
   },
   "totals": {
-    "count": 805960469,
-    "input": 802265190,
-    "output": 3695279,
-    "cachedInput": 776427264,
-    "reasoningOutput": 1284357
+    "count": 1049465104,
+    "input": 1044949166,
+    "output": 4515938,
+    "cachedInput": 1010202880,
+    "reasoningOutput": 1540638
   },
   "days": [
     {
@@ -140,19 +140,51 @@
     },
     {
       "date": "2026-10-19",
-      "count": 16462009,
-      "input": 16381392,
-      "output": 80617,
-      "cachedInput": 15915264,
-      "reasoningOutput": 33483
+      "count": 23687537,
+      "input": 23579994,
+      "output": 107543,
+      "cachedInput": 22493824,
+      "reasoningOutput": 48864
+    },
+    {
+      "date": "2026-10-20",
+      "count": 29472347,
+      "input": 29372660,
+      "output": 99687,
+      "cachedInput": 27698432,
+      "reasoningOutput": 29979
+    },
+    {
+      "date": "2026-10-21",
+      "count": 34698019,
+      "input": 34546041,
+      "output": 151978,
+      "cachedInput": 33370880,
+      "reasoningOutput": 55534
+    },
+    {
+      "date": "2026-10-22",
+      "count": 168603211,
+      "input": 168093642,
+      "output": 509569,
+      "cachedInput": 162832768,
+      "reasoningOutput": 146251
+    },
+    {
+      "date": "2026-10-23",
+      "count": 3505530,
+      "input": 3473031,
+      "output": 32499,
+      "cachedInput": 3294976,
+      "reasoningOutput": 9136
     }
   ],
   "statistics": {
-    "files": 149,
-    "streams": 146,
-    "countedEvents": 7106,
+    "files": 181,
+    "streams": 178,
+    "countedEvents": 8848,
     "duplicateEvents": 0,
-    "repeatedTotals": 746,
+    "repeatedTotals": 946,
     "resetCount": 0,
     "missingBaselines": 4,
     "invalidRecords": 0
