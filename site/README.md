@@ -4,6 +4,8 @@
 
 首页的「听见我的节奏」会将动态曲面展开为四键音游，并在转场后倒数开局。点击「回到首页」或按 Esc 会立即结束本局、收束音轨，恢复主视觉和原来的阅读位置。首屏转场由 `src/scripts/hero-stage.ts` 协调，曲面动画位于 `src/scripts/resonance.ts`，游戏逻辑位于 `src/scripts/rhythm-game.ts`。
 
+音游默认播放原有 Melodic Bass「Resonance」，还可选择 Drum & Bass「Slipstream」、Future Bass「Prism」和 Heaven Trap「Halcyon」。每首都有独立的轻松／挑战谱面。切换曲目会结束当前一局，选择后点击开始；只在开始播放时加载所选音乐。曲目名称、速度、时长、配色及音频地址统一定义在 `src/lib/rhythm-chart.ts`，三首新曲的谱面与段落时间来自 `src/data/rhythm/`。音频和谱面由同一份编曲事件生成，复现方法见[音乐制作说明](scripts/music/README.md)。
+
 首页导航、主视觉与正文统一跟随深浅主题，默认深色，并记住访客手动选择的配色。浅色曲面使用青绿、铜橙细线与柔和投影，深色保留发光线条；进入音游时舞台逐渐压暗，退出后恢复当前主题。配色变量集中在 `src/pages/index.astro` 的 `.hero` 中。
 
 **本地运行**
@@ -64,7 +66,8 @@ tags: [Kotlin, 跨平台]
 | 自我介绍与联系入口 | [`src/pages/about.astro`](src/pages/about.astro) |
 | 四个个人经历节点 | [`src/components/ExperienceTimeline.astro`](src/components/ExperienceTimeline.astro) |
 | 首页文案与展示入口 | [`src/pages/index.astro`](src/pages/index.astro) |
-| 音游谱面 | [`src/lib/rhythm-chart.ts`](src/lib/rhythm-chart.ts) |
+| 音游曲目与原曲谱面 | [`src/lib/rhythm-chart.ts`](src/lib/rhythm-chart.ts) |
+| 新曲谱面与段落时间 | [`src/data/rhythm/`](src/data/rhythm/) |
 
 新增作品可复制 [`blue-fish.md`](src/content/projects/blue-fish.md)，修改名称、简介、技术栈、平台、状态、截图和排序。`source` 是源码入口，`demo` 是在线体验地址，`download` 是下载地址；截图布局 `visual` 可选 `phones`、`desktop`、`banner`。
 

@@ -1,7 +1,7 @@
 import {
-  APPROACH_SECONDS, BEAT_SECONDS, COUNTDOWN_SECONDS, GRADE_WEIGHTS,
-  createChart, judgeTiming, missWindow, normalizedScore, sectionAt,
-  type ChartNote, type Difficulty, type HitGrade, type Lane,
+  APPROACH_SECONDS, COUNTDOWN_SECONDS, GRADE_WEIGHTS, DEFAULT_TRACK_ID,
+  createChart, getTrack, judgeTiming, missWindow, normalizedScore, sectionAt,
+  type ChartNote, type Difficulty, type HitGrade, type Lane, type TrackId,
 } from '../lib/rhythm-chart';
 
 /** All visible states in a single, restartable round. */
@@ -79,6 +79,10 @@ function mountGame(root: HTMLElement): RhythmGameController {
   const offset = find<HTMLInputElement>('[data-game-offset]');
   const offsetReset = find<HTMLButtonElement>('[data-offset-reset]');
   const modeButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-difficulty]'));
+  /** Track controls remain available while loading or playing so selection can cancel a round. */
+  const trackButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-select-track]'));
+  /** Optional enclosing header shares the selected track's identity and accent. */
+  const hero = root.closest<HTMLElement>('[data-hero-stage]');
   const pads = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-lane]'));
   const cleanupEvents: Array<() => void> = [];
   const pressedKeys = new Set<Lane>();
@@ -86,7 +90,10 @@ function mountGame(root: HTMLElement): RhythmGameController {
   const laneFlashes = [-10, -10, -10, -10];
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const keyLanes: Record<string, Lane> = { KeyD: 0, KeyF: 1, KeyJ: 2, KeyK: 3 };
-  const laneColors = ['#84e7ee', '#84e7ee', '#f5b29b', '#f5b29b'];
+  /** Only this recording may own a cached buffer or a pending round. */
+  let selectedTrack = getTrack(DEFAULT_TRACK_ID);
+  /** Left and right lane pairs inherit the recording's two authored accents. */
+  let laneColors = [selectedTrack.colors[0], selectedTrack.colors[0], selectedTrack.colors[1], selectedTrack.colors[1]];
   // The hero's embedded stage aligns with its wider four-pad control surface.
   const embedded = root.classList.contains('rhythm-game-embedded');
   const maxLaneWidth = embedded ? 640 : 464;
@@ -94,7 +101,7 @@ function mountGame(root: HTMLElement): RhythmGameController {
   let state: GameState = 'idle';
   let reducedMotion = motionPreference.matches;
   let difficulty: Difficulty = 'easy';
-  let notes: PlayedNote[] = createChart(difficulty).map((note) => ({ ...note, grade: null }));
+  let notes: PlayedNote[] = createChart(difficulty, selectedTrack.id).map((note) => ({ ...note, grade: null }));
   let stats = emptyStats();
   let audio: AudioContext | null = null;
   let gain: GainNode | null = null;
@@ -126,6 +133,36 @@ function mountGame(root: HTMLElement): RhythmGameController {
   function text(selector: string, value: string): void {
     const element = find<HTMLElement>(selector);
     if (element.textContent !== value) element.textContent = value;
+  }
+
+  /** Render the selected recording without fetching audio or starting a round. */
+  function updateTrackDetails(): void {
+    root.dataset.trackId = selectedTrack.id;
+    root.dataset.audioSrc = selectedTrack.audioSrc;
+    root.style.setProperty('--rg-cyan', selectedTrack.colors[0]);
+    root.style.setProperty('--rg-coral', selectedTrack.colors[1]);
+    laneColors = [selectedTrack.colors[0], selectedTrack.colors[0], selectedTrack.colors[1], selectedTrack.colors[1]];
+    trackButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.selectTrack === selectedTrack.id)));
+    text('[data-track-title]', selectedTrack.title.toUpperCase());
+    text('[data-track-meta]', `${selectedTrack.bpm} BPM · ${Math.ceil(selectedTrack.duration)} SEC`);
+    text('[data-track-description]', selectedTrack.description);
+    text('[data-track-credit]', `EYNNZERR / ${selectedTrack.title.toUpperCase()} · ${selectedTrack.genre.toUpperCase()}`);
+    const heroTitle = hero?.querySelector<HTMLElement>('[data-hero-track-title]');
+    const heroMeta = hero?.querySelector<HTMLElement>('[data-hero-track-meta]');
+    if (heroTitle) heroTitle.textContent = selectedTrack.title.toUpperCase();
+    if (heroMeta) heroMeta.textContent = `${selectedTrack.bpm} BPM · ${selectedTrack.key.toUpperCase()} · ${selectedTrack.genre.toUpperCase()}`;
+    hero?.style.setProperty('--stage-accent', selectedTrack.colors[0]);
+    hero?.style.setProperty('--stage-pulse-duration', `${120 / selectedTrack.bpm}s`);
+  }
+
+  /** Cancel the old recording and require a fresh play action for the selected one. */
+  function selectTrack(trackId: TrackId): void {
+    if (trackId === selectedTrack.id) return;
+    selectedTrack = getTrack(trackId);
+    buffer = null;
+    updateTrackDetails();
+    stopRound();
+    status.textContent = `已选择 ${selectedTrack.title} · ${selectedTrack.genre}。点击「开始一局」，倒数后播放。`;
   }
 
   /** The live phase includes the visible pre-roll before the first audio sample. */
@@ -199,18 +236,25 @@ function mountGame(root: HTMLElement): RhythmGameController {
     return audio;
   }
 
-  /** Fetch and decode once; all restarts reuse the decoded, sample-timed recording. */
+  /** Load only the selected recording; same-track restarts reuse its decoded samples. */
   async function getBuffer(): Promise<AudioBuffer> {
     if (buffer) return buffer;
     if (!loadingBuffer) {
       const controller = new AbortController();
+      // Capture identity before either network or decoder yields to a later selection.
+      const requestedTrack = selectedTrack;
+      const context = getAudio();
       loadingController = controller;
       const pending = (async () => {
-        const response = await fetch(root.dataset.audioSrc!, { signal: controller.signal });
+        const response = await fetch(requestedTrack.audioSrc, { signal: controller.signal });
         if (!response.ok) throw new Error(`Audio HTTP ${response.status}`);
-        const decoded = await getAudio().decodeAudioData(await response.arrayBuffer());
+        const encoded = await response.arrayBuffer();
+        if (controller.signal.aborted || destroyed) throw new DOMException('Audio loading cancelled', 'AbortError');
+        const decoded = await context.decodeAudioData(encoded);
         // Decoding itself cannot be aborted, so a cancelled round discards its result.
-        if (controller.signal.aborted) throw new DOMException('Audio loading cancelled', 'AbortError');
+        if (controller.signal.aborted || destroyed || selectedTrack.id !== requestedTrack.id) {
+          throw new DOMException('Audio loading cancelled', 'AbortError');
+        }
         buffer = decoded;
         return buffer;
       })().finally(() => {
@@ -250,7 +294,7 @@ function mountGame(root: HTMLElement): RhythmGameController {
   function trackTime(performanceTime = performance.now()): number {
     if (state === 'paused') return pausedAt;
     if (state === 'idle' || state === 'loading') return 0;
-    if (state === 'finished') return buffer?.duration ?? 33.8;
+    if (state === 'finished') return buffer?.duration ?? selectedTrack.duration;
     return audibleContextTime(performanceTime) - playbackStart + playbackOffset;
   }
 
@@ -296,17 +340,21 @@ function mountGame(root: HTMLElement): RhythmGameController {
   /** Clear physical holds when a round stops or the browser loses focus. */
   function releaseInputs(): void {
     pressedKeys.clear();
+    activePointers.forEach((lane, pointerId) => {
+      if (pads[lane].hasPointerCapture(pointerId)) pads[lane].releasePointerCapture(pointerId);
+    });
     activePointers.clear();
     pads.forEach((pad) => pad.classList.remove('is-pressed'));
   }
 
   /** Reset chart judgements and visual counters while keeping user settings. */
   function resetRound(): void {
-    notes = createChart(difficulty).map((note) => ({ ...note, grade: null }));
+    notes = createChart(difficulty, selectedTrack.id).map((note) => ({ ...note, grade: null }));
     stats = emptyStats();
     pausedAt = 0;
     playbackOffset = 0;
     sparks = [];
+    laneFlashes.fill(-10);
     feedbackAt = -10;
     lastProgressSecond = -1;
     releaseInputs();
@@ -327,7 +375,7 @@ function mountGame(root: HTMLElement): RhythmGameController {
     if (!resume) resetRound();
     const token = ++roundToken;
     setState('loading');
-    status.textContent = '正在准备这段原创旋律…';
+    status.textContent = `正在准备 ${selectedTrack.title}…`;
     try {
       await Promise.all([getAudio().resume(), getBuffer()]);
       if (destroyed || token !== roundToken) return;
@@ -457,12 +505,12 @@ function mountGame(root: HTMLElement): RhythmGameController {
     feedbackAt = -10;
     updateProgress(buffer!.duration);
     text('[data-game-phase]', 'A MOMENT, WELL PLAYED');
-    status.textContent = `${difficulty === 'easy' ? '轻松' : '挑战'}谱面完成。准确率 ${(accuracy * 100).toFixed(1)}%，最高 ${stats.bestCombo} 连击。`;
+    status.textContent = `${selectedTrack.title} · ${difficulty === 'easy' ? '轻松' : '挑战'}谱面完成。准确率 ${(accuracy * 100).toFixed(1)}%，最高 ${stats.bestCombo} 连击。`;
   }
 
   /** Reflect playback progress without making an accessibility update every frame. */
   function updateProgress(time: number): void {
-    const duration = buffer?.duration ?? 33.8;
+    const duration = buffer?.duration ?? selectedTrack.duration;
     const progress = Math.max(0, Math.min(1, time / duration));
     find<HTMLElement>('[data-progress-fill]').style.transform = `scaleX(${progress})`;
     const displayTime = progress === 1 ? Math.ceil(duration) : time;
@@ -533,9 +581,11 @@ function mountGame(root: HTMLElement): RhythmGameController {
       if (flare > 0) {
         const gradient = paint.createLinearGradient(0, hitY - 120, 0, hitY);
         gradient.addColorStop(0, 'transparent');
-        gradient.addColorStop(1, lane < 2 ? `rgba(107,225,238,${flare * 0.24})` : `rgba(246,173,146,${flare * 0.24})`);
+        gradient.addColorStop(1, laneColors[lane]);
         paint.fillStyle = gradient;
+        paint.globalAlpha = flare * 0.24;
         paint.fill();
+        paint.globalAlpha = 1;
       }
     }
 
@@ -548,7 +598,7 @@ function mountGame(root: HTMLElement): RhythmGameController {
       paint.stroke();
     }
 
-    const movement = isRunning() ? time / (BEAT_SECONDS * 8) : reducedMotion ? 0 : now / 16;
+    const movement = isRunning() ? time / ((60 / selectedTrack.bpm) * 8) : reducedMotion ? 0 : now / 16;
     for (let row = 0; row < 8; row += 1) {
       const progress = ((row / 8 + movement) % 1 + 1) % 1;
       const depth = Math.pow(progress, 1.4);
@@ -562,13 +612,13 @@ function mountGame(root: HTMLElement): RhythmGameController {
     }
 
     const lineGradient = paint.createLinearGradient(width / 2 - bottomWidth / 2, 0, width / 2 + bottomWidth / 2, 0);
-    lineGradient.addColorStop(0, '#80dfe955');
-    lineGradient.addColorStop(0.35, '#a0eef4cc');
-    lineGradient.addColorStop(0.7, '#f5b8a6cc');
-    lineGradient.addColorStop(1, '#f4aa9355');
+    lineGradient.addColorStop(0, 'transparent');
+    lineGradient.addColorStop(0.35, selectedTrack.colors[0]);
+    lineGradient.addColorStop(0.7, selectedTrack.colors[1]);
+    lineGradient.addColorStop(1, 'transparent');
     paint.fillStyle = lineGradient;
     paint.shadowBlur = 12;
-    paint.shadowColor = '#96e5e6';
+    paint.shadowColor = selectedTrack.colors[0];
     paint.fillRect(width / 2 - bottomWidth / 2, hitY, bottomWidth, 2);
     paint.shadowBlur = 0;
 
@@ -611,7 +661,7 @@ function mountGame(root: HTMLElement): RhythmGameController {
         notes.forEach((note) => {
           if (note.grade === null && note.time < now - missWindow(difficulty)) missNote(note);
         });
-        text('[data-game-phase]', sectionAt(rawTime));
+        text('[data-game-phase]', sectionAt(rawTime, selectedTrack.id));
         updateProgress(rawTime);
         if (buffer && rawTime >= buffer.duration) finishRound();
       }
@@ -627,6 +677,9 @@ function mountGame(root: HTMLElement): RhythmGameController {
 
   listen(playButton, 'click', () => { void playRound(); });
   listen(stopButton, 'click', stopRound);
+  trackButtons.forEach((button) => listen(button, 'click', () => {
+    selectTrack(button.dataset.selectTrack as TrackId);
+  }));
   modeButtons.forEach((button) => listen(button, 'click', () => {
     difficulty = button.dataset.difficulty as Difficulty;
     modeButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
@@ -711,6 +764,8 @@ function mountGame(root: HTMLElement): RhythmGameController {
     else requestFrame();
   });
   visibilityObserver.observe(root);
+  updateTrackDetails();
+  updateProgress(0);
   resize();
   setState('idle');
   requestFrame();
@@ -724,6 +779,7 @@ function mountGame(root: HTMLElement): RhythmGameController {
       cancelLoading();
       cancelFrame();
       stopSource();
+      buffer = null;
       releaseInputs();
       resizeObserver.disconnect();
       visibilityObserver.disconnect();
