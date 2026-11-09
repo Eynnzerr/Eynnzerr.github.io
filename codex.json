@@ -2,20 +2,20 @@
   "version": 1,
   "kind": "codex",
   "status": "available",
-  "updatedAt": "2026-11-07T00:43:32.830Z",
+  "updatedAt": "2026-11-09T00:40:06.549Z",
   "source": "本机 Codex 会话记录",
   "sourceUrl": null,
   "timezone": "Asia/Shanghai",
   "coverage": {
     "start": "2026-10-21",
-    "end": "2026-11-07"
+    "end": "2026-11-09"
   },
   "totals": {
-    "count": 998775968,
-    "input": 995405850,
-    "output": 3370118,
-    "cachedInput": 965528064,
-    "reasoningOutput": 1371746
+    "count": 1968119433,
+    "input": 1962732536,
+    "output": 5386897,
+    "cachedInput": 1918848512,
+    "reasoningOutput": 2019812
   },
   "days": [
     {
@@ -116,21 +116,37 @@
     },
     {
       "date": "2026-11-07",
-      "count": 185738,
-      "input": 183744,
-      "output": 1994,
-      "cachedInput": 168448,
-      "reasoningOutput": 39
+      "count": 592388398,
+      "input": 591072409,
+      "output": 1315989,
+      "cachedInput": 583753088,
+      "reasoningOutput": 436404
+    },
+    {
+      "date": "2026-11-08",
+      "count": 376982059,
+      "input": 376280982,
+      "output": 701077,
+      "cachedInput": 369580672,
+      "reasoningOutput": 211643
+    },
+    {
+      "date": "2026-11-09",
+      "count": 158746,
+      "input": 157039,
+      "output": 1707,
+      "cachedInput": 155136,
+      "reasoningOutput": 58
     }
   ],
   "statistics": {
-    "files": 102,
-    "streams": 97,
-    "countedEvents": 6228,
+    "files": 176,
+    "streams": 168,
+    "countedEvents": 10913,
     "duplicateEvents": 0,
-    "repeatedTotals": 504,
+    "repeatedTotals": 546,
     "resetCount": 0,
-    "missingBaselines": 0,
+    "missingBaselines": 1,
     "invalidRecords": 0
   }
 }
