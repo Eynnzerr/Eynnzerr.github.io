@@ -2,77 +2,37 @@
   "version": 1,
   "kind": "codex",
   "status": "available",
-  "updatedAt": "2026-11-09T00:40:06.549Z",
+  "updatedAt": "2026-11-10T00:36:15.551Z",
   "source": "本机 Codex 会话记录",
   "sourceUrl": null,
   "timezone": "Asia/Shanghai",
   "coverage": {
-    "start": "2026-10-21",
-    "end": "2026-11-09"
+    "start": "2026-10-31",
+    "end": "2026-11-10"
   },
   "totals": {
-    "count": 1968119433,
-    "input": 1962732536,
-    "output": 5386897,
-    "cachedInput": 1918848512,
-    "reasoningOutput": 2019812
+    "count": 1467625036,
+    "input": 1463881356,
+    "output": 3743680,
+    "cachedInput": 1435511168,
+    "reasoningOutput": 1235525
   },
   "days": [
     {
-      "date": "2026-10-21",
-      "count": 712606,
-      "input": 704386,
-      "output": 8220,
-      "cachedInput": 609024,
-      "reasoningOutput": 4909
-    },
-    {
-      "date": "2026-10-27",
-      "count": 106284,
-      "input": 105338,
-      "output": 946,
-      "cachedInput": 23552,
-      "reasoningOutput": 516
-    },
-    {
-      "date": "2026-10-28",
-      "count": 60170607,
-      "input": 59950218,
-      "output": 220389,
-      "cachedInput": 58702208,
-      "reasoningOutput": 95290
-    },
-    {
-      "date": "2026-10-29",
-      "count": 439933386,
-      "input": 438865487,
-      "output": 1067899,
-      "cachedInput": 425669376,
-      "reasoningOutput": 413096
-    },
-    {
-      "date": "2026-10-30",
-      "count": 130759165,
-      "input": 130136163,
-      "output": 623002,
-      "cachedInput": 125971712,
-      "reasoningOutput": 322925
-    },
-    {
       "date": "2026-10-31",
-      "count": 5944374,
-      "input": 5895356,
-      "output": 49018,
-      "cachedInput": 5543552,
-      "reasoningOutput": 30735
+      "count": 3748076,
+      "input": 3721138,
+      "output": 26938,
+      "cachedInput": 3581952,
+      "reasoningOutput": 21410
     },
     {
       "date": "2026-11-01",
-      "count": 10647767,
-      "input": 10564261,
-      "output": 83506,
-      "cachedInput": 10275200,
-      "reasoningOutput": 61728
+      "count": 8432980,
+      "input": 8371480,
+      "output": 61500,
+      "cachedInput": 8346624,
+      "reasoningOutput": 53374
     },
     {
       "date": "2026-11-02",
@@ -132,21 +92,21 @@
     },
     {
       "date": "2026-11-09",
-      "count": 158746,
-      "input": 157039,
-      "output": 1707,
-      "cachedInput": 155136,
-      "reasoningOutput": 58
+      "count": 135757482,
+      "input": 135434450,
+      "output": 323032,
+      "cachedInput": 131683840,
+      "reasoningOutput": 70186
     }
   ],
   "statistics": {
-    "files": 176,
-    "streams": 168,
-    "countedEvents": 10913,
+    "files": 171,
+    "streams": 165,
+    "countedEvents": 8474,
     "duplicateEvents": 0,
-    "repeatedTotals": 546,
+    "repeatedTotals": 103,
     "resetCount": 0,
-    "missingBaselines": 1,
+    "missingBaselines": 2,
     "invalidRecords": 0
   }
 }
