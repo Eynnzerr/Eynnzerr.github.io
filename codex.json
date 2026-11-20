@@ -2,20 +2,20 @@
   "version": 1,
   "kind": "codex",
   "status": "available",
-  "updatedAt": "2026-11-19T05:20:30.316Z",
+  "updatedAt": "2026-11-20T00:35:11.612Z",
   "source": "本机 Codex 会话记录",
   "sourceUrl": null,
   "timezone": "Asia/Shanghai",
   "coverage": {
     "start": "2026-11-06",
-    "end": "2026-11-19"
+    "end": "2026-11-20"
   },
   "totals": {
-    "count": 1829627872,
-    "input": 1826785162,
-    "output": 2842710,
-    "cachedInput": 1792923392,
-    "reasoningOutput": 731985
+    "count": 1789703109,
+    "input": 1786696762,
+    "output": 3006347,
+    "cachedInput": 1752883200,
+    "reasoningOutput": 821323
   },
   "days": [
     {
@@ -52,19 +52,19 @@
     },
     {
       "date": "2026-11-11",
-      "count": 417258509,
-      "input": 416699046,
-      "output": 559463,
-      "cachedInput": 411866112,
-      "reasoningOutput": 180032
+      "count": 66413615,
+      "input": 66303592,
+      "output": 110023,
+      "cachedInput": 65303296,
+      "reasoningOutput": 38407
     },
     {
       "date": "2026-11-12",
-      "count": 37230217,
-      "input": 37145405,
-      "output": 84812,
-      "cachedInput": 36024064,
-      "reasoningOutput": 17121
+      "count": 14516521,
+      "input": 14478910,
+      "output": 37611,
+      "cachedInput": 13802496,
+      "reasoningOutput": 2946
     },
     {
       "date": "2026-11-13",
@@ -116,21 +116,29 @@
     },
     {
       "date": "2026-11-19",
-      "count": 84238575,
-      "input": 84076837,
-      "output": 161738,
-      "cachedInput": 81077504,
-      "reasoningOutput": 38330
+      "count": 302384675,
+      "input": 301772032,
+      "output": 612643,
+      "cachedInput": 295628416,
+      "reasoningOutput": 189415
+    },
+    {
+      "date": "2026-11-20",
+      "count": 115487727,
+      "input": 115278354,
+      "output": 209373,
+      "cachedInput": 114193280,
+      "reasoningOutput": 94053
     }
   ],
   "statistics": {
-    "files": 227,
-    "streams": 223,
-    "countedEvents": 9628,
+    "files": 236,
+    "streams": 231,
+    "countedEvents": 9749,
     "duplicateEvents": 0,
-    "repeatedTotals": 77,
+    "repeatedTotals": 75,
     "resetCount": 0,
-    "missingBaselines": 1,
+    "missingBaselines": 0,
     "invalidRecords": 0
   }
 }
