@@ -24,9 +24,11 @@ date: '2026-10-14'
 
 ```yaml
 images:
-  - src: /images/example.webp
+  - src: /images/life/2026-live.jpg
     alt: 照片中实际可见的内容
     caption: 可选的照片说明
 ```
 
-生活页不加载评论组件。照片与视频素材需要放入公开可访问的位置，再在条目中引用。
+照片文件放在 `src/assets/images/` 下与 `src` 同名的路径，上例即 `src/assets/images/life/2026-live.jpg`。构建时会为时间线生成适合屏幕的 AVIF / WebP，并为灯箱生成最宽 1920px 的大图，直接放相机原图即可。视频封面 `poster` 可以用同样的本地路径，也可以填写 Bilibili 等外部图片地址（外部图片按原样加载）。
+
+生活页不加载评论组件。

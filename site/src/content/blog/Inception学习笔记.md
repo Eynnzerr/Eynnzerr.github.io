@@ -31,7 +31,7 @@ GoogleNet中主要涉及到3个网络结构：Inception Module，和Auxiliary Cl
 
 直观来看，Inception其实就是将多个卷积和池化的操作放在一起组装为一个小型网络模块，使得神经网络的设计模块化。下图是Inception模块的结构：
 
-![Inception](https://s2.loli.net/2022/07/04/G6PuijTULCxpN39.png)
+![Inception](../../assets/images/blog/Inception学习笔记/G6PuijTULCxpN39.png)
 
 从图中可见，Inception包含了一组不同卷积核大小的卷积核和一个必要的均值池化层。不同尺度的特征，往往需要不同大小的感受野来捕获。传统的网络结构中，在一层卷积层只能有一种大小卷积核，其能获得的特征不一定是最佳的，而可能需要别的大小的卷积核。Inception所做的正是将这一过程交给神经网络判断，网络通过调节参数，自主选择合适大小的卷积核。原始的Inception结构如图(a)所示，这样的结构仍会带来较多参数，不能直接用于网络。解决方案是加入先前所述的1x1卷积核，做到数据降维，减少参数数量，于是最终形成了图(b)所示的结构。
 用Pytorch实现如下：
@@ -121,7 +121,7 @@ class AuxClassifier(nn.Module):
 
 GoogleNet的结构如下：
 
-![Screenshot from 2022-07-04 20-41-50.png](https://s2.loli.net/2022/07/04/suoGLmEKOCyVw7c.png)
+![Screenshot from 2022-07-04 20-41-50.png](../../assets/images/blog/Inception学习笔记/suoGLmEKOCyVw7c.png)
 
 可见，在较浅层，主要组成部分依然是传统的卷积+池化。随后便是Inception模块的不断堆叠，间以最大池化，最后是dropout+全连接层输出分类结果。需要注意的是这里的全连接层实际上是一个均值池化层，通过7x7的滤波器大小，将前一层输入的7x7大小的特征直接转化为1x1。论文提到这里用池化层代替卷积层，实现了0.6%的准确度提升。
 
@@ -340,11 +340,11 @@ class GoogleNet(nn.Module):
 设置batch_size为32，经过20个epoch，得到训练结果如下：
 loss图像：
 
-![loss.png](https://s2.loli.net/2022/07/04/pqZOLAvFXQd1eKH.png)
+![loss.png](../../assets/images/blog/Inception学习笔记/pqZOLAvFXQd1eKH.png)
 
 accuracy图像：
 
-![accuracy.png](https://s2.loli.net/2022/07/04/9k5G3gI2WZBJdqu.png)
+![accuracy.png](../../assets/images/blog/Inception学习笔记/9k5G3gI2WZBJdqu.png)
 
 这里依然出现了之前一样的问题：loss曲线剧烈抖动，同时accuracy每轮epoch开始有毛刺？新手上路，实在没弄清楚原因。虽然图像不甚完美，但可看到loss还是随训练总体上是降低的，而accuracy是升高的。并且在验证集中也能达到准确率目标。
 

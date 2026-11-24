@@ -98,7 +98,8 @@ X264Encoder::~X264Encoder() {
 于是有人想到，如果能够自动管理对象的生命周期，写代码的时候可能就可以少考虑一些麻烦事，少写一些模版化的代码了。这就是自动内存管理的诞生。jvm 正具有自动内存管理的能力，对于 jvm 系语言的程序员来说，在虚拟机自动内存管理机制的帮助下，不再需要操心为每一个`new`操作写配对的`delete`/`free`，也因此大大减少了内存泄漏和内存溢出的可能。虽然将内存控制的权利交给 jvm ，可以为开发者省去不少麻烦，但也正因如此，一旦真的出现了内存相关问题,如果不了解 jvm 的内存结构和管理策略，排查错误也将无从下手。
 
 ### jvm内存结构
-<div align=center><img src="https://s1.ax1x.com/2022/10/29/x5EYlj.jpg"></div>
+
+![JVM 内存结构：类装载器、运行时数据区（方法区、堆、虚拟机栈、本地方法栈、程序计数器）、执行引擎与本地库接口](../../assets/images/blog/leakCanary笔记-md/x5EYlj.jpg)
 
 ### 对象的自动清理——GC
 #### 引用计数算法
@@ -145,7 +146,9 @@ val obj = PhantomReference(Any())
 
 ## LeakCanary
 **LeakCanary** 是 Android 开源社区巨头 **Square** 公司出品的 Android app 内存泄漏检测工具。
-<div align=center><img src="https://square.github.io/leakcanary/images/logo-2.0-200px.png"></div>
+
+![LeakCanary 2.x 版本 Logo](../../assets/images/blog/leakCanary笔记-md/logo-2.0-200px.png)
+
 <div align=center>2.x版本Logo: 一只寄了的金丝雀</div>
 
 自`2.0-alpha-1`版本以后，LeakCanary 经由纯 kotlin 重写，并且更新了许多 API 沿用至今，故此处只简要介绍 LeakCanary2 的使用，以及基于 LeakCanary2 源码分析其原理。
@@ -233,19 +236,19 @@ class MainActivity : ComponentActivity() {
 
 分析不难得知，虽然销毁了`activity`，但协程中的线程依然活跃并作为GC Root 对象。而该线程又持有`handler`实例，`handler`作为内部类又隐式持有外部`mainActivity`实例，故存在以下引用链使得`mainActivity`可达（~~随便找了个在线画图网页，请无视掉水印~~）：
 
-<div align=center><img src="https://s1.ax1x.com/2022/10/29/x5ENXn.png"></div>
+![引用链：GC Roots 中的线程对象持有 handler，handler 又持有 mainActivity](../../assets/images/blog/leakCanary笔记-md/share_gclink.png)
 
 1. 启动应用，不一会儿便可以看到`LeakCanary`弹出一则通知，表示探测到了内存泄漏：
 
-<div align=center><img src="https://s1.ax1x.com/2022/10/29/x5EJpQ.png"></div>
+![LeakCanary 通知：2 retained objects, tap to dump heap](../../assets/images/blog/leakCanary笔记-md/x5EJpQ.png)
 
 点击该通知，将开始导出并分析app运行时jvm堆的信息。当提示完成时，再次点击通知，将进入`LeakCanary`提供的客户端：
 
-<div align=center><img src="https://s1.ax1x.com/2022/10/29/x5ENXn.png"></div>
+![LeakCanary 客户端：检测到 1 个泄漏，位于 Thread.parkBlocker](../../assets/images/blog/leakCanary笔记-md/x5ENXn.png)
 
 点击这个刚感知到的内存泄漏条目，堆的信息将以可视化的形式呈现：
 
-<div align=center><img src="https://s1.ax1x.com/2022/10/29/x5Eamq.png"></div>
+![LeakCanary 泄漏详情：从 GC Root 线程对象到 MainActivity 的引用链](../../assets/images/blog/leakCanary笔记-md/x5Eamq.png)
 
 或者我们也可以从日志中获取引用链的信息，示例输出的日志如下：
 ```

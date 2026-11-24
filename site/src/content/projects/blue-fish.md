@@ -7,7 +7,7 @@ category: Web
 stack: [React, TypeScript, Canvas]
 platforms: 桌面与手机浏览器
 status: 可在线体验
-image: /projects/blue-fish.png
+image: /images/projects/blue-fish.png
 visual: desktop
 source: https://github.com/Eynnzerr/blue-fish-studio
 demo: https://fish.eynnzerr.cloud/

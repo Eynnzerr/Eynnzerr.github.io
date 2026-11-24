@@ -73,29 +73,31 @@ tags: [Kotlin, 跨平台]
 
 生活内容使用 `thought`、`essay`、`photos`、`video` 四种类型：短想法直接展示，长随笔生成独立页面，照片支持组图灯箱，视频当前通过 Bilibili `bvid` 接入，点击封面后才加载播放器。完整字段和示例见[生活维护说明](src/content/life/README.md)。带 `demo: true` 或 `draft: true` 的条目默认不公开；发布正式稿时删除相应标记。
 
-关于页已经收录四个个人经历节点。内容与节点布局在 `ExperienceTimeline.astro`，交互动效在 [`src/scripts/experience-timeline.ts`](src/scripts/experience-timeline.ts)，图片放在 `public/images/journey/`。
+关于页已经收录四个个人经历节点。内容与节点布局在 `ExperienceTimeline.astro`，交互动效在 [`src/scripts/experience-timeline.ts`](src/scripts/experience-timeline.ts)，四幅插图是 [`JourneyEmblem.astro`](src/components/JourneyEmblem.astro) 中手绘的线描 SVG，颜色取自页面主题变量，随深浅模式切换。
 
 **图片、视频和音频**
 
-公开资源放在 `public/`，引用路径从网站根目录开始。例如 `public/images/life/photo.webp` 在 Markdown 中写成：
+图片放在 `src/assets/images/`，构建时自动缩放并生成 AVIF / WebP，直接放原图即可，不必手动压缩。作品截图、生活照片和视频封面在 frontmatter 中照常写 `/images/...`，文件放在 `src/assets` 下的同名路径：例如 `image: /images/projects/app.jpg` 对应 `src/assets/images/projects/app.jpg`。路径写错时构建会直接报错并提示应放的位置。
+
+文章图片放在 `src/assets/images/blog/文章文件名/`，用相对路径引用：
 
 ```md
-![照片中实际可见的内容](/images/life/photo.webp)
+![图片中实际可见的内容](../../assets/images/blog/a-new-note/diagram.png)
 ```
 
-新增作品截图位于 `public/images/projects/`，原有三件作品的截图保留在 `public/projects/`。旧文章本地图片位于 `public/legacy-assets/`。首页音乐及来源说明位于 [`public/audio/`](public/audio/)，更换音频时同步调整谱面时间。
+不要引用外部图床。旧文章原先放在图床上的图片已收回仓库，来源记录在 [`src/assets/images/blog/SOURCES.md`](src/assets/images/blog/SOURCES.md)。
+
+`public/` 只保留需要固定地址的文件：分享卡片 `public/images/social-card.png`、站点图标，以及首页音乐与来源说明 [`public/audio/`](public/audio/)（更换音频时同步调整谱面时间）。
 
 **活动热图**
 
 ```sh
 npm run sync:activity
-node scripts/sync-activity.mjs --github-only
-node scripts/sync-activity.mjs --codex-only
 ```
 
-GitHub 数据通过已登录的 `gh` 读取官方贡献日历。Codex 数据从本机会话记录按北京时间汇总，输出到 `src/data/activity/codex.json`；输入包含缓存输入，输出包含推理输出。公开文件只保存每日汇总与来源信息。统计口径及路径参数见[活动数据说明](src/data/activity/README.md)。
+关于页只展示 GitHub 贡献热图。数据通过已登录的 `gh` 读取官方贡献日历，公开文件只保存每日汇总与来源信息，详见[活动数据说明](src/data/activity/README.md)。热图卡片的配色随深浅主题切换，两套色值都定义在 `ActivityHeatmap.astro` 的 `.activity-card` 上。
 
-每日线上同步使用独立数据分支 `site-activity`，聚合与提交在源码目录外完成。先运行 `node scripts/publish-activity.mjs --dry-run` 审阅两份 JSON；正式启用后，`--publish` 将数据推送并请求 Actions 更新站点。工作流通过仓库变量 `SITE_PUBLISH_ENABLED=true` 开启部署，默认只构建验收。
+每日线上同步使用独立数据分支 `site-activity`，聚合与提交在源码目录外完成。先运行 `node scripts/publish-activity.mjs --dry-run` 审阅 `github.json`；正式启用后，`--publish` 将数据推送并请求 Actions 更新站点。工作流通过仓库变量 `SITE_PUBLISH_ENABLED=true` 开启部署，默认只构建验收。
 
 **评论与部署**
 

@@ -12,7 +12,7 @@ tags:
 ## 案例一
 
 2025年12月18日，发现v1.0.3版本桌面端安装包体积爆炸增大，从原本的150MB左右暴涨到1GB，如下图所示。
-![image.png](/legacy-assets/package-size-incre-md/image.png)
+![image.png](../../assets/images/blog/package-size-incre-md/image.png)
 
 由于三端均产生该问题，以 macOS 端(.dmg)为例展开排查。解包产物，切入 `contents` 目录查看文件夹大小，执行 `du -sh ./*`，结果如下：
 
@@ -49,7 +49,7 @@ tags:
 
 这就很显然了，验证了猜想是对的。明明是macOS平台的包，却连 windows 及 linux 的jar都被打包进来，所以导致了包体积暴涨。下一步是排查最终的罪魁祸首，是谁干了这件蠢事。回到项目中运行 `./gradlew :composeApp:dependencyInsight --configuration desktopRuntimeClasspath --dependency javacv-platform`，输出如下：
 
-![image-1.png](/legacy-assets/package-size-incre-md/image-1.png)
+![image-1.png](../../assets/images/blog/package-size-incre-md/image-1.png)
 
 水落石出，结果显示是 `cmp-image-pick-n-crop-jvm:1.1.2` 这个库依赖 `org.bytedeco:javacv-platform:1.5.8` 又依赖 `org.bytedeco:opencv-platform:4.6.0-1.5.8`。`cmp-image-pick-n-crop` 是我在Github上找的一个用来裁剪图片的第三方库，它的JVM平台包依赖了 `*-platform` 全家桶，导致暴增。我在本次更新的改动中将其版本从 `1.1.1` 升级到 `1.1.2` 才出现这个问题，看来是作者在更新他的库依赖时犯了个低级错误。
 
@@ -59,7 +59,7 @@ tags:
 
 2026年1月28日，发现v1.0.4版本桌面端安装包体积再次出现异常增大，但这次涨幅不如上次，且只有 Win / Linux 平台受影响。
 
-![image-2.png](/legacy-assets/package-size-incre-md/image-2.png)
+![image-2.png](../../assets/images/blog/package-size-incre-md/image-2.png)
 
 这次以 Linux 平台 (.deb) 为例进行排查，还是老方法，解包然后看谁变大了。分别对新老版本安装包运行 `du -h -d 4 old | sort -h | tail -n 30` 查看：
 

@@ -1,0 +1,109 @@
+---
+/**
+ * Line-drawn timeline emblems in the same thin-stroke language as the home page sculpture.
+ * Inline SVG, so every stroke follows the page palette in both themes.
+ */
+interface Props {
+  /** Milestone to draw. */
+  name: 'hust-south-one' | 'douyin-commerce' | 'hust-library' | 'douyin-open';
+  /** Accessible description of the drawing. */
+  label: string;
+}
+const { name, label } = Astro.props;
+
+/** A vertical strip of windows: its outline plus one divider per floor. */
+function windowStrip(x: number, top: number, bottom: number, floors: number, width = 4): string {
+  const step = (bottom - top) / floors;
+  let path = `M${x} ${top}h${width}v${bottom - top}h${-width}z`;
+  for (let floor = 1; floor < floors; floor += 1) path += `M${x} ${top + step * floor}h${width}`;
+  return path;
+}
+
+// 南一楼: symmetric wings, a taller central block and an entrance portico.
+const wingStrips = [29, 39, 49, 59, 137, 147, 157, 167].map((x) => windowStrip(x, 98, 142, 4)).join('');
+const centreStrips = [76, 87, 98, 109, 120].map((x) => windowStrip(x, 74, 122, 4)).join('');
+
+// 主图书馆: deep grid facade of ribs and beams under a flat overhanging roof.
+const bays = 9;
+const bayWidth = 152 / bays;
+const ribs = Array.from({ length: bays + 1 }, (_, index) => `M${24 + index * bayWidth - 1.5} 55h3v85h-3z`).join('');
+const beams = [76.25, 97.5, 118.75].map((y) => `M24 ${y}h152`).join('');
+const recesses = Array.from({ length: bays * 4 }, (_, index) => {
+  const column = index % bays;
+  const row = Math.floor(index / bays);
+  return { x: 24 + column * bayWidth + 5, y: 55 + row * 21.25 + 5, entrance: column === 4 && row === 3 };
+});
+---
+
+<svg class="journey-art" viewBox="0 0 200 200" role="img" aria-label={label} fill="none" stroke-linecap="round" stroke-linejoin="round">
+  {name === 'hust-south-one' && <g>
+    <ellipse class="wash" cx="100" cy="153" rx="86" ry="5" />
+    <path class="solid" d="M22 152V84h48V62h16V52h28v10h16v22h48v68z" />
+    <path class="faint" d="M8 152h184" />
+    <path class="ink" d="M22 152V84h48M130 84h48v68M19 84h3M178 84h3" />
+    <path class="faint" d="M22 90h48M130 90h48" />
+    <path class="faint" d={wingStrips} />
+    <path class="ink" d="M70 152V62h60v90M66 62h4M130 62h4" />
+    <path class="faint" d="M70 68h60" />
+    <path class="faint" d={centreStrips} />
+    <path class="ink" d="M86 62V52h28v10" />
+    <path class="coral" d="M83 52h34" />
+    <rect class="wash" x="88" y="130" width="24" height="22" />
+    <path class="jade" d="M84 130h32M88 152v-22M112 152v-22M96 152v-15h8v15" />
+  </g>}
+
+  {name === 'douyin-commerce' && <g>
+    <ellipse class="wash" cx="100" cy="166" rx="54" ry="4" />
+    <g class="coral offset" transform="translate(-7 5)"><path d="M68 74h64a14 14 0 0 1 14 14v58a14 14 0 0 1-14 14H68a14 14 0 0 1-14-14V88a14 14 0 0 1 14-14z" /></g>
+    <g class="jade offset" transform="translate(7 5)"><path d="M68 74h64a14 14 0 0 1 14 14v58a14 14 0 0 1-14 14H68a14 14 0 0 1-14-14V88a14 14 0 0 1 14-14z" /></g>
+    <path class="solid" d="M68 74h64a14 14 0 0 1 14 14v58a14 14 0 0 1-14 14H68a14 14 0 0 1-14-14V88a14 14 0 0 1 14-14z" />
+    <path class="ink" d="M68 74h64a14 14 0 0 1 14 14v58a14 14 0 0 1-14 14H68a14 14 0 0 1-14-14V88a14 14 0 0 1 14-14z" />
+    <path class="ink" d="M80 74V62a20 20 0 0 1 40 0v12" />
+    <g class="coral" transform="translate(-3 -2.5)"><circle cx="91" cy="133" r="12" /><path d="M103 133V89c1 11 8 16 19 17" /></g>
+    <g class="jade" transform="translate(3 2.5)"><circle cx="91" cy="133" r="12" /><path d="M103 133V89c1 11 8 16 19 17" /></g>
+    <g class="ink"><circle cx="91" cy="133" r="12" /><path d="M103 133V89c1 11 8 16 19 17" /></g>
+  </g>}
+
+  {name === 'hust-library' && <g>
+    <ellipse class="wash" cx="100" cy="157" rx="90" ry="4" />
+    <rect class="solid" x="14" y="46" width="172" height="104" />
+    <path class="faint" d="M6 156h188" />
+    <path class="ink" d="M14 150h172M18 145h164M22 140h156" />
+    {recesses.map((cell) => cell.entrance
+      ? <><rect class="wash" x={cell.x} y={cell.y} width={bayWidth - 10} height="16" /><rect class="jade" x={cell.x} y={cell.y} width={bayWidth - 10} height="16" /></>
+      : <rect class="glass" x={cell.x} y={cell.y} width={bayWidth - 10} height="11.25" />)}
+    <path class="faint" d={beams} />
+    <path class="ink" d={ribs} />
+    <path class="ink" d="M24 140V55h152v85" />
+    <rect class="ink" x="14" y="46" width="172" height="9" />
+    <path class="coral" d="M24 59h152" />
+  </g>}
+
+  {name === 'douyin-open' && <g>
+    <ellipse class="wash" cx="100" cy="182" rx="50" ry="4" />
+    <path class="arm-edge" d="M100 106V44M100 106l52 30M100 106l-52 30" />
+    <path class="arm-body" d="M100 106V44M100 106l52 30M100 106l-52 30" />
+    <circle class="coral" cx="100" cy="106" r="3" />
+    {[[152, 74, -30], [48, 74, -150], [100, 166, 90]].map(([x, y, angle]) => <g transform={`translate(${x} ${y}) rotate(${angle})`}>
+      <rect class="solid" x="-15" y="-9" width="30" height="18" rx="4" />
+      <rect class="wash" x="-15" y="-9" width="30" height="18" rx="4" />
+      <rect class="jade" x="-15" y="-9" width="30" height="18" rx="4" />
+    </g>)}
+  </g>}
+</svg>
+
+<style>
+  .journey-art { overflow:visible; }
+  .journey-art :is(path,rect,circle,ellipse) { vector-effect:non-scaling-stroke; stroke-width:1.25; }
+  .ink { stroke:var(--ink); opacity:.85; }
+  .faint { stroke:var(--ink); opacity:.32; }
+  .jade { stroke:var(--accent); }
+  .coral { stroke:var(--warm); }
+  .glass { stroke:var(--accent); opacity:.4; }
+  .offset { opacity:.55; }
+  .wash { fill:var(--accent); fill-opacity:.09; stroke:none; }
+  .solid { fill:var(--bg); stroke:none; }
+  /* The open-platform arms are one solid shape: a wide ink stroke hollowed by a narrower page-colored one. */
+  .journey-art .arm-edge { vector-effect:none; stroke:var(--ink); stroke-width:24; opacity:.85; }
+  .journey-art .arm-body { vector-effect:none; stroke:var(--bg); stroke-width:21.6; }
+</style>

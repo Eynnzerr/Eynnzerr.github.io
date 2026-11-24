@@ -49,10 +49,8 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
 
-      - name: Use the two locally aggregated snapshots
-        run: |
-          cp ../activity-data/github.json src/data/activity/github.json
-          cp ../activity-data/codex.json src/data/activity/codex.json
+      - name: Use the locally aggregated GitHub snapshot
+        run: cp ../activity-data/github.json src/data/activity/github.json
 
       - name: Install site dependencies
         run: npm ci

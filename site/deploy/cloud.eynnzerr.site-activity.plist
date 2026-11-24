@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>cloud.eynnzerr.site-activity</string>
+  <key>ProgramArguments</key>
+  <array>
+    <!-- The launcher picks a user-installed Node.js (nvm, then PATH); see run-activity.sh. -->
+    <string>/bin/zsh</string>
+    <string>/Users/eynnzerr/github/eynnzerr-site/site/deploy/run-activity.sh</string>
+    <string>--publish</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- launchd does not load the interactive shell's PATH; gh is installed by Homebrew. -->
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <!-- Daily at 08:35 in the Mac's system timezone; a sleeping Mac runs it after waking. -->
+    <key>Hour</key>
+    <integer>8</integer>
+    <key>Minute</key>
+    <integer>35</integer>
+  </dict>
+  <key>RunAtLoad</key>
+  <false/>
+  <key>StandardOutPath</key>
+  <string>/Users/eynnzerr/Library/Logs/eynnzerr-activity.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/eynnzerr/Library/Logs/eynnzerr-activity.error.log</string>
+</dict>
+</plist>

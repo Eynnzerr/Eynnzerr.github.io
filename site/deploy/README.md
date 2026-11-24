@@ -6,7 +6,9 @@
 
 ## 数据流
 
-Mac 每天 08:35 用现有 `gh` 登录读取 GitHub 官方贡献日历，并扫描本机 Codex 使用记录。在独立临时 checkout 中聚合后，通过已有 SSH 连接将 `github.json`、`codex.json` 提交到 `site-activity` 分支。这个分支仅保存两份公开聚合文件，源码目录的暂存区与工作区不参与提交。
+Mac 每天 08:35 用现有 `gh` 登录读取 GitHub 官方贡献日历。在独立临时 checkout 中聚合后，通过已有 SSH 连接将 `github.json` 提交到 `site-activity` 分支。这个分支只保存公开聚合文件，源码目录的暂存区与工作区不参与提交。
+
+2026-11-24 起不再收集 Codex 用量。分支上残留的 `codex.json` 不再更新，发布脚本会容忍它的存在；确认新版工作流（不再复制该文件）已推送到 `master` 后，可在数据分支单独删除它。
 
 推送成功后，脚本用 `gh workflow run` 显式触发 `master` 上的 `site-pages.yml`。Actions 读取源码和数据分支，执行类型检查、逻辑测试、构建及静态产物验收，随后按发布开关决定是否部署。GitHub 贡献查询发生在 Mac，云端无需额外 PAT，也无需本机会话记录。
 
@@ -20,9 +22,9 @@ Mac 每天 08:35 用现有 `gh` 登录读取 GitHub 官方贡献日历，并扫�
 node site/scripts/publish-activity.mjs --dry-run
 ```
 
-命令会实际读取两种数据并生成暂存差异，打印独立 checkout 路径和 `git diff --cached` 查看命令。默认不带参数也是 dry run。目录位于 `~/Library/Application Support/Eynnzerr/activity-sync/run-*`；审阅后可删除对应 `run-*` 目录。自定义路径可用 `--work-dir` 和 `--codex-home`。
+命令会实际读取 GitHub 数据并生成暂存差异，打印独立 checkout 路径和 `git diff --cached` 查看命令。默认不带参数也是 dry run。目录位于 `~/Library/Application Support/Eynnzerr/activity-sync/run-*`；审阅后可删除对应 `run-*` 目录。自定义路径可用 `--work-dir`。
 
-聚合失败时停止提交和推送，保留该次目录供检查；远端沿用上一次成功数据。SSH push 失败也保留目录，下次执行重新聚合并读取远端分支。成功发布会清理临时 checkout。
+每一步联网操作（读取与推送数据分支、查询贡献日历、请求构建）失败时会依次等待 30 秒、1、2、4、8 分钟后重试，约 15 分钟内网络恢复即可完成：Mac 唤醒后 Wi‑Fi 与本机代理往往需要片刻才就绪，此前约三分之一的 08:35 任务因此失败。重试仍失败时停止提交和推送，保留该次目录供检查；远端沿用上一次成功数据，下次执行重新聚合并读取远端分支。成功发布会清理临时 checkout。
 
 ## 首次发布的源码范围
 
@@ -85,11 +87,11 @@ git -C "$release_checkout" diff --cached --stat
 
    ```sh
    mkdir -p "$HOME/Library/LaunchAgents" "$HOME/Library/Logs"
-   cp site/deploy/cloud.eynnzerr.codex-activity.plist "$HOME/Library/LaunchAgents/"
-   launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/cloud.eynnzerr.codex-activity.plist"
+   cp site/deploy/cloud.eynnzerr.site-activity.plist "$HOME/Library/LaunchAgents/"
+   launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/cloud.eynnzerr.site-activity.plist"
    ```
 
-LaunchAgent 已填写这台 Mac 上 Codex 配套 Node.js 24 的实际路径和项目路径。更换 Node 安装位置或移动项目后同步修改。安装时不立即运行，每天 08:35 更新两份数据；Mac 睡眠错过该时刻时，在唤醒后运行。每次全量扫描可补齐已有日志中的日期。[Apple 定时任务说明](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html)
+LaunchAgent 通过 [`run-activity.sh`](run-activity.sh) 启动发布脚本：优先使用 nvm 安装的最新 Node.js 24，其次使用 PATH 中 22 及以上的 Node（如 Homebrew），不依赖任何应用自带的运行时；`nvm install 24` 升级后自动生效。plist 中写有项目路径，移动项目后同步修改。2026-11-24 前的旧任务名为 `cloud.eynnzerr.codex-activity`，已卸载。安装时不立即运行，每天 08:35 更新数据；Mac 睡眠错过该时刻时，在唤醒后运行。每次全量扫描可补齐已有日志中的日期。[Apple 定时任务说明](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html)
 
 之后从源码 checkout 推送 `master` 中的 `site/**` 更新，即可自动发布。活动数据需要立即同步时，在原项目目录执行：
 
@@ -110,7 +112,7 @@ gh variable set SITE_PUBLISH_ENABLED --body false --repo Eynnzerr/Eynnzerr.githu
 停止已经安装的每日同步：
 
 ```sh
-launchctl bootout "gui/$(id -u)" "$HOME/Library/LaunchAgents/cloud.eynnzerr.codex-activity.plist"
+launchctl bootout "gui/$(id -u)" "$HOME/Library/LaunchAgents/cloud.eynnzerr.site-activity.plist"
 ```
 
 ## 恢复旧 Hexo 站点

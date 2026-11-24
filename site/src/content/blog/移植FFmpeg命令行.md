@@ -147,9 +147,9 @@ echo "build android ffmpeg finished."
 
 到此，我们的目录结构如下：
 
-![结构1](https://s2.loli.net/2022/02/27/ZoAg5efELPjxDHi.png)
+![结构1](../../assets/images/blog/移植FFmpeg命令行/ZoAg5efELPjxDHi.png)
 
-![结构2](https://s2.loli.net/2022/02/27/3lTunBPNMsfkJvD.png)
+![结构2](../../assets/images/blog/移植FFmpeg命令行/3lTunBPNMsfkJvD.png)
 
 接着，我们还需要修改其中的一部分代码，以使其适应Android APP下的应用情景。参考博客：https://blog.csdn.net/yhaolpz/article/details/77146156#commentBox
 

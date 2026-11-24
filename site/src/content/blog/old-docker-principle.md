@@ -20,7 +20,7 @@ tags:
 
 Docker是一个用Go编写的开源工具，它可以将你的应用打包成一个标准格式的镜像，并且以容器的方式运行。Docker容器将一系列软件包装在一个完整的**文件系统**中，这个文件系统包含应用程序运行所需要的一切：代码、运行时工具、系统工具、系统依赖，几乎有任何可以安装在服务器上的东西。这些策略保证了容器内应用程序运行环境的稳定性，不会被容器外的系统环境所影响。
 
-![R-C.jpeg](https://i.loli.net/2021/11/16/FUWQXIS5ZNdvA7Y.jpg)
+![R-C.jpeg](../../assets/images/blog/old-docker-principle/FUWQXIS5ZNdvA7Y.jpg)
 
 ### Docker容器的特点：
 1. 轻量： 在同一台宿主机上的容器将共享系统kernel，使得它们可以迅速启动而且占用较少的内存。镜像是以**分层文件系统**构造的，这可以让它们共享相同的文件，使得磁盘使用率和镜像下载速度都得到较大提高。
@@ -32,7 +32,7 @@ Docker是一个用Go编写的开源工具，它可以将你的应用打包成一
 首先是犯下傲慢之罪的虚拟机，包含用户的程序，必要的函数库和整个客户操作系统，至少也需要占用好几个GB的空间。如图所示，除了使用Hypervisor技术对硬件设施进行虚拟化外，虚拟机还多一层guest OS。
 而docker容器则是在docker engine的控制和驱动下，以用户态运行，并在宿主机上互相隔离。docker直接使用硬件资源和共享内核，不和任何基础设施绑定。
 
-![20006deca0fccda0d536edd626835e9e_720w.png](https://i.loli.net/2021/11/16/yYOHjz3NRrJPZVp.png)
+![20006deca0fccda0d536edd626835e9e_720w.png](../../assets/images/blog/old-docker-principle/yYOHjz3NRrJPZVp.png)
 
 ### 容器基本概念
 我们还是先回顾一波docker中的基础概念。
@@ -100,7 +100,7 @@ and so on......
 ### Linux namespace
 本来，不同的进程是共享同一份内核资源的。要做一个通俗的类比的话，如果说每个进程是单独的一个住户，那么内核资源就好比是小区里的公共场所，大家都可以使用，且使用情况对彼此都可见。而ns的作用，就是把这样的公共场所隔离开来。但这里的**隔离**，说的并不是将公共场所分成几部分，交给不同的进程，而是每个进程依然有原来一样大的公共场所，公共场所中的资源和变更情况只有他自己能看到。如果他在公共场所丢了一根烟头，则只有他自己知道，其他人（进程）是感知不到的。
 Linux Namespace就是这样提供了一种内核级别隔离系统资源的方法，通过将系统的全局资源放在不同的Namespace中，来实现资源隔离的目的。不同Namespace的程序，可以享有一份独立的系统资源。
-![OIP-C.jpeg](https://i.loli.net/2021/11/16/dHxQRgG9uBOZDTr.jpg)
+![OIP-C.jpeg](../../assets/images/blog/old-docker-principle/dHxQRgG9uBOZDTr.jpg)
 namespace的API有如下3个syscall:
 - clone() 创建新进程，并根据传入的系统调用参数判断那些类型的namespace被创建，并且其子进程也会包含到这些namespace中。
 - unshare() 将进程移出某个namespace。
@@ -120,7 +120,7 @@ namespace的API有如下3个syscall:
 #### Mount namespace
 Mount Namespace用来*隔离各个进程看到的挂载点视图*。不同namespace的进程，看到的文件系统层次是不同的。在mount namespace中调用mount, umount等命令只会影响当前namespace内的文件系统，而对全局的文件系统是没有影响的。（事实上，docker容器内的挂载情况确实和宿主机不同。）
 Mount Namespace是linux第一个实现的namespace类型，因而它的syscall参数比较特殊，是NEWNS。
-![ns-mount.png](https://i.loli.net/2021/11/16/amiSFvLeyJ6k5A7.png)
+![ns-mount.png](../../assets/images/blog/old-docker-principle/amiSFvLeyJ6k5A7.png)
 但是有一点需要注意：有些时候，Mount Namespace其实并不能真正隔离挂载信息！这是因为linux中还存在一种名为**Shared Subtree**的机制！
 引入该机制是为了消除mount ns带来的不便，比如系统新增一块磁盘，我希望所有的NS都感知到新挂载的这块磁盘，那么如果NS 之间是完全隔离的，就需要每个都执行一次挂载操作，这是非常不变的，shared subtree保证了不同的NS 之间可以共享挂载信息。
 共享子树有两大核心：**peer group**和**propagate type**。
@@ -197,7 +197,7 @@ Linux Cgroups（Control Groups）提供了对一组进程及其将来子进程�
   - ns: 控制cgroups中的进程使用不同的namespace。
 
 也就是说，cgroup是管理一组task的基本单元，其作为结点组成的树结构叫做hiierarchy。subsystem附加在hierarchy上，对其中的cgroup进行资源限制，同时子结点继承父结点的配置。
-![cgroup.png](https://i.loli.net/2021/11/16/nXhgHSrBY5IZ9oq.png)
+![cgroup.png](../../assets/images/blog/old-docker-principle/cgroup.png)
 三个组件的关系：系统创建新的hierarchy后，系统中的所有进程都会加入这个hierarchy的cgroup根节点，这个根节点是由hierarchy默认创建的。一个subsystem只能附加到一个hierarchy上面，一个hierarchy可以附加多个subsystem，一个进程可以作为多个cgroup的成员，但这些cgroup必须在不同的hierarchy中；一个进程fork出子进程时，父子同属于一个cgroup，但也可以根据需要移到不同的cgroup中。
 如何调用内核才能配置Cgroups呢？前面提到，hierarchy是一种树状的组织结构，kernel为了使对Cgroups的配置更加直观，是通过一个虚拟的树状文件系统来配置Cgroup的，也就是通过层级的目录来虚拟出一棵hierarchy(cgroup tree)。示例：
 
@@ -231,7 +231,7 @@ AUFS，全称是Advanced Multi-Layerd Unification Filesystem，完全重写了�
 AUFS是docker选用的第一种存储驱动，具有快速启动容器、高效利用存储和内存等优点，直到现在依然被docker支持。接下来，介绍docker是如何利用AUFS存储镜像和容器的。
 我们知道，在docker中，每一个image都是由一系列read-only layer组成的。image layer的内容都存储在/var/lib/docker/aufs/diff目录下。而/var/lib/docker/aufs/layers目录则存储image layer如何堆栈这些layer的metadata。
 
-![container-layers.jpg](https://i.loli.net/2021/11/16/xpBINYUX5t6Mzlc.jpg)
+![container-layers.jpg](../../assets/images/blog/old-docker-principle/xpBINYUX5t6Mzlc.jpg)
 
 #### Overlay2
 Overlay2是现版本Docker默认使用的存储驱动，通常情况下，overlay2 会比AUFS性能更好，而且更加稳定，但是二者基本的存储思路都是分层。overlay2 和 AUFS 类似，它将所有目录称之为层（layer），overlay2 的目录是镜像和容器分层的基础，而把这些层统一展现到同一的目录下的过程称为联合挂载（union mount）。overlay2 把目录的下一层叫作lowerdir，上一层叫作upperdir，联合挂载后的结果叫作merged。

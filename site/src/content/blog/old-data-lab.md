@@ -327,7 +327,7 @@ unsigned floatPower2(int x) {
 ### 结果
 这里有个小插曲，编译btest时提示不兼容的gcc。这是因为我的机器是x86-64，但Lab的makefile中添加了-m32参数，而我缺少在64位机器编译32位程序的库。这里可以选择修改makefile，把这个参数删去或者改为-m64，或者安装需要的库，有**gcc-multilib**和**module-assistant**。
 测试结果如图。
-![lab_1_result.png](https://s2.loli.net/2022/04/30/JahmHNLkZU2b8AY.png)
+![lab_1_result.png](../../assets/images/blog/old-data-lab/JahmHNLkZU2b8AY.png)
 
 ### 碎碎念
 从这个学期开始，我一直处于一种浑浑噩噩的状态，课内没学好，加权卷不上去，课外的知识也进度缓慢（包括但不限于CSAPP只读到了第四章，计算机视觉半熟不熟，几个月没写安卓）。最近看了许多大牛学长的博客和他们的经历分享，收获了很多，还是希望能向强者靠拢。开始做CSAPP的lab，也算是自己挣脱摆烂状态的一次尝试。希望自己能继续努力，保持学习吧！

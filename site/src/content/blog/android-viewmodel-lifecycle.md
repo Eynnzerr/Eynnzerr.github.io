@@ -37,7 +37,7 @@ Activity / Fragment / 导航作用域
 
 新的 Activity A' 有新的普通成员字段，但重新查询同一 Store、同一 key 时，能够拿到旧的 V。
 
-![Activity 因旋转重建时 ViewModel 保持存活，Activity 结束后 ViewModel 才被清理](/images/blog/android-viewmodel-lifecycle/lifecycle.png)
+![Activity 因旋转重建时 ViewModel 保持存活，Activity 结束后 ViewModel 才被清理](../../assets/images/blog/android-viewmodel-lifecycle/lifecycle.png)
 
 图源：[Android Developers：ViewModel lifecycle](https://developer.android.com/topic/libraries/architecture/viewmodel#lifecycle)，原图保留，按 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 使用。
 

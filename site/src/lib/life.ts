@@ -5,7 +5,7 @@ export type LifeKind = 'thought' | 'essay' | 'photos' | 'video';
 
 /** A photograph and its accessible description, optionally with a caption. */
 export interface LifePhoto {
-  /** Root-relative file path or public HTTPS image URL. */
+  /** `/images/...` path of a file under src/assets (optimized at build), or a public HTTPS URL. */
   src: string;
   /** Concrete description of the image for screen readers. */
   alt: string;
@@ -33,6 +33,8 @@ export interface LifeFrontmatter {
   images?: LifePhoto[];
   /** Public Bilibili video identifier for an explicitly loaded player. */
   bvid?: string;
+  /** Root-relative path to a local MP4 file stored under public. */
+  videoSrc?: string;
   /** Public video cover image URL. */
   poster?: string;
   /** Video duration displayed on its cover. */
@@ -49,7 +51,9 @@ export interface LifeEntry extends LifeFrontmatter {
   slug: string;
   /** Full article address for essays, timeline anchor for other formats. */
   url: string;
-  /** Compiled Markdown component for inline thoughts and full essays. */
+  /** Whether the entry has authored Markdown after its frontmatter. */
+  hasBody: boolean;
+  /** Compiled Markdown component for the entry body. */
   Content: MarkdownInstance<LifeFrontmatter>['Content'];
 }
 
@@ -67,6 +71,7 @@ export function getLifeEntries(): LifeEntry[] {
       ...entry.frontmatter,
       slug,
       url: entry.frontmatter.type === 'essay' ? `/life/${slug}/` : `/life/#${slug}`,
+      hasBody: entry.rawContent().trim().length > 0,
       Content: entry.Content,
     };
   }).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.order || 0) - (a.order || 0));

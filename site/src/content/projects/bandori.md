@@ -7,8 +7,8 @@ category: 客户端
 stack: [Kotlin, Compose Multiplatform, MVI]
 platforms: Android · iOS · Windows · macOS · Linux
 status: 已发布
-image: /projects/bandori-1.jpg
-secondaryImage: /projects/bandori-2.jpg
+image: /images/projects/bandori-1.jpg
+secondaryImage: /images/projects/bandori-2.jpg
 visual: phones
 source: https://github.com/Eynnzerr/BandoriStationMobile
 download: https://github.com/Eynnzerr/BandoriStationMobile/releases

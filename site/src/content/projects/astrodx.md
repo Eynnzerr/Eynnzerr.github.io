@@ -7,7 +7,7 @@ category: 工具
 stack: [Tauri, Rust, React]
 platforms: macOS · Windows · Linux
 status: 已发布
-image: /projects/astrodx.png
+image: /images/projects/astrodx.png
 visual: banner
 source: https://github.com/Eynnzerr/astrodx-batch-downloader
 download: https://github.com/Eynnzerr/astrodx-batch-downloader/releases
