@@ -2,16 +2,16 @@
   "version": 1,
   "kind": "github",
   "status": "available",
-  "updatedAt": "2026-11-23T00:35:13.114Z",
+  "updatedAt": "2026-11-25T00:35:17.424Z",
   "source": "GitHub Contributions · 官方贡献日历",
   "sourceUrl": "https://github.com/Eynnzerr",
   "timezone": "GitHub contribution calendar",
   "coverage": {
     "start": "2020-01-01",
-    "end": "2026-11-23"
+    "end": "2026-11-25"
   },
   "totals": {
-    "count": 649
+    "count": 671
   },
   "days": [
     {
@@ -10084,11 +10084,19 @@
     },
     {
       "date": "2026-11-22",
-      "count": 1
+      "count": 6
     },
     {
       "date": "2026-11-23",
-      "count": 1
+      "count": 15
+    },
+    {
+      "date": "2026-11-24",
+      "count": 3
+    },
+    {
+      "date": "2026-11-25",
+      "count": 0
     }
   ]
 }
